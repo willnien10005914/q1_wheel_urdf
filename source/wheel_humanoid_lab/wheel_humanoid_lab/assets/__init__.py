@@ -1,0 +1,1 @@
+from .wheel_humanoid import WHEEL_HUMANOID_CFG, WHEEL_HUMANOID_SKATEBOARD_CFG

@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+*.egg-info/
+.eggs/
+usd/
+logs/
+outputs/
+checkpoints/*
+!checkpoints/skateboard_ppo.pt
+!checkpoints/exported/
+!checkpoints/exported/policy.onnx
+!checkpoints/exported/policy.pt
+checkpoints/videos/
+web/node_modules/
+.venv*/
+*.tmp

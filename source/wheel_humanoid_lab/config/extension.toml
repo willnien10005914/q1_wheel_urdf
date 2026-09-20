@@ -1,0 +1,20 @@
+[package]
+version = "0.1.0"
+category = "isaaclab"
+readme = "README.md"
+title = "Wheel Humanoid Skateboard"
+author = "wheel_humanoid_urdf"
+maintainer = "wheel_humanoid_urdf"
+description = "Isaac Lab PPO skateboard sliding for the dual-wheel humanoid"
+keywords = ["extension", "isaaclab", "wheel", "humanoid", "skateboard"]
+
+[dependencies]
+"isaaclab" = {}
+"isaaclab_assets" = {}
+"isaaclab_rl" = {}
+"isaaclab_tasks" = {}
+
+[[python.module]]
+name = "wheel_humanoid_lab"
+
+[isaaclab_settings]

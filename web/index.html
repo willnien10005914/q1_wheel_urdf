@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wheel Humanoid 關節控制</title>
+  <link rel="stylesheet" href="./style.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
+      "three/examples/jsm/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
+      "urdf-loader": "https://cdn.jsdelivr.net/npm/urdf-loader@0.12.4/src/URDFLoader.js"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div id="app">
+    <section id="viewport">
+      <div class="hud">
+        <h1>Wheel Humanoid</h1>
+        <p>19 主動自由度 · 拖曳滑桿或點選連桿</p>
+      </div>
+      <div class="views">
+        <button data-view="iso">斜視</button>
+        <button data-view="front">正面</button>
+        <button data-view="side">側面</button>
+        <button data-view="top">俯視</button>
+      </div>
+      <div id="loader">
+        <div class="loader-card">
+          <h3>載入機器人</h3>
+          <p id="load-status">讀取 URDF 與 STL…</p>
+          <div class="bar"><span id="load-bar"></span></div>
+          <div id="error"></div>
+        </div>
+      </div>
+    </section>
+
+    <aside id="sidebar">
+      <div class="side-head">
+        <h2>關節控制</h2>
+        <div class="preset-row">
+          <button data-preset="zero">零位</button>
+          <button data-preset="kneel">蹲姿</button>
+          <button data-preset="tpose">T 姿</button>
+          <button data-preset="reach">前伸</button>
+        </div>
+        <div class="toolbar" style="margin-top:8px">
+          <button id="reset">全部歸零</button>
+          <button id="copy">複製 JSON</button>
+        </div>
+        <div class="toggles">
+          <label><input id="mirror" type="checkbox"> 左右鏡像</label>
+          <label><input id="spin-wheels" type="checkbox"> 輪子旋轉</label>
+        </div>
+      </div>
+      <div id="joints" class="joint-list"></div>
+      <div class="export">
+        <textarea id="joint-json" readonly spellcheck="false"></textarea>
+      </div>
+    </aside>
+  </div>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
