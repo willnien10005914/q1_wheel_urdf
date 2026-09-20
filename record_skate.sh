@@ -26,8 +26,9 @@ source "$HOME/isaac/env_isaaclab/bin/activate"
 CKPT="${CHECKPOINT:-$ROOT/checkpoints/q1_skate_ppo.pt}"
 STEPS="${STEPS:-600}"
 PROFILE="${PROFILE:-0:0.0,100:0.6,300:1.2}"
+OUT="${OUT:-$ROOT/checkpoints/videos/q1_skate_$(basename "${CKPT%.pt}").mp4}"
 
-exec python -u scripts/reinforcement_learning/rsl_rl/play.py \
+python -u scripts/reinforcement_learning/rsl_rl/play.py \
   --task Isaac-Q1-Skate-Play-v0 \
   --num_envs 1 \
   --headless \
@@ -41,3 +42,10 @@ exec python -u scripts/reinforcement_learning/rsl_rl/play.py \
   --cmd_yaw 0.0 \
   --max_steps "$STEPS" \
   "$@"
+
+SRC="$(dirname "$CKPT")/videos/play/rl-video-step-0.mp4"
+if [[ -f "$SRC" ]]; then
+  mkdir -p "$(dirname "$OUT")"
+  cp "$SRC" "$OUT"
+  echo "[INFO] Video saved to: $OUT"
+fi

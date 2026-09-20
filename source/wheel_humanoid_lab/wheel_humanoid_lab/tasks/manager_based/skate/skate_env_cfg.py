@@ -397,3 +397,7 @@ class Q1SkateEnvCfg_PLAY(Q1SkateEnvCfg):
         self.commands.base_velocity.rel_standing_envs = 0.0
         self.commands.base_velocity.ranges.lin_vel_x = (-0.6, 1.8)
         self.commands.base_velocity.ranges.ang_vel_z = (-0.6, 0.6)
+        # 3/4 side view that keeps wheels, legs and the arm counterweight in frame (offsets are
+        # relative to the pelvis root, ~0.73 m above ground).
+        self.viewer.eye = (1.9, -2.3, 0.35)
+        self.viewer.lookat = (0.0, 0.0, -0.15)

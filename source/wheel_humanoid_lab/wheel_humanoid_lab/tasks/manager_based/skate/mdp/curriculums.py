@@ -65,7 +65,7 @@ class skate_stage(ManagerTermBase):
             cmd.rel_standing_envs = float(st["rel_standing"])
         if "reset_vx" in st:
             env.event_manager.get_term_cfg("reset_base").params["velocity_range"]["x"] = tuple(st["reset_vx"])
-        if "push" in st and "push_robot" in env.event_manager.active_terms["interval"]:
+        if "push" in st and "push_robot" in env.event_manager.active_terms.get("interval", []):
             p = st["push"]
             rng = {"x": (0.0, 0.0), "y": (0.0, 0.0)} if p is None else {"x": tuple(p), "y": tuple(p)}
             env.event_manager.get_term_cfg("push_robot").params["velocity_range"] = rng
