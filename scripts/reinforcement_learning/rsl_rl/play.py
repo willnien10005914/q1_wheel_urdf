@@ -30,6 +30,12 @@ parser.add_argument("--real-time", action="store_true", default=False, help="Run
 parser.add_argument("--max_steps", type=int, default=None, help="Stop after this many policy steps (headless verify).")
 parser.add_argument("--cmd_vx", type=float, default=None, help="Fixed body vx command for headless verify.")
 parser.add_argument(
+    "--hold_heading",
+    type=float,
+    default=None,
+    help="World heading (rad) to hold: yaw_cmd = clip(k * wrap(target - heading), +/-0.5). Overrides --cmd_yaw.",
+)
+parser.add_argument(
     "--cmd_profile",
     type=str,
     default=None,
@@ -275,6 +281,7 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
                 or args_cli.cmd_vx is not None
                 or args_cli.cmd_vy is not None
                 or args_cli.cmd_yaw is not None
+                or args_cli.hold_heading is not None
             ):
                 vel_term = env.unwrapped.command_manager.get_term("base_velocity")
                 if cmd_profile:
@@ -287,7 +294,11 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
                     vel_term.vel_command_b[:, 0] = args_cli.cmd_vx
                 if args_cli.cmd_vy is not None:
                     vel_term.vel_command_b[:, 1] = args_cli.cmd_vy
-                if args_cli.cmd_yaw is not None:
+                if args_cli.hold_heading is not None:
+                    heading_w = env.unwrapped.scene["robot"].data.heading_w
+                    err = torch.remainder(args_cli.hold_heading - heading_w + math.pi, 2 * math.pi) - math.pi
+                    vel_term.vel_command_b[:, 2] = torch.clamp(1.0 * err, -0.5, 0.5)
+                elif args_cli.cmd_yaw is not None:
                     vel_term.vel_command_b[:, 2] = args_cli.cmd_yaw
                 vel_term.is_standing_env[:] = False
             actions = policy(obs)

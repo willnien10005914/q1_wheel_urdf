@@ -11,6 +11,8 @@ checkpoints/*
 !checkpoints/exported/
 !checkpoints/exported/policy.onnx
 !checkpoints/exported/policy.pt
+!checkpoints/exported/q1_skate_policy.onnx
+!checkpoints/exported/q1_skate_policy.pt
 checkpoints/videos/
 web/node_modules/
 .venv*/

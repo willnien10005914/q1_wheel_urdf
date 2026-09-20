@@ -74,6 +74,40 @@ fraction, peak air time, torso pitch, shoulder pitch, AKE90 saturation %.
 Terminations: trunk tilt > 0.6 rad, pelvis z < 0.60 m, torso/pelvis/arm/thigh ground contact, 20 s
 time-out. Resume in a later stage with `RESUME=1 CHECKPOINT=... START_ITER=<iter> ./train_skate.sh`.
 
+## Results (run `skate_cubemars_4096_v2`, 4096 envs, stage 5 reached at iter 3400)
+
+[`docs/results/q1_skate_cubemars_iter3800.mp4`](docs/results/q1_skate_cubemars_iter3800.mp4) — 12 s
+headless play of `checkpoints/q1_skate_ppo.pt` (iter 3800): coast 2 s → 0.6 → 1.2 → 1.5 m/s, heading
+held at 0 through the yaw command. 8.15 m travelled, no fall, pelvis 0.75 m, final body vx 1.28 m/s.
+
+![iter 3800 frames](docs/results/q1_skate_cubemars_iter3800_frames.png)
+
+Training metrics at iter 3700 (stage 5, pushes + CoM DR on): torso `projected_gravity_x` 0.164
+(target 0.17), shoulder pitch 0.575 rad (keyframe 0.55), `leg_symmetry` 0.87, both-wheel contact 99.4 %,
+wheel rim speed = base speed (0.456 vs 0.465 m/s → no sliding cheat), AKE90 saturation 0.1 %, mean
+action std 0.19, 6.7 % of episodes terminated (pushes). Micro-lift has not emerged yet
+(`skating_air_time` 0, single-contact 0.5 %); it is a weak late term by design and the run continues
+to 20k iterations.
+
+```bash
+CHECKPOINT=logs/rsl_rl/q1_skate_cubemars/<run>/model_<n>.pt ./record_skate.sh   # new video
+./record_skate.sh                                                             # checkpoints/q1_skate_ppo.pt
+```
+
+Exported policy with the observation normalizer baked in: `checkpoints/exported/q1_skate_policy.onnx`
+(input `obs[1,92]` → `actions[1,24]`) and `q1_skate_policy.pt` (TorchScript).
+
+### Lessons from run 1 (kept so they are not repeated)
+
+- **Do not clip actions in the RL wrapper.** With `clip_actions=1.0` the policy pushed its means far
+  outside [-1, 1]; the clipped action was then noise-free bang-bang, `action_rate_l2` saw ~0 and the
+  entropy bonus grew the per-joint std to ~2.5 (arms flailing, `arms_back`/`forward_lean` ≈ 0). The
+  bound now lives in joint space on the action terms (`default ± scale`, wheels ±25 rad/s), the raw
+  action is penalised (`action_l2`), and std settles around 0.2. The runtime must apply the same clamp.
+- Gaussian style rewards need a gradient from the starting pose: `forward_lean` std 0.12 (not 0.06),
+  `arms_back` uses the per-joint RMS error (std 0.45 rad) instead of a sum over joints.
+- `entropy_coef` 0.005 (spec said 0.01–0.03; 0.01 was part of the std runaway above).
+
 ---
 
 # wheel_humanoid URDF (기하 구조 노트)

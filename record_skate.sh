@@ -2,6 +2,7 @@
 # Headless play + RGB video of the Isaac-Q1-Skate policy (CubeMars plant).
 #
 # Command profile (policy steps @ 50 Hz): coast 2 s -> glide 0.6 m/s -> skate 1.2 m/s.
+# Heading is held at HEADING (rad, default 0) through the yaw command, as the runtime would do.
 #   CHECKPOINT=logs/rsl_rl/q1_skate/<run>/model_3000.pt ./record_skate.sh
 #   STEPS=600 PROFILE="0:0.0,100:0.6,300:1.2" ./record_skate.sh
 set -euo pipefail
@@ -39,7 +40,7 @@ python -u scripts/reinforcement_learning/rsl_rl/play.py \
   --checkpoint "$CKPT" \
   --cmd_profile "$PROFILE" \
   --cmd_vy 0.0 \
-  --cmd_yaw 0.0 \
+  --hold_heading "${HEADING:-0.0}" \
   --max_steps "$STEPS" \
   "$@"
 
