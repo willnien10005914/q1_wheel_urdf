@@ -1,0 +1,231 @@
+# Q1 Wheel / BI2 Wheel (Quanta) hardware component sheet.
+#
+# Single source of truth for everything that is NOT geometry:
+#   * CubeMars motor SKUs (electrical + mechanical numbers from the CubeMars datasheets,
+#     see docs/motors.md for the sources and the derivations),
+#   * joint -> motor assignment (from the "Project Overview - BI2 Wheel" slide,
+#     docs/spec/bi2_wheel_motor_overview.png),
+#   * IMU (Xsens MTi-630) placement, CAN bus rate, wheel radius, total mass target.
+#
+# Consumers:
+#   tools/build_urdf.py                       -> urdf/wheel_humanoid.urdf (masses, limits, extra joints, imu_link)
+#   wheel_humanoid_lab/assets/wheel_humanoid.py -> Isaac Lab actuator groups (CubeMarsActuatorCfg)
+#   wheel_humanoid_lab/tasks/.../skate         -> sim dt / decimation / IMU sensor config
+
+robot:
+  name: q1_wheel
+  target_total_mass_kg: 40.0      # customer number (slide says ~50 kg incl. battery/covers; user spec: 40 kg)
+  height_m: 1.42                  # slide: ~1.4 m. Zero-pose mesh top (head) is 1.37 m above the wheel contact.
+  wheel_radius_m: 0.100           # 200 mm wheel diameter (CAD mesh radial extent = 0.100 m)
+  wheel_width_m: 0.060
+  wheel_material:
+    static_friction: 1.0          # rubber on floor, DR 0.6-1.3 in the env
+    dynamic_friction: 0.9
+    restitution: 0.0
+
+bus:
+  can_rate_hz: 200                # motor CAN command loop. Sim: physics dt = 1/200 s, actuator model runs at 200 Hz.
+  policy_rate_hz: 50              # decimation 4
+  pack_voltage_v: 48.0            # 13S LiPo-class pack for AK10-9 / AKE90. 24 V rail (buck) for AK45.
+  pack_voltage_dr_v: [44.0, 50.0]
+  rail_24v_dr_v: [22.5, 25.0]
+
+imu:
+  model: Xsens MTi-630 AHRS
+  parent_link: pelvis
+  # Below the waist joint, at hip-pitch axis height, on the pelvis centreline:
+  # used to balance the lower body (pelvis is the floating base of the articulation).
+  xyz: [0.0, 0.0, -0.1267]
+  rpy: [0.0, 0.0, 0.0]
+  mass_kg: 0.055                  # 0.020 kg unit + bracket
+  size_m: [0.0573, 0.0416, 0.0236]
+  output_rate_hz: 400             # MTi-630 SDI rate (we sample at 200 Hz physics, policy sees 50 Hz)
+  gyro:
+    range_dps: 2000
+    noise_density_dps_sqrt_hz: 0.007
+    in_run_bias_dph: 8
+    bandwidth_hz: 520
+  accel:
+    range_g: 10
+    noise_density_ug_sqrt_hz: 60
+    in_run_bias_ug: 10
+    bandwidth_hz: 500
+  sim:
+    delay_steps: [0, 3]           # physics steps (0-15 ms)
+    tilt_dr_deg: 6.0              # mounting misalignment DR (+-)
+    gyro_noise_std_rad_s: 0.02    # per 50 Hz sample, conservative (>> datasheet, covers vibration)
+    grav_noise_std: 0.02
+
+# ---------------------------------------------------------------------------
+# CubeMars motor SKUs (output-side quantities are AFTER the planetary gearbox).
+# Sources: cubemars.com product pages / PDF parameter sheets (Sep 2026), see docs/motors.md.
+# tau_peak_slide is the number printed on the BI2 slide; we use it as the operating peak
+# torque (conservative), the datasheet peak is kept for reference.
+# ---------------------------------------------------------------------------
+motors:
+  AKE90-8_KV35:
+    family: AKE
+    bus_voltage_v: 48.0
+    kv_rpm_per_v: 35.0
+    kt_nm_per_a: 0.272            # motor side
+    phase_resistance_ohm: 0.164   # phase-to-phase
+    phase_inductance_h: 235e-6
+    gear_ratio: 8.0
+    rated_current_a: 21.0
+    peak_current_a: 72.0
+    rated_torque_nm: 55.0         # output, continuous
+    peak_torque_datasheet_nm: 170.0
+    tau_peak_slide_nm: 121.0
+    no_load_speed_rpm: 210.0      # output
+    rated_speed_rpm: 120.0
+    rotor_inertia_kgm2: 3.37708e-4
+    backlash_arcmin: 9
+    mass_kg: 1.400
+    diameter_mm: 107.5
+    length_mm: 43.5
+  AK10-9_V3_KV60:
+    family: AK
+    bus_voltage_v: 48.0
+    kv_rpm_per_v: 60.0
+    kt_nm_per_a: 0.16
+    phase_resistance_ohm: 0.248
+    phase_inductance_h: 213e-6
+    gear_ratio: 9.0
+    rated_current_a: 10.7
+    peak_current_a: 31.9
+    rated_torque_nm: 18.0
+    peak_torque_datasheet_nm: 53.0
+    tau_peak_slide_nm: 43.0
+    no_load_speed_rpm: 320.0
+    rated_speed_rpm: 235.0
+    rotor_inertia_kgm2: 1.002e-4
+    backlash_arcmin: 12
+    mass_kg: 0.940
+    diameter_mm: 98.0
+    length_mm: 61.7
+  AK45-36_V3_KV80:
+    family: AK
+    bus_voltage_v: 24.0
+    kv_rpm_per_v: 80.0
+    kt_nm_per_a: 0.11
+    phase_resistance_ohm: 1.8
+    phase_inductance_h: 1.1e-3
+    gear_ratio: 36.0
+    rated_current_a: 2.0
+    peak_current_a: 6.5
+    rated_torque_nm: 8.0
+    peak_torque_datasheet_nm: 24.0
+    tau_peak_slide_nm: 24.0
+    no_load_speed_rpm: 52.0
+    rated_speed_rpm: 40.0
+    rotor_inertia_kgm2: 1.819e-5
+    backlash_arcmin: 12
+    mass_kg: 0.349
+    diameter_mm: 55.0
+    length_mm: 56.5
+  AK45-10_V3_KV75:
+    family: AK
+    bus_voltage_v: 24.0
+    kv_rpm_per_v: 75.0
+    kt_nm_per_a: 0.127
+    phase_resistance_ohm: 2.2
+    phase_inductance_h: 1.33e-3
+    gear_ratio: 10.0
+    rated_current_a: 1.9
+    peak_current_a: 5.0
+    rated_torque_nm: 2.5
+    peak_torque_datasheet_nm: 7.0
+    tau_peak_slide_nm: 7.0
+    no_load_speed_rpm: 180.0
+    rated_speed_rpm: 120.0
+    rotor_inertia_kgm2: 1.5733e-5
+    backlash_arcmin: 18
+    mass_kg: 0.262
+    diameter_mm: 53.0
+    length_mm: 45.2
+
+# ---------------------------------------------------------------------------
+# 24 actuated joints (slide count: neck 1, gripper 2, shoulder 6, elbow 2, wrist 2,
+# torso 3, hip 4, knee 2, wheel 2). The motor stator is added to the PARENT link at the
+# joint origin by tools/build_urdf.py. `mode` is what the policy commands.
+# ---------------------------------------------------------------------------
+joints:
+  waist_yaw_joint:        {motor: AK10-9_V3_KV60,  group: torso,    mode: position}
+  waist_roll_joint:       {motor: AK10-9_V3_KV60,  group: torso,    mode: position}
+  waist_pitch_joint:      {motor: AK10-9_V3_KV60,  group: torso,    mode: position}
+  neck_joint:             {motor: AK45-36_V3_KV80, group: neck,     mode: position}
+  l_shoulder_pitch_joint: {motor: AK10-9_V3_KV60,  group: shoulder, mode: position}
+  l_shoulder_roll_joint:  {motor: AK10-9_V3_KV60,  group: shoulder, mode: position}
+  l_shoulder_yaw_joint:   {motor: AK10-9_V3_KV60,  group: shoulder, mode: position}
+  l_elbow_joint:          {motor: AK10-9_V3_KV60,  group: elbow,    mode: position}
+  l_wrist_joint:          {motor: AK45-10_V3_KV75, group: wrist,    mode: position, frozen: true}
+  l_gripper_joint:        {motor: AK45-10_V3_KV75, group: gripper,  mode: position, frozen: true}
+  r_shoulder_pitch_joint: {motor: AK10-9_V3_KV60,  group: shoulder, mode: position}
+  r_shoulder_roll_joint:  {motor: AK10-9_V3_KV60,  group: shoulder, mode: position}
+  r_shoulder_yaw_joint:   {motor: AK10-9_V3_KV60,  group: shoulder, mode: position}
+  r_elbow_joint:          {motor: AK10-9_V3_KV60,  group: elbow,    mode: position}
+  r_wrist_joint:          {motor: AK45-10_V3_KV75, group: wrist,    mode: position, frozen: true}
+  r_gripper_joint:        {motor: AK45-10_V3_KV75, group: gripper,  mode: position, frozen: true}
+  l_hip_pitch_joint:      {motor: AKE90-8_KV35,    group: hip,      mode: position}
+  l_hip_roll_joint:       {motor: AKE90-8_KV35,    group: hip,      mode: position}
+  l_knee_joint:           {motor: AKE90-8_KV35,    group: knee,     mode: position}
+  r_hip_pitch_joint:      {motor: AKE90-8_KV35,    group: hip,      mode: position}
+  r_hip_roll_joint:       {motor: AKE90-8_KV35,    group: hip,      mode: position}
+  r_knee_joint:           {motor: AKE90-8_KV35,    group: knee,     mode: position}
+  l_wheel_joint:          {motor: AK10-9_V3_KV60,  group: wheel,    mode: velocity}
+  r_wheel_joint:          {motor: AK10-9_V3_KV60,  group: wheel,    mode: velocity}
+
+# Joints that exist on the slide but have no mesh in the 20260911 STL set. They are added
+# to the URDF as real revolute joints (so the articulation really has 24 actuated DoF)
+# with a motor-housing visual only. The head shell itself is fused into the torso mesh.
+extra_joints:
+  neck_joint:
+    parent: torso
+    child: head_link
+    xyz: [0.0, 0.0, 0.330]
+    rpy: [0.0, 0.0, 0.0]
+    axis: [0.0, 0.0, 1.0]
+    lower: -1.57
+    upper: 1.57
+    child_mass_kg: 0.150
+    visual_cylinder: {radius: 0.0275, length: 0.0565, rpy: [0, 0, 0]}
+  l_wrist_joint:
+    parent: l_elbow_link
+    child: l_wrist_link
+    xyz: [0.0, -0.0241, -0.1822]
+    rpy: [0.0, 0.0, 0.0]
+    axis: [0.0, 0.0, 1.0]
+    lower: -1.57
+    upper: 1.57
+    child_mass_kg: 0.120
+    visual_cylinder: {radius: 0.0265, length: 0.0452, rpy: [0, 0, 0]}
+  l_gripper_joint:
+    parent: l_wrist_link
+    child: l_gripper_link
+    xyz: [0.0, 0.0, -0.050]
+    rpy: [0.0, 0.0, 0.0]
+    axis: [0.0, 1.0, 0.0]
+    lower: 0.0
+    upper: 1.0
+    child_mass_kg: 0.200
+    visual_cylinder: {radius: 0.0265, length: 0.0452, rpy: [1.5708, 0, 0]}
+  r_wrist_joint:
+    parent: r_elbow_link
+    child: r_wrist_link
+    xyz: [0.0, 0.0241, -0.1822]
+    rpy: [0.0, 0.0, 0.0]
+    axis: [0.0, 0.0, 1.0]
+    lower: -1.57
+    upper: 1.57
+    child_mass_kg: 0.120
+    visual_cylinder: {radius: 0.0265, length: 0.0452, rpy: [0, 0, 0]}
+  r_gripper_joint:
+    parent: r_wrist_link
+    child: r_gripper_link
+    xyz: [0.0, 0.0, -0.050]
+    rpy: [0.0, 0.0, 0.0]
+    axis: [0.0, 1.0, 0.0]
+    lower: 0.0
+    upper: 1.0
+    child_mass_kg: 0.200
+    visual_cylinder: {radius: 0.0265, length: 0.0452, rpy: [1.5708, 0, 0]}

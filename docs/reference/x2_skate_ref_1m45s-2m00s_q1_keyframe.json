@@ -1,0 +1,28 @@
+{
+  "source": "x2_skate_ref_1m45s-2m00s.mp4",
+  "frames_used": 365,
+  "torso_lean_deg": {
+    "median": -2.069505556761094,
+    "p25": -8.89766738216036,
+    "p75": 4.102927891077327
+  },
+  "hip_pitch_deg": {
+    "median": 23.057785291254994
+  },
+  "knee_deg": {
+    "median": 65.05256196889081
+  },
+  "shoulder_pitch_back_deg": {
+    "median": -7.260455452975805
+  },
+  "elbow_deg": {
+    "median": 13.221898521987868
+  },
+  "q1_targets_rad": {
+    "projected_gravity_x": -0.03611183255153668,
+    "hip_pitch": -0.40243427155031936,
+    "knee": 1.1353813932147898,
+    "shoulder_pitch": -0.12671885284880413,
+    "elbow": -0.23076566257326017
+  }
+}
