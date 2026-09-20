@@ -13,7 +13,7 @@ class Q1SkatePPORunnerCfg(RslRlOnPolicyRunnerCfg):
     save_interval = 100
     experiment_name = "q1_skate_cubemars"
     obs_groups = {"policy": ["policy"], "critic": ["critic"]}
-    clip_actions = 1.0
+    clip_actions = None  # bound is applied in joint space by the action terms (see ActionsCfg)
     policy = RslRlPpoActorCriticCfg(
         init_noise_std=1.0,
         noise_std_type="scalar",
@@ -27,10 +27,11 @@ class Q1SkatePPORunnerCfg(RslRlOnPolicyRunnerCfg):
         value_loss_coef=1.0,
         use_clipped_value_loss=True,
         clip_param=0.2,
-        # 0.01 let the per-dim std of the arm/torso/neck slots drift to ~2.5 (clip_actions=1.0 hides
-        # the cost of a wide Gaussian), which turned the arms into bang-bang noise and starved the
-        # arms_back / forward_lean terms. 0.003 keeps exploration without that runaway.
-        entropy_coef=0.003,
+        # Run 1 used 0.01 together with wrapper clip_actions=1.0: the policy pushed its means far
+        # outside [-1, 1] (clipped => noise-free bang-bang) while the entropy bonus grew the std to
+        # ~2.5. The clip now lives in joint space and the raw action is penalised, so std is paid for;
+        # 0.005 keeps exploration without that runaway.
+        entropy_coef=0.005,
         num_learning_epochs=5,
         num_mini_batches=4,
         learning_rate=1.0e-3,

@@ -7,6 +7,7 @@ Plant: 24 CubeMars actuators (explicit BLDC model), Xsens MTi-630 on the pelvis,
 from __future__ import annotations
 
 import math
+import re
 
 import isaaclab.sim as sim_utils
 from isaaclab.assets import ArticulationCfg, AssetBaseCfg
@@ -90,6 +91,35 @@ _UNUSED_JOINTS = ["neck_joint", ".*_wrist_joint", ".*_gripper_joint", "waist_yaw
 _ARM_KEYFRAME_JOINTS = [".*_shoulder_pitch_joint", ".*_shoulder_roll_joint", ".*_elbow_joint"]
 _AKE90_GROUPS = ["ake90_hip", "ake90_knee"]
 
+# Position action scale (rad per unit action) around the skate keyframe (articulation default pose).
+_POS_ACTION_SCALE = {
+    "waist_yaw_joint": 0.15,
+    "waist_roll_joint": 0.10,
+    "waist_pitch_joint": 0.20,
+    "neck_joint": 0.20,
+    ".*_shoulder_pitch_joint": 0.40,
+    ".*_shoulder_roll_joint": 0.25,
+    ".*_shoulder_yaw_joint": 0.20,
+    ".*_elbow_joint": 0.30,
+    ".*_wrist_joint": 0.0,  # frozen for the skate task, slot kept for hot-swap
+    ".*_gripper_joint": 0.0,
+    ".*_hip_pitch_joint": 0.50,
+    ".*_hip_roll_joint": 0.30,
+    ".*_knee_joint": 0.45,
+}
+WHEEL_VEL_ACTION_SCALE = 25.0  # rad/s per unit action (2.5 m/s rim speed at r = 0.1 m)
+
+
+def _position_action_clip() -> dict[str, tuple[float, float]]:
+    """Joint-space clamp equivalent to |a| <= 1: default -/+ scale for every position joint."""
+    defaults = Q1_WHEEL_CUBEMARS_CFG.init_state.joint_pos
+    clip: dict[str, tuple[float, float]] = {}
+    for joint in Q1_POSITION_JOINTS:
+        scale = next(s for pat, s in _POS_ACTION_SCALE.items() if re.fullmatch(pat, joint))
+        q0 = next((q for pat, q in defaults.items() if re.fullmatch(pat, joint)), 0.0)
+        clip[joint] = (q0 - scale, q0 + scale)
+    return clip
+
 
 ##
 # Scene
@@ -144,31 +174,30 @@ class CommandsCfg:
 
 @configclass
 class ActionsCfg:
-    """24-D action = [22 position targets in contract order] + [2 wheel velocity targets]."""
+    """24-D action = [22 position targets in contract order] + [2 wheel velocity targets].
+
+    The raw policy output is NOT clipped by the RL wrapper (``clip_actions=None``): clipping there hid
+    the Gaussian noise from ``action_rate_l2`` and let the policy drift its means far outside [-1, 1]
+    into a bang-bang regime with an ever-growing std. The bound lives here instead, in joint space
+    (target = clamp(default + scale * a, default -/+ scale)), and ``action_l2`` keeps |a| ~ 1.
+    The deploy runtime must apply the same joint-space clamp.
+    """
 
     joint_pos = loco_mdp.JointPositionActionCfg(
         asset_name="robot",
         joint_names=Q1_POSITION_JOINTS,
         preserve_order=True,
-        scale={
-            "waist_yaw_joint": 0.15,
-            "waist_roll_joint": 0.10,
-            "waist_pitch_joint": 0.20,
-            "neck_joint": 0.20,
-            ".*_shoulder_pitch_joint": 0.40,
-            ".*_shoulder_roll_joint": 0.25,
-            ".*_shoulder_yaw_joint": 0.20,
-            ".*_elbow_joint": 0.30,
-            ".*_wrist_joint": 0.0,  # frozen for the skate task, slot kept for hot-swap
-            ".*_gripper_joint": 0.0,
-            ".*_hip_pitch_joint": 0.50,
-            ".*_hip_roll_joint": 0.30,
-            ".*_knee_joint": 0.45,
-        },
+        scale=_POS_ACTION_SCALE,
         use_default_offset=True,
+        clip=_position_action_clip(),
     )
     wheel_vel = loco_mdp.JointVelocityActionCfg(
-        asset_name="robot", joint_names=Q1_WHEEL_JOINTS, preserve_order=True, scale=25.0, use_default_offset=True
+        asset_name="robot",
+        joint_names=Q1_WHEEL_JOINTS,
+        preserve_order=True,
+        scale=WHEEL_VEL_ACTION_SCALE,
+        use_default_offset=True,
+        clip={".*_wheel_joint": (-WHEEL_VEL_ACTION_SCALE, WHEEL_VEL_ACTION_SCALE)},
     )
 
 
@@ -311,6 +340,8 @@ class RewardsCfg:
 
     # ---- costs ----
     action_rate_l2 = RewTerm(func=loco_mdp.action_rate_l2, weight=ACTION_RATE_KNOTS[0][1])
+    # keeps raw |a| ~ 1 now that the wrapper no longer clips (see ActionsCfg); ~0 inside the box
+    action_l2 = RewTerm(func=loco_mdp.action_l2, weight=-0.002)
     torques_ake90 = RewTerm(func=loco_mdp.joint_torques_l2, weight=-2.0e-5, params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_hip_.*_joint", ".*_knee_joint"])})
     torques_other = RewTerm(func=loco_mdp.joint_torques_l2, weight=-1.0e-5, params={"asset_cfg": SceneEntityCfg("robot", joint_names=["waist_.*_joint", ".*_shoulder_.*_joint", ".*_elbow_joint", ".*_wheel_joint"])})
     ake90_saturation = RewTerm(func=mdp.actuator_saturation, weight=-0.2, params={"actuator_names": _AKE90_GROUPS})
