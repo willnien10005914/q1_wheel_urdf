@@ -299,11 +299,11 @@ class RewardsCfg:
     )
     forward_lean = RewTerm(
         func=mdp.forward_lean, weight=0.0,
-        params={"asset_cfg": SceneEntityCfg("robot", body_names=["torso"]), "target": 0.17, "std": 0.06, "max_tilt": UPRIGHT_TILT, "min_height": MIN_STAND_Z},
+        params={"asset_cfg": SceneEntityCfg("robot", body_names=["torso"]), "target": 0.17, "std": 0.12, "max_tilt": UPRIGHT_TILT, "min_height": MIN_STAND_Z},
     )
     arms_back = RewTerm(
         func=mdp.arms_back, weight=0.0,
-        params={"asset_cfg": SceneEntityCfg("robot", joint_names=_ARM_KEYFRAME_JOINTS), "std": 0.35, "max_tilt": UPRIGHT_TILT, "min_height": MIN_STAND_Z},
+        params={"asset_cfg": SceneEntityCfg("robot", joint_names=_ARM_KEYFRAME_JOINTS), "std": 0.45, "max_tilt": UPRIGHT_TILT, "min_height": MIN_STAND_Z},
     )
     head_up = RewTerm(func=mdp.head_up, weight=0.2, params={"asset_cfg": SceneEntityCfg("robot", body_names=["head_link"]), "std": 0.3})
     upright = RewTerm(func=mdp.upright, weight=1.0, params={"std": 0.35})

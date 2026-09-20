@@ -141,7 +141,7 @@ def forward_lean(
     env: ManagerBasedRLEnv,
     asset_cfg: SceneEntityCfg,
     target: float = 0.17,
-    std: float = 0.06,
+    std: float = 0.12,
     max_tilt: float = 0.45,
     min_height: float = 0.65,
 ) -> torch.Tensor:
@@ -160,15 +160,18 @@ def forward_lean(
 def arms_back(
     env: ManagerBasedRLEnv,
     asset_cfg: SceneEntityCfg,
-    std: float = 0.35,
+    std: float = 0.45,
     max_tilt: float = 0.45,
     min_height: float = 0.65,
 ) -> torch.Tensor:
     """Gaussian to the arms-back skate keyframe (the articulation default pose on the listed joints).
-    Gated on upright. Not a pull to HOME: the keyframe is the X2 style pose."""
+    Gated on upright. Not a pull to HOME: the keyframe is the X2 style pose.
+
+    Uses the per-joint RMS error so ``std`` is a per-joint angle (rad) and the term keeps a gradient
+    for 6-8 joints; a sum over joints with a narrow std is ~0 everywhere except at the keyframe."""
     asset: Articulation = env.scene[asset_cfg.name]
     dq = asset.data.joint_pos[:, asset_cfg.joint_ids] - asset.data.default_joint_pos[:, asset_cfg.joint_ids]
-    r = torch.exp(-torch.sum(dq**2, dim=1) / std**2)
+    r = torch.exp(-torch.mean(dq**2, dim=1) / std**2)
     return r * _upright_gate(env, asset, max_tilt, min_height)
 
 
