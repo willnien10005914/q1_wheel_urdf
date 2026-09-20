@@ -1,4 +1,82 @@
-# wheel_humanoid URDF
+# Q1 Wheel (BI2 Wheel) URDF + Isaac Lab inline-skate RL
+
+Quanta Q1 / BI2 wheeled-legged humanoid: ~1.4 m, **40 kg**, 24 CubeMars quasi-direct-drive joints, two
+**actuated** Ø200 mm inline wheels, Xsens MTi-630 IMU on the pelvis, 200 Hz CAN. Trained in Isaac Lab
+(Isaac Sim 5.1 / PhysX, RSL-RL PPO) to skate like the
+[AgiBot Lingxi X2](https://www.youtube.com/watch?v=oJZ8tMIYlY4) (swizzle, forward lean, arms back,
+micro-lift), with a sim2real-oriented plant instead of ideal PD.
+
+```
+config/q1_wheel_components.yaml   hardware sheet: motor SKUs, joint->motor map, IMU, CAN, wheel, mass target
+docs/motors.md                    CubeMars datasheet numbers, assumptions, mass budget, sim actuator model
+docs/spec/                        BI2 Wheel motor overview slide
+docs/reference/                   X2 skate clip (1:45-2:00) + MediaPipe joint-angle trace + Q1 keyframe
+urdf/wheel_humanoid_structural.urdf   CAD geometry + uniform-density masses (hand edited)
+urdf/wheel_humanoid.urdf              GENERATED: tools/build_urdf.py (motors, 40 kg, imu_link, neck/wrist/gripper)
+source/wheel_humanoid_lab/wheel_humanoid_lab/
+  actuators/cubemars.py           CubeMarsActuator: V/I-limited BLDC + friction budget + delay + sag + DR
+  assets/q1_spec.py               24-D joint contract, command block widths, SKU helpers
+  assets/wheel_humanoid.py        Q1_WHEEL_CUBEMARS_CFG (actuator groups by SKU), skate stance keyframe
+  tasks/manager_based/skate/      Isaac-Q1-Skate-v0: obs/action contract, rewards, curriculum, DR
+tests/test_skate_contract.py      obs/action/actuator contract unit test (Isaac Sim, 4 envs)
+train_skate.sh / run_isaac.sh     training + generic Isaac Sim runner
+```
+
+## Quick start
+
+```bash
+python tools/build_urdf.py                          # regenerate urdf/wheel_humanoid.urdf from the YAML
+./run_isaac.sh tests/test_skate_contract.py         # contract test (must print ALL CHECKS PASSED)
+NUM_ENVS=64 MAX_ITERS=5 ./train_skate.sh            # smoke test: reward names appear in the log
+./train_skate.sh                                    # 4096 envs, curriculum stages 0-5 (see below)
+./run_isaac.sh scripts/reinforcement_learning/rsl_rl/play.py --task Isaac-Q1-Skate-Play-v0 \
+    --checkpoint logs/rsl_rl/q1_skate_cubemars/<run>/model_<n>.pt          # WASD teleop, exports ONNX
+```
+
+## Observation / action contract (hot-swappable)
+
+Actor (92-D, float32, observation normalization ON and baked into the exported ONNX/JIT):
+
+| block | dims | source |
+|---|---|---|
+| `imu_gyro` | 3 | MTi-630 on pelvis, 0–2 step delay, ±6° mounting tilt DR, noise |
+| `imu_projected_gravity` | 3 | same IMU (not raw accel) |
+| `joint_pos - default` | 24 | `Q1_JOINT_ORDER`, ±1.5° encoder bias, wheel angles wrapped to [-π, π) |
+| `joint_vel` | 24 | 1 policy-step delay |
+| `last_action` | 24 | unfiltered |
+| command `twist` | 3 | `[vx, vy=0, yaw]` |
+| command `head` / `body` | 4 / 6 | zero padded, reserved |
+| command `arm_style` | 1 | 1 = arms-back skate |
+
+Action (24-D): 22 position targets in `Q1_JOINT_ORDER` (wrist/gripper scale 0 = frozen) + 2 wheel
+velocity targets (`l_wheel_joint`, `r_wheel_joint`, ×25 rad/s). Critic additionally sees base lin vel,
+height, wheel rim speed, wheel normal force and air time. Control 50 Hz, PhysX 200 Hz (= CAN rate).
+
+`Q1_JOINT_ORDER` = waist yaw/roll/pitch, neck, L shoulder p/r/y, L elbow, L wrist, L gripper, R shoulder
+p/r/y, R elbow, R wrist, R gripper, L hip pitch/roll, L knee, R hip pitch/roll, R knee, L wheel, R wheel.
+
+## Curriculum (`SKATE_STAGES`, PPO iterations)
+
+| stage | from iter | what changes |
+|---|---|---|
+| 0 | 0 | stand/balance on two wheels, vx_cmd = 0, both wheels down |
+| 1 | 300 | wheel-driven glide 0–0.6 m/s |
+| 2 | 900 | swizzle: `leg_symmetry` 1.0, yaw ±0.3, braking −0.3 m/s, heading 0.5 |
+| 3 | 1600 | `forward_lean` (torso gx target 0.17) + `arms_back` keyframe |
+| 4 | 2400 | `skating_air_time` 0.3 (micro-lift 50–250 ms), vx up to 1.5 m/s |
+| 5 | 3400 | pushes ±0.5 m/s, CoM DR ±3 cm, heading 1.0, vx up to 1.8 m/s |
+
+`action_rate_l2` ramps −0.05 → −0.3 (iter 1500) → −0.6 (iter 4000). Reward names that must appear in
+the log: `wheel_speed, leg_symmetry, grounded, forward_lean, arms_back, skating_air_time` (0 until stage 4).
+Debug metrics under `Curriculum/metrics/*`: wheel ω, longitudinal/lateral slip, both/single contact
+fraction, peak air time, torso pitch, shoulder pitch, AKE90 saturation %.
+
+Terminations: trunk tilt > 0.6 rad, pelvis z < 0.60 m, torso/pelvis/arm/thigh ground contact, 20 s
+time-out. Resume in a later stage with `RESUME=1 CHECKPOINT=... START_ITER=<iter> ./train_skate.sh`.
+
+---
+
+# wheel_humanoid URDF (기하 구조 노트)
 
 `URDF_Data_ME_stl_Update_20260911`의 STL 22개로 만든 URDF입니다. 이 STL 세트에는 관절 정보가 없어서, 각 관절 위치는 메쉬 형상을 보고 추정했습니다.
 

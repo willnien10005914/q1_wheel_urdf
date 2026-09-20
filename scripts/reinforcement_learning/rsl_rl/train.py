@@ -95,7 +95,14 @@ torch.backends.cudnn.deterministic = False
 torch.backends.cudnn.benchmark = False
 
 
-def _copy_final_checkpoint(log_dir: str) -> None:
+def _stable_checkpoint_name(task: str) -> str:
+    """Per-task stable checkpoint filename so tasks never clobber each other."""
+    if "Q1-Skate" in task:
+        return "q1_skate_ppo.pt"
+    return "skateboard_ppo.pt"
+
+
+def _copy_final_checkpoint(log_dir: str, task: str) -> None:
     """Copy the latest PPO checkpoint to a stable project path."""
     models = glob(os.path.join(log_dir, "model_*.pt"))
     if not models:
@@ -111,7 +118,7 @@ def _copy_final_checkpoint(log_dir: str) -> None:
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
     dest_dir = os.path.join(project_root, "checkpoints")
     os.makedirs(dest_dir, exist_ok=True)
-    dest = os.path.join(dest_dir, "skateboard_ppo.pt")
+    dest = os.path.join(dest_dir, _stable_checkpoint_name(task))
     shutil.copy2(src, dest)
     print(f"[INFO] Saved PPO model to: {dest}")
     print(f"[INFO] Training checkpoint: {src}")
@@ -194,7 +201,7 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
 
     runner.learn(num_learning_iterations=agent_cfg.max_iterations, init_at_random_ep_len=True)
     print(f"Training time: {round(time.time() - start_time, 2)} seconds")
-    _copy_final_checkpoint(log_dir)
+    _copy_final_checkpoint(log_dir, args_cli.task)
     env.close()
 
 

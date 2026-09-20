@@ -175,7 +175,8 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
         resume_path = retrieve_file_path(args_cli.checkpoint)
     else:
         project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
-        default_ckpt = os.path.join(project_root, "checkpoints", "skateboard_ppo.pt")
+        ckpt_name = "q1_skate_ppo.pt" if "Q1-Skate" in args_cli.task else "skateboard_ppo.pt"
+        default_ckpt = os.path.join(project_root, "checkpoints", ckpt_name)
         if os.path.isfile(default_ckpt):
             resume_path = default_ckpt
         else:
