@@ -29,6 +29,12 @@ parser.add_argument(
 parser.add_argument("--real-time", action="store_true", default=False, help="Run in real-time, if possible.")
 parser.add_argument("--max_steps", type=int, default=None, help="Stop after this many policy steps (headless verify).")
 parser.add_argument("--cmd_vx", type=float, default=None, help="Fixed body vx command for headless verify.")
+parser.add_argument(
+    "--cmd_profile",
+    type=str,
+    default=None,
+    help="Piecewise-constant vx schedule 'step:vx,step:vx,...' (e.g. '0:0.0,100:0.6,300:1.2'); overrides --cmd_vx.",
+)
 parser.add_argument("--cmd_vy", type=float, default=None, help="Fixed body vy command for headless verify.")
 parser.add_argument("--cmd_yaw", type=float, default=None, help="Fixed yaw-rate command for headless verify.")
 parser.add_argument(
@@ -242,6 +248,13 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
             "  R : reset episode\n"
         )
 
+    cmd_profile: list[tuple[int, float]] = []
+    if args_cli.cmd_profile:
+        for knot in args_cli.cmd_profile.split(","):
+            step_str, vx_str = knot.split(":")
+            cmd_profile.append((int(step_str), float(vx_str)))
+        cmd_profile.sort()
+
     obs = env.get_observations()
     timestep = 0
     start_xy = env.unwrapped.scene["robot"].data.root_pos_w[:, :2].clone()
@@ -257,9 +270,20 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
                 if teleop.reset_requested:
                     teleop.reset_requested = False
                     env.unwrapped.episode_length_buf[:] = env.unwrapped.max_episode_length
-            elif args_cli.cmd_vx is not None or args_cli.cmd_vy is not None or args_cli.cmd_yaw is not None:
+            elif (
+                cmd_profile
+                or args_cli.cmd_vx is not None
+                or args_cli.cmd_vy is not None
+                or args_cli.cmd_yaw is not None
+            ):
                 vel_term = env.unwrapped.command_manager.get_term("base_velocity")
-                if args_cli.cmd_vx is not None:
+                if cmd_profile:
+                    vx = cmd_profile[0][1]
+                    for knot_step, knot_vx in cmd_profile:
+                        if timestep >= knot_step:
+                            vx = knot_vx
+                    vel_term.vel_command_b[:, 0] = vx
+                elif args_cli.cmd_vx is not None:
                     vel_term.vel_command_b[:, 0] = args_cli.cmd_vx
                 if args_cli.cmd_vy is not None:
                     vel_term.vel_command_b[:, 1] = args_cli.cmd_vy
