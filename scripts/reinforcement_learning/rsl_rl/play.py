@@ -16,7 +16,7 @@ parser.add_argument(
     "--disable_fabric", action="store_true", default=False, help="Disable fabric and use USD I/O operations."
 )
 parser.add_argument("--num_envs", type=int, default=1, help="Number of environments to simulate.")
-parser.add_argument("--task", type=str, default="Isaac-WheelHumanoid-Skateboard-Play-v0", help="Name of the task.")
+parser.add_argument("--task", type=str, default="Isaac-Q1-Skate-Play-v0", help="Name of the task.")
 parser.add_argument(
     "--agent", type=str, default="rsl_rl_cfg_entry_point", help="Name of the RL agent configuration entry point."
 )
@@ -49,6 +49,19 @@ parser.add_argument(
     default=False,
     help="Disable WASD teleop and use the env velocity command sampler.",
 )
+parser.add_argument("--web-port", type=int, default=8766, help="Port for the live motor web UI.")
+parser.add_argument(
+    "--no-web",
+    action="store_true",
+    default=False,
+    help="Do not start the motor web UI while playing.",
+)
+parser.add_argument(
+    "--no-browser",
+    action="store_true",
+    default=False,
+    help="Start the web UI but do not open a browser tab.",
+)
 cli_args.add_rsl_rl_args(parser)
 AppLauncher.add_app_launcher_args(parser)
 args_cli, hydra_args = parser.parse_known_args()
@@ -64,6 +77,7 @@ simulation_app = app_launcher.app
 
 import math
 import os
+import threading
 import time
 import weakref
 
@@ -88,34 +102,84 @@ from isaaclab_tasks.utils import get_checkpoint_path
 from isaaclab_tasks.utils.hydra import hydra_task_config
 
 import wheel_humanoid_lab.tasks  # noqa: F401
+from play_web import start_play_web
 
 
-def _wrap_to_pi(angle: torch.Tensor) -> torch.Tensor:
-    return torch.atan2(torch.sin(angle), torch.cos(angle))
+def _keep_timeline_playing() -> None:
+    """Space in Isaac Sim pauses the Kit timeline; play.py then blocks inside sim.step().
+
+    Keep the timeline running so WASD/R and physics stay in lockstep. Pause still zeros the
+    robot command; it must not freeze the sim.
+    """
+    try:
+        import omni.timeline
+
+        timeline = omni.timeline.get_timeline_interface()
+        if timeline.is_stopped():
+            return
+        if not timeline.is_playing():
+            timeline.play()
+    except Exception:
+        pass
+
+
+def _start_timeline_watchdog() -> None:
+    """Unpause even when the main loop is blocked inside sim.step()."""
+
+    def _loop() -> None:
+        while True:
+            time.sleep(0.05)
+            _keep_timeline_playing()
+
+    threading.Thread(target=_loop, name="q1-timeline-watchdog", daemon=True).start()
+
+
+def _hard_reset(env, policy_nn) -> object:
+    """Respawn at the skate keyframe instead of the timeout-hack that made the robot vanish."""
+    unwrapped = env.unwrapped
+    unwrapped.reset()
+    robot = unwrapped.scene["robot"]
+    root = robot.data.default_root_state.clone()
+    root[:, :3] += unwrapped.scene.env_origins
+    robot.write_root_pose_to_sim(root[:, :7])
+    robot.write_root_velocity_to_sim(torch.zeros(unwrapped.num_envs, 6, device=unwrapped.device))
+    robot.write_joint_state_to_sim(robot.data.default_joint_pos, robot.data.default_joint_vel)
+    unwrapped.scene.write_data_to_sim()
+    unwrapped.sim.forward()
+    vel_term = unwrapped.command_manager.get_term("base_velocity")
+    vel_term.vel_command_b[:] = 0.0
+    vel_term.is_standing_env[:] = True
+    if hasattr(policy_nn, "reset"):
+        policy_nn.reset(torch.ones(unwrapped.num_envs, dtype=torch.bool, device=unwrapped.device))
+    _keep_timeline_playing()
+    return env.get_observations()
 
 
 class WasdSkateTeleop:
-    """WASD world-frame skate teleop: the robot turns to face the key direction and rolls forward.
+    """Body-frame teleop that matches how the skate PPO was trained.
 
-    Keys:
-        W/S : world +X / -X
-        A/D : world +Y / -Y (left / right)
-        Q/E : extra yaw in place
-        SPACE : stop
-        R : reset episode
-        L : clear held keys
+    Training never commanded lateral velocity (vy = 0). Strafe (world-Y / body-Y) is out of
+    distribution and tips the robot. A/D therefore yaw in place; W/S roll along the heading
+    with a slow reverse limit.
     """
 
-    def __init__(self, device: str, vx: float = 1.5, vy: float = 1.5, yaw: float = 1.8):
+    def __init__(
+        self,
+        device: str,
+        vx_fwd: float = 1.2,
+        vx_rev: float = 0.35,
+        yaw: float = 0.40,
+    ):
         import carb
         import omni
 
         self.device = device
-        self.vx = vx
-        self.vy = vy
+        self.vx_fwd = vx_fwd
+        self.vx_rev = vx_rev
         self.yaw = yaw
         self._pressed: set[str] = set()
         self.reset_requested = False
+        self._cmd = torch.zeros(3, device=device)
         self._carb = carb
         self._appwindow = omni.appwindow.get_default_app_window()
         self._input = carb.input.acquire_input_interface()
@@ -135,33 +199,130 @@ class WasdSkateTeleop:
         raw = event.input
         name = raw.name if hasattr(raw, "name") else str(raw)
         if event.type == self._carb.input.KeyboardEventType.KEY_PRESS:
-            if name == "R":
+            if name in {"R", "HOME"}:
                 self.reset_requested = True
-            elif name in {"L", "SPACE"}:
+            elif name in {"L", "SPACE", "X"}:
                 self._pressed.clear()
+                self._cmd.zero_()
+                _keep_timeline_playing()
             else:
                 self._pressed.add(name)
         elif event.type == self._carb.input.KeyboardEventType.KEY_RELEASE:
             self._pressed.discard(name)
         return True
 
-    def command(self, heading_w: torch.Tensor) -> torch.Tensor:
-        """Return (N, 3) body-frame velocity command (vx, vy, yaw_rate)."""
-        wx = (float("W" in self._pressed) - float("S" in self._pressed)) * self.vx
-        wy = (float("A" in self._pressed) - float("D" in self._pressed)) * self.vy
-        wz = (float("Q" in self._pressed) - float("E" in self._pressed)) * self.yaw
+    def target(self) -> tuple[float, float, float]:
+        vx = 0.0
+        yaw = 0.0
+        if "W" in self._pressed:
+            vx += self.vx_fwd
+        if "S" in self._pressed:
+            vx -= self.vx_rev
+        if "A" in self._pressed:
+            yaw += self.yaw
+        if "D" in self._pressed:
+            yaw -= self.yaw
+        if "Q" in self._pressed:
+            yaw += self.yaw * 1.25
+        if "E" in self._pressed:
+            yaw -= self.yaw * 1.25
+        return vx, 0.0, yaw
 
-        c = torch.cos(heading_w)
-        s = torch.sin(heading_w)
-        bx = c * wx + s * wy
-        by = -s * wx + c * wy
-        if abs(wz) < 1e-6 and (wx * wx + wy * wy) > 0.04:
-            target = math.atan2(wy, wx)
-            err = _wrap_to_pi(torch.full_like(heading_w, target) - heading_w)
-            wz_t = torch.clamp(2.0 * err, min=-self.yaw, max=self.yaw)
-        else:
-            wz_t = torch.full_like(heading_w, wz)
-        return torch.stack((bx.expand_as(heading_w), by.expand_as(heading_w), wz_t), dim=-1)
+    def command(self, n_envs: int, dt: float) -> torch.Tensor:
+        tx, ty, tz = self.target()
+        reversing = tx < 0.0 or float(self._cmd[0]) < 0.0
+        tau_x = 0.70 if reversing else 0.35
+        alpha_x = 1.0 - math.exp(-dt / tau_x)
+        alpha_z = 1.0 - math.exp(-dt / 0.45)
+        self._cmd[0] += (tx - self._cmd[0]) * alpha_x
+        self._cmd[1] = ty
+        self._cmd[2] += (tz - self._cmd[2]) * alpha_z
+        return self._cmd.unsqueeze(0).expand(n_envs, -1).clone()
+
+    def zero(self) -> None:
+        self._pressed.clear()
+        self._cmd.zero_()
+
+
+def _install_override_hook(env, web_state) -> None:
+    """After PPO actions are processed, overwrite joint targets the web UI is holding."""
+    mgr = env.unwrapped.action_manager
+    orig = mgr.process_action
+
+    def hooked(action: torch.Tensor) -> None:
+        orig(action)
+        if web_state is None:
+            return
+        overrides = web_state.pop_overrides()
+        if not overrides:
+            return
+        for name in mgr.active_terms:
+            term = mgr.get_term(name)
+            joint_names = getattr(term, "_joint_names", None)
+            processed = getattr(term, "_processed_actions", None)
+            if joint_names is None or processed is None:
+                continue
+            for i, joint in enumerate(joint_names):
+                if joint in overrides:
+                    processed[:, i] = float(overrides[joint])
+
+    mgr.process_action = hooked
+
+
+def _publish_web_state(env, web_state, cmd: torch.Tensor) -> None:
+    unwrapped = env.unwrapped
+    robot = unwrapped.scene["robot"]
+    names = list(robot.joint_names)
+    pos = robot.data.joint_pos[0].detach().cpu()
+    vel = robot.data.joint_vel[0].detach().cpu()
+    tau = robot.data.applied_torque[0].detach().cpu() if robot.data.applied_torque is not None else torch.zeros_like(pos)
+    root = robot.data.root_pos_w[0].detach().cpu()
+    body_v = robot.data.root_lin_vel_b[0].detach().cpu()
+    heading = float(robot.data.heading_w[0].item())
+    cmd0 = cmd[0].detach().cpu()
+
+    targets: dict[str, float] = {}
+    actions: dict[str, float] = {}
+    mgr = unwrapped.action_manager
+    for term_name in mgr.active_terms:
+        term = mgr.get_term(term_name)
+        joint_names = getattr(term, "_joint_names", None)
+        processed = getattr(term, "_processed_actions", None)
+        raw = getattr(term, "_raw_actions", None)
+        if joint_names is None:
+            continue
+        for i, joint in enumerate(joint_names):
+            if processed is not None:
+                targets[joint] = float(processed[0, i].item())
+            if raw is not None:
+                actions[joint] = float(raw[0, i].item())
+
+    joints = {}
+    for i, name in enumerate(names):
+        joints[name] = {
+            "pos": float(pos[i]),
+            "vel": float(vel[i]),
+            "tau": float(tau[i]),
+            "target": targets.get(name, float(pos[i])),
+            "action": actions.get(name, 0.0),
+            "wheel": name.endswith("_wheel_joint"),
+        }
+    web_state.publish(
+        {
+            "ok": True,
+            "t": float(unwrapped.episode_length_buf[0].item()) * float(unwrapped.step_dt),
+            "cmd": {"vx": float(cmd0[0]), "vy": float(cmd0[1]), "yaw": float(cmd0[2])},
+            "base": {
+                "x": float(root[0]),
+                "y": float(root[1]),
+                "z": float(root[2]),
+                "heading": heading,
+                "vx": float(body_v[0]),
+                "vy": float(body_v[1]),
+            },
+            "joints": joints,
+        }
+    )
 
 
 @hydra_task_config(args_cli.task, args_cli.agent)
@@ -242,17 +403,24 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     print(f"[INFO] Exported JIT/ONNX policies to: {export_model_dir}")
 
     dt = env.unwrapped.step_dt
+    _start_timeline_watchdog()
     teleop = None
     if not args_cli.no_keyboard and not args_cli.headless:
         teleop = WasdSkateTeleop(device=str(env.unwrapped.device))
         print(
-            "\nWASD skateboard teleop\n"
-            "  W/S : slide world +X / -X\n"
-            "  A/D : slide world +Y / -Y (left / right)\n"
-            "  Q/E : yaw in place\n"
-            "  SPACE/L : stop\n"
-            "  R : reset episode\n"
+            "\nWASD skate teleop (body frame, matches PPO training)\n"
+            "  W     : roll forward (vx ≈ 1.2 m/s, ramped)\n"
+            "  S     : slow reverse (vx ≈ -0.35 m/s; policy barely trained reverse)\n"
+            "  A/D   : yaw left / right  (NOT strafe — vy is always 0)\n"
+            "  Q/E   : extra yaw\n"
+            "  SPACE/X/L : stop  (Space no longer pauses Isaac Sim)\n"
+            "  R/Home    : respawn at origin\n"
         )
+
+    web_state = None
+    if not args_cli.no_web and not args_cli.headless:
+        web_state = start_play_web(port=args_cli.web_port, open_browser=not args_cli.no_browser)
+        _install_override_hook(env, web_state)
 
     cmd_profile: list[tuple[int, float]] = []
     if args_cli.cmd_profile:
@@ -264,18 +432,30 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     obs = env.get_observations()
     timestep = 0
     start_xy = env.unwrapped.scene["robot"].data.root_pos_w[:, :2].clone()
+    n_envs = env.unwrapped.num_envs
+    device = env.unwrapped.device
+    last_cmd = torch.zeros(n_envs, 3, device=device)
     while simulation_app.is_running():
         start_time = time.time()
+        _keep_timeline_playing()
         with torch.inference_mode():
+            reset_now = bool(teleop is not None and teleop.reset_requested)
+            if web_state is not None and web_state.consume_reset():
+                reset_now = True
+            if reset_now:
+                if teleop is not None:
+                    teleop.reset_requested = False
+                    teleop.zero()
+                obs = _hard_reset(env, policy_nn)
+                last_cmd.zero_()
+                print("[INFO] Reset: robot respawned at origin.")
+
+            cmd = last_cmd
             if teleop is not None:
-                robot = env.unwrapped.scene["robot"]
-                cmd = teleop.command(robot.data.heading_w)
+                cmd = teleop.command(n_envs, dt)
                 vel_term = env.unwrapped.command_manager.get_term("base_velocity")
                 vel_term.vel_command_b[:] = cmd
-                vel_term.is_standing_env[:] = False
-                if teleop.reset_requested:
-                    teleop.reset_requested = False
-                    env.unwrapped.episode_length_buf[:] = env.unwrapped.max_episode_length
+                vel_term.is_standing_env[:] = cmd.norm(dim=-1) < 0.05
             elif (
                 cmd_profile
                 or args_cli.cmd_vx is not None
@@ -284,27 +464,47 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
                 or args_cli.hold_heading is not None
             ):
                 vel_term = env.unwrapped.command_manager.get_term("base_velocity")
+                cmd = vel_term.vel_command_b.clone()
                 if cmd_profile:
                     vx = cmd_profile[0][1]
                     for knot_step, knot_vx in cmd_profile:
                         if timestep >= knot_step:
                             vx = knot_vx
-                    vel_term.vel_command_b[:, 0] = vx
+                    cmd[:, 0] = vx
                 elif args_cli.cmd_vx is not None:
-                    vel_term.vel_command_b[:, 0] = args_cli.cmd_vx
+                    cmd[:, 0] = args_cli.cmd_vx
                 if args_cli.cmd_vy is not None:
-                    vel_term.vel_command_b[:, 1] = args_cli.cmd_vy
+                    cmd[:, 1] = args_cli.cmd_vy
+                else:
+                    cmd[:, 1] = 0.0
                 if args_cli.hold_heading is not None:
                     heading_w = env.unwrapped.scene["robot"].data.heading_w
                     err = torch.remainder(args_cli.hold_heading - heading_w + math.pi, 2 * math.pi) - math.pi
-                    vel_term.vel_command_b[:, 2] = torch.clamp(1.0 * err, -0.5, 0.5)
+                    cmd[:, 2] = torch.clamp(1.0 * err, -0.5, 0.5)
                 elif args_cli.cmd_yaw is not None:
-                    vel_term.vel_command_b[:, 2] = args_cli.cmd_yaw
+                    cmd[:, 2] = args_cli.cmd_yaw
+                vel_term.vel_command_b[:] = cmd
                 vel_term.is_standing_env[:] = False
+            last_cmd = cmd
+
+            if web_state is not None and web_state.web_cmd and teleop is not None and not teleop._pressed:
+                with web_state._lock:
+                    wcmd = dict(web_state.web_cmd or {})
+                vel_term = env.unwrapped.command_manager.get_term("base_velocity")
+                if "vx" in wcmd:
+                    vel_term.vel_command_b[:, 0] = wcmd["vx"]
+                vel_term.vel_command_b[:, 1] = 0.0
+                if "yaw" in wcmd:
+                    vel_term.vel_command_b[:, 2] = wcmd["yaw"]
+                cmd = vel_term.vel_command_b
+                last_cmd = cmd
+
             actions = policy(obs)
             obs, _, dones, _ = env.step(actions)
             if hasattr(policy_nn, "reset"):
                 policy_nn.reset(dones)
+            if web_state is not None:
+                _publish_web_state(env, web_state, cmd)
         timestep += 1
         if args_cli.video and timestep == args_cli.video_length:
             break

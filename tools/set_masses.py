@@ -1,8 +1,10 @@
-"""질량 보정 도구.
-사용법
-  python set_masses.py --total 32.5              # 전체 질량에 맞춰 모든 링크를 같은 비율로 스케일
-  python set_masses.py --csv link_masses.csv     # cad_mass_kg 열에 값이 있는 링크만 교체
-관성 텐서는 질량 비율만큼 선형으로 스케일합니다(형상·질량중심은 유지). 원본은 .bak로 저장됩니다.
+"""Mass correction tool.
+
+Usage:
+  python set_masses.py --total 32.5              # scale every link to match a total mass
+  python set_masses.py --csv link_masses.csv     # replace links that have cad_mass_kg filled in
+
+Inertia tensors scale linearly with mass (shape and CoM stay put). The original URDF is saved as .bak.
 """
 import argparse, csv, shutil, xml.etree.ElementTree as ET, os
 here = os.path.dirname(os.path.abspath(__file__))

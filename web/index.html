@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wheel Humanoid 關節控制</title>
+  <title>Wheel Humanoid joint control</title>
   <link rel="stylesheet" href="./style.css">
   <script type="importmap">
   {
@@ -21,18 +21,20 @@
     <section id="viewport">
       <div class="hud">
         <h1>Wheel Humanoid</h1>
-        <p>19 主動自由度 · 拖曳滑桿或點選連桿</p>
+        <p>24 actuated DOF · drag a slider to override that motor in Isaac Sim</p>
+        <div id="isaac-status" class="status offline">Isaac Sim: offline</div>
+        <div id="cmd-readout" class="cmd-readout">vx 0.00 · yaw 0.00</div>
       </div>
       <div class="views">
-        <button data-view="iso">斜視</button>
-        <button data-view="front">正面</button>
-        <button data-view="side">側面</button>
-        <button data-view="top">俯視</button>
+        <button data-view="iso">Iso</button>
+        <button data-view="front">Front</button>
+        <button data-view="side">Side</button>
+        <button data-view="top">Top</button>
       </div>
       <div id="loader">
         <div class="loader-card">
-          <h3>載入機器人</h3>
-          <p id="load-status">讀取 URDF 與 STL…</p>
+          <h3>Loading robot</h3>
+          <p id="load-status">Reading URDF and STL…</p>
           <div class="bar"><span id="load-bar"></span></div>
           <div id="error"></div>
         </div>
@@ -41,20 +43,22 @@
 
     <aside id="sidebar">
       <div class="side-head">
-        <h2>關節控制</h2>
+        <h2>Joint control</h2>
         <div class="preset-row">
-          <button data-preset="zero">零位</button>
-          <button data-preset="kneel">蹲姿</button>
-          <button data-preset="tpose">T 姿</button>
-          <button data-preset="reach">前伸</button>
+          <button data-preset="zero">Zero</button>
+          <button data-preset="kneel">Kneel</button>
+          <button data-preset="tpose">T-pose</button>
+          <button data-preset="reach">Reach</button>
         </div>
         <div class="toolbar" style="margin-top:8px">
-          <button id="reset">全部歸零</button>
-          <button id="copy">複製 JSON</button>
+          <button id="reset">Zero all</button>
+          <button id="copy">Copy JSON</button>
+          <button id="follow-all">Release all to PPO</button>
+          <button id="reset-sim">Reset sim</button>
         </div>
         <div class="toggles">
-          <label><input id="mirror" type="checkbox"> 左右鏡像</label>
-          <label><input id="spin-wheels" type="checkbox"> 輪子旋轉</label>
+          <label><input id="mirror" type="checkbox"> Mirror L/R</label>
+          <label><input id="spin-wheels" type="checkbox"> Spin wheels</label>
         </div>
       </div>
       <div id="joints" class="joint-list"></div>

@@ -422,6 +422,8 @@ class Q1SkateEnvCfg_PLAY(Q1SkateEnvCfg):
         self.events.body_mass = None
         self.events.randomize_com = None
         self.events.reset_base.params["pose_range"] = {"x": (0.0, 0.0), "y": (0.0, 0.0), "yaw": (0.0, 0.0)}
+        self.events.reset_robot_joints.params["position_range"] = (0.0, 0.0)
+        self.events.reset_robot_joints.params["velocity_range"] = (0.0, 0.0)
         self.curriculum.stage.params["force_stage"] = len(SKATE_STAGES) - 1
         self.curriculum.action_rate = None
         self.commands.base_velocity.resampling_time_range = (1.0e9, 1.0e9)

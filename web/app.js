@@ -10,68 +10,77 @@ const DEG2RAD = Math.PI / 180;
 const GROUPS = [
   {
     id: "waist",
-    title: "腰部",
-    joints: ["waist_yaw_joint", "waist_roll_joint", "waist_pitch_joint"],
+    title: "Waist",
+    joints: ["waist_yaw_joint", "waist_roll_joint", "waist_pitch_joint", "neck_joint"],
   },
   {
     id: "larm",
-    title: "左臂",
+    title: "Left arm",
     joints: [
       "l_shoulder_pitch_joint",
       "l_shoulder_roll_joint",
       "l_shoulder_yaw_joint",
       "l_elbow_joint",
+      "l_wrist_joint",
+      "l_gripper_joint",
     ],
   },
   {
     id: "rarm",
-    title: "右臂",
+    title: "Right arm",
     joints: [
       "r_shoulder_pitch_joint",
       "r_shoulder_roll_joint",
       "r_shoulder_yaw_joint",
       "r_elbow_joint",
+      "r_wrist_joint",
+      "r_gripper_joint",
     ],
   },
   {
     id: "lleg",
-    title: "左腿",
+    title: "Left leg",
     joints: ["l_hip_pitch_joint", "l_hip_roll_joint", "l_knee_joint", "l_wheel_joint"],
   },
   {
     id: "rleg",
-    title: "右腿",
+    title: "Right leg",
     joints: ["r_hip_pitch_joint", "r_hip_roll_joint", "r_knee_joint", "r_wheel_joint"],
   },
   {
     id: "mimic",
-    title: "膝蓋連動滾輪",
+    title: "Knee rollers (mimic)",
     joints: ["l_knee_roller_joint", "r_knee_roller_joint"],
   },
 ];
 
 const LABELS = {
-  waist_yaw_joint: "Yaw 偏航",
-  waist_roll_joint: "Roll 側傾",
-  waist_pitch_joint: "Pitch 俯仰",
-  l_shoulder_pitch_joint: "肩 Pitch",
-  l_shoulder_roll_joint: "肩 Roll",
-  l_shoulder_yaw_joint: "肩 Yaw",
-  l_elbow_joint: "肘",
-  r_shoulder_pitch_joint: "肩 Pitch",
-  r_shoulder_roll_joint: "肩 Roll",
-  r_shoulder_yaw_joint: "肩 Yaw",
-  r_elbow_joint: "肘",
-  l_hip_pitch_joint: "髖 Pitch",
-  l_hip_roll_joint: "髖 Roll",
-  l_knee_joint: "膝",
-  l_wheel_joint: "輪",
-  r_hip_pitch_joint: "髖 Pitch",
-  r_hip_roll_joint: "髖 Roll",
-  r_knee_joint: "膝",
-  r_wheel_joint: "輪",
-  l_knee_roller_joint: "左膝滾輪",
-  r_knee_roller_joint: "右膝滾輪",
+  waist_yaw_joint: "Yaw",
+  waist_roll_joint: "Roll",
+  waist_pitch_joint: "Pitch",
+  l_shoulder_pitch_joint: "Shoulder pitch",
+  l_shoulder_roll_joint: "Shoulder roll",
+  l_shoulder_yaw_joint: "Shoulder yaw",
+  neck_joint: "Neck",
+  l_elbow_joint: "Elbow",
+  l_wrist_joint: "Wrist",
+  l_gripper_joint: "Gripper",
+  r_shoulder_pitch_joint: "Shoulder pitch",
+  r_shoulder_roll_joint: "Shoulder roll",
+  r_shoulder_yaw_joint: "Shoulder yaw",
+  r_elbow_joint: "Elbow",
+  r_wrist_joint: "Wrist",
+  r_gripper_joint: "Gripper",
+  l_hip_pitch_joint: "Hip pitch",
+  l_hip_roll_joint: "Hip roll",
+  l_knee_joint: "Knee",
+  l_wheel_joint: "Wheel",
+  r_hip_pitch_joint: "Hip pitch",
+  r_hip_roll_joint: "Hip roll",
+  r_knee_joint: "Knee",
+  r_wheel_joint: "Wheel",
+  l_knee_roller_joint: "Left knee roller",
+  r_knee_roller_joint: "Right knee roller",
 };
 
 const MIRROR = {
@@ -121,6 +130,10 @@ const PRESETS = {
   },
 };
 
+const API =
+  new URLSearchParams(location.search).get("api") ||
+  (location.port === "8766" ? "" : "http://127.0.0.1:8766");
+
 const els = {
   viewport: document.getElementById("viewport"),
   joints: document.getElementById("joints"),
@@ -131,14 +144,23 @@ const els = {
   error: document.getElementById("error"),
   mirror: document.getElementById("mirror"),
   spin: document.getElementById("spin-wheels"),
+  isaac: document.getElementById("isaac-status"),
+  cmd: document.getElementById("cmd-readout"),
 };
 
 const sliderEls = {};
 const valueEls = {};
+const extraEls = {};
+const followBtns = {};
 const jointRows = {};
+const overrides = new Set();
+const dragging = new Set();
 let robot = null;
 let applying = false;
 let anim = null;
+let isaacConnected = false;
+let pendingOverrides = {};
+let lastIsaac = null;
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -199,8 +221,131 @@ function resize() {
   renderer.setSize(w, h, false);
 }
 
+function num(value, fallback = 0) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
+}
+
 function fmtDeg(rad) {
-  return `${(rad * RAD2DEG).toFixed(1)}°`;
+  return `${(num(rad) * RAD2DEG).toFixed(1)}°`;
+}
+
+function fmtMotor(name, pos, vel, tau) {
+  if (name.endsWith("_wheel_joint")) {
+    return `${num(vel).toFixed(2)} rad/s · τ ${num(tau).toFixed(2)}`;
+  }
+  return `${fmtDeg(pos)} · τ ${num(tau).toFixed(2)}`;
+}
+
+function isWheel(name) {
+  return name.endsWith("_wheel_joint");
+}
+
+function setConnected(on) {
+  isaacConnected = on;
+  if (!els.isaac) return;
+  els.isaac.className = `status ${on ? "online" : "offline"}`;
+  els.isaac.textContent = on
+    ? "Isaac Sim: connected (sliders override motors)"
+    : "Isaac Sim: offline";
+}
+
+async function postJson(path, body) {
+  const res = await fetch(`${API}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`${path} ${res.status}`);
+  return res.json();
+}
+
+function queueOverride(name, value) {
+  overrides.add(name);
+  pendingOverrides[name] = value;
+  if (jointRows[name]) jointRows[name].classList.add("overridden");
+  if (followBtns[name]) followBtns[name].hidden = false;
+}
+
+async function flushOverrides() {
+  if (!isaacConnected || !Object.keys(pendingOverrides).length) return;
+  const payload = { overrides: pendingOverrides };
+  pendingOverrides = {};
+  try {
+    await postJson("/api/joints", payload);
+  } catch {
+    /* Isaac play not running */
+  }
+}
+
+async function releaseJoint(name) {
+  overrides.delete(name);
+  delete pendingOverrides[name];
+  if (jointRows[name]) jointRows[name].classList.remove("overridden");
+  if (followBtns[name]) followBtns[name].hidden = true;
+  if (!isaacConnected) return;
+  try {
+    await postJson("/api/joints", { release: [name] });
+  } catch {
+    /* ignore */
+  }
+}
+
+async function releaseAll() {
+  overrides.clear();
+  pendingOverrides = {};
+  Object.values(jointRows).forEach((el) => el.classList.remove("overridden"));
+  Object.values(followBtns).forEach((btn) => {
+    btn.hidden = true;
+  });
+  if (!isaacConnected) return;
+  try {
+    await postJson("/api/release", {});
+  } catch {
+    /* ignore */
+  }
+}
+
+function applyIsaacState(state) {
+  lastIsaac = state;
+  if (els.cmd && state.cmd) {
+    els.cmd.textContent = `vx ${num(state.cmd.vx).toFixed(2)} · yaw ${num(state.cmd.yaw).toFixed(2)} · z ${
+      Number.isFinite(state.base?.z) ? state.base.z.toFixed(2) : "--"
+    } m`;
+  }
+  const joints = state.joints || {};
+  const liveOverrides = new Set(Object.keys(state.overrides || {}));
+  Object.keys(joints).forEach((name) => {
+    const j = joints[name];
+    if (!robot?.joints[name]) return;
+    applying = true;
+    setJoint(name, j.pos, { fromSlider: true, mirrored: true, fromIsaac: true });
+    applying = false;
+    if (extraEls[name]) extraEls[name].textContent = fmtMotor(name, j.pos, j.vel, j.tau);
+    const held = overrides.has(name) || liveOverrides.has(name) || dragging.has(name);
+    if (!held && sliderEls[name]) {
+      sliderEls[name].value = String(isWheel(name) ? j.vel : j.pos);
+    }
+    if (liveOverrides.has(name)) {
+      overrides.add(name);
+      if (jointRows[name]) jointRows[name].classList.add("overridden");
+      if (followBtns[name]) followBtns[name].hidden = false;
+    }
+  });
+}
+
+async function pollIsaac() {
+  try {
+    const res = await fetch(`${API}/api/state`, { cache: "no-store" });
+    if (!res.ok) throw new Error("offline");
+    const state = await res.json();
+    if (!state.ok) throw new Error("offline");
+    if (!isaacConnected) setConnected(true);
+    applyIsaacState(state);
+    await flushOverrides();
+  } catch {
+    if (isaacConnected) setConnected(false);
+  }
 }
 
 function jointLimit(joint) {
@@ -216,7 +361,7 @@ function clamp(name, value) {
   return Math.min(upper, Math.max(lower, value));
 }
 
-function setJoint(name, value, { fromSlider = false, mirrored = false } = {}) {
+function setJoint(name, value, { fromSlider = false, mirrored = false, fromIsaac = false } = {}) {
   if (!robot || !robot.joints[name]) return;
   const next = clamp(name, value);
   robot.setJointValue(name, next);
@@ -241,7 +386,9 @@ function snapshot() {
   const out = {};
   if (!robot) return out;
   Object.keys(robot.joints).forEach((name) => {
-    out[name] = Number(robot.joints[name].angle.toFixed(4));
+    const joint = robot.joints[name];
+    if (!joint || joint.jointType === "fixed") return;
+    out[name] = Number(num(joint.angle).toFixed(4));
   });
   return out;
 }
@@ -271,7 +418,16 @@ function applyPose(values, duration = 0.55) {
     applying = false;
     refreshJson();
     if (u < 1) anim = { raf: requestAnimationFrame(tick) };
-    else anim = null;
+    else {
+      anim = null;
+      if (isaacConnected) {
+        names.forEach((name) => {
+          if (robot.joints[name]?.mimicJoint) return;
+          queueOverride(name, isWheel(name) ? 0 : end[name] ?? 0);
+        });
+        flushOverrides();
+      }
+    }
   };
   anim = { raf: requestAnimationFrame(tick) };
 }
@@ -299,6 +455,7 @@ function buildSliders() {
       if (!joint) return;
       const { lower, upper } = jointLimit(joint);
       const mimic = Boolean(joint.mimicJoint);
+      const wheel = isWheel(name);
       const row = document.createElement("div");
       row.className = `joint${mimic ? " mimic" : ""}`;
       row.innerHTML = `
@@ -307,21 +464,39 @@ function buildSliders() {
             <div class="joint-name">${LABELS[name] || name}</div>
             <div class="joint-key">${name}${mimic ? " · mimic" : ""}</div>
           </div>
-          <div class="joint-val" data-val="${name}">0.0°</div>
+          <div class="joint-meta">
+            <div class="joint-val" data-val="${name}">0.0°</div>
+            <div class="joint-extra" data-extra="${name}"></div>
+            <button type="button" class="follow-btn" hidden>Follow PPO</button>
+          </div>
         </div>
-        <input type="range" min="${lower}" max="${upper}" step="0.001" value="0" ${mimic ? "disabled" : ""}>
-        <div class="limits"><span>${fmtDeg(lower)}</span><span>${fmtDeg(upper)}</span></div>
+        <input type="range" min="${wheel ? -25 : lower}" max="${wheel ? 25 : upper}" step="0.001" value="0" ${mimic ? "disabled" : ""}>
+        <div class="limits"><span>${wheel ? "-25 rad/s" : fmtDeg(lower)}</span><span>${wheel ? "+25 rad/s" : fmtDeg(upper)}</span></div>
       `;
       const input = row.querySelector("input");
       sliderEls[name] = input;
       valueEls[name] = row.querySelector("[data-val]");
+      extraEls[name] = row.querySelector("[data-extra]");
+      followBtns[name] = row.querySelector(".follow-btn");
       jointRows[name] = row;
+      input.addEventListener("pointerdown", () => {
+        highlight(name);
+        dragging.add(name);
+      });
+      input.addEventListener("pointerup", () => dragging.delete(name));
+      input.addEventListener("pointercancel", () => dragging.delete(name));
       input.addEventListener("input", () => {
         if (applying) return;
-        setJoint(name, Number(input.value), { fromSlider: true });
+        const value = Number(input.value);
+        if (!wheel) setJoint(name, value, { fromSlider: true });
+        else if (valueEls[name]) valueEls[name].textContent = `${value.toFixed(2)} rad/s`;
         refreshJson();
+        if (isaacConnected && !mimic) queueOverride(name, value);
       });
-      input.addEventListener("pointerdown", () => highlight(name));
+      followBtns[name].addEventListener("click", (ev) => {
+        ev.preventDefault();
+        releaseJoint(name);
+      });
       wrap.appendChild(row);
     });
     els.joints.appendChild(wrap);
@@ -372,12 +547,21 @@ document.querySelectorAll("[data-view]").forEach((btn) => {
   btn.addEventListener("click", () => setView(btn.dataset.view));
 });
 document.getElementById("reset").addEventListener("click", () => applyPose(PRESETS.zero));
+document.getElementById("follow-all").addEventListener("click", () => releaseAll());
+document.getElementById("reset-sim").addEventListener("click", async () => {
+  await releaseAll();
+  try {
+    await postJson("/api/reset", {});
+  } catch {
+    /* ignore */
+  }
+});
 document.getElementById("copy").addEventListener("click", async () => {
   refreshJson();
   await navigator.clipboard.writeText(els.json.value);
-  document.getElementById("copy").textContent = "已複製";
+  document.getElementById("copy").textContent = "Copied";
   setTimeout(() => {
-    document.getElementById("copy").textContent = "複製 JSON";
+    document.getElementById("copy").textContent = "Copy JSON";
   }, 900);
 });
 document.querySelectorAll("[data-preset]").forEach((btn) => {
@@ -386,9 +570,9 @@ document.querySelectorAll("[data-preset]").forEach((btn) => {
 
 function loadRobot() {
   if (location.protocol === "file:") {
-    els.status.textContent = "請用本機伺服器開啟，不要直接雙擊 HTML。";
+    els.status.textContent = "Open this page from a local server, not as a file:// URL.";
     els.error.style.display = "block";
-    els.error.textContent = "執行 python web/serve.py 後再開 http://127.0.0.1:8765/web/";
+    els.error.textContent = "Run python web/serve.py then open http://127.0.0.1:8765/web/";
     return;
   }
 
@@ -396,7 +580,7 @@ function loadRobot() {
   manager.onProgress = (_url, loaded, total) => {
     const pct = total ? Math.round((loaded / total) * 100) : 0;
     els.bar.style.width = `${pct}%`;
-    els.status.textContent = `載入網格 ${loaded} / ${total}`;
+    els.status.textContent = `Loading meshes ${loaded} / ${total}`;
   };
 
   const loader = new URDFLoader(manager);
@@ -418,15 +602,20 @@ function loadRobot() {
         }
       });
       scene.add(robot);
-      buildSliders();
-      refreshJson();
+      try {
+        buildSliders();
+        refreshJson();
+      } catch (err) {
+        els.error.style.display = "block";
+        els.error.textContent = String(err);
+      }
       els.loader.classList.add("hidden");
     },
     null,
     (err) => {
       els.error.style.display = "block";
       els.error.textContent = String(err);
-      els.status.textContent = "載入失敗";
+      els.status.textContent = "Load failed";
     }
   );
 }
@@ -435,7 +624,7 @@ let last = performance.now();
 function loop(now) {
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
-  if (robot && els.spin.checked) {
+  if (robot && els.spin.checked && !isaacConnected) {
     ["l_wheel_joint", "r_wheel_joint"].forEach((name) => {
       const cur = robot.joints[name].angle || 0;
       let next = cur + dt * 2.4;
@@ -451,4 +640,5 @@ function loop(now) {
 window.addEventListener("resize", resize);
 resize();
 loadRobot();
+setInterval(pollIsaac, 50);
 requestAnimationFrame(loop);

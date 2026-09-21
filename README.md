@@ -19,7 +19,9 @@ source/wheel_humanoid_lab/wheel_humanoid_lab/
   assets/wheel_humanoid.py        Q1_WHEEL_CUBEMARS_CFG (actuator groups by SKU), skate stance keyframe
   tasks/manager_based/skate/      Isaac-Q1-Skate-v0: obs/action contract, rewards, curriculum, DR
 tests/test_skate_contract.py      obs/action/actuator contract unit test (Isaac Sim, 4 envs)
-train_skate.sh / run_isaac.sh     training + generic Isaac Sim runner
+web/                              THREE.js joint UI (live motors from Isaac Sim play)
+train_skate.sh / play_skateboard.sh / stop_isaac.sh   train, WASD play + web UI, kill leftover Kit
+run_isaac.sh                      generic Isaac Sim runner
 ```
 
 ## Quick start
@@ -29,9 +31,31 @@ python tools/build_urdf.py                          # regenerate urdf/wheel_huma
 ./run_isaac.sh tests/test_skate_contract.py         # contract test (must print ALL CHECKS PASSED)
 NUM_ENVS=64 MAX_ITERS=5 ./train_skate.sh            # smoke test: reward names appear in the log
 ./train_skate.sh                                    # 4096 envs, curriculum stages 0-5 (see below)
-./run_isaac.sh scripts/reinforcement_learning/rsl_rl/play.py --task Isaac-Q1-Skate-Play-v0 \
-    --checkpoint logs/rsl_rl/q1_skate_cubemars/<run>/model_<n>.pt          # WASD teleop, exports ONNX
+./play_skateboard.sh                                # Isaac Sim + WASD + http://127.0.0.1:8766/web/
+./stop_isaac.sh                                     # kill play/train/web and free GPU + ports
 ```
+
+## Play in Isaac Sim + web motor UI
+
+`./play_skateboard.sh` loads `checkpoints/q1_skate_ppo.pt` in Isaac Sim, runs the PPO at 50 Hz, and
+opens a browser at [http://127.0.0.1:8766/web/](http://127.0.0.1:8766/web/). The policy tracks a
+body-frame twist `(vx, vy=0, yaw)`. Dragging a slider on the web page overrides that motor in the
+sim; **Follow PPO** gives it back.
+
+![Isaac Sim play](docs/screenshots/isaac_sim_play.png)
+
+![Web motor UI](docs/screenshots/web_motor_ui.png)
+
+| Key | Command |
+|---|---|
+| W | roll forward (~1.2 m/s, ramped) |
+| S | slow reverse (~0.35 m/s; policy barely trained reverse) |
+| A / D | yaw left / right (not strafe — `vy` is always 0) |
+| Q / E | extra yaw |
+| Space / X / L | stop (Space no longer pauses the Isaac timeline) |
+| R / Home | respawn at the skate pose |
+
+Standalone web UI without Isaac: `python web/serve.py` then [http://127.0.0.1:8765/web/](http://127.0.0.1:8765/web/).
 
 ## Observation / action contract (hot-swappable)
 
@@ -110,35 +134,42 @@ Exported policy with the observation normalizer baked in: `checkpoints/exported/
 
 ---
 
-# wheel_humanoid URDF (기하 구조 노트)
+# wheel_humanoid URDF (geometry notes)
 
-`URDF_Data_ME_stl_Update_20260911`의 STL 22개로 만든 URDF입니다. 이 STL 세트에는 관절 정보가 없어서, 각 관절 위치는 메쉬 형상을 보고 추정했습니다.
+URDF built from the 22 STLs in `URDF_Data_ME_stl_Update_20260911`. That STL set has no joint data, so
+each joint origin was estimated from mesh geometry.
 
-- 자유도: 능동 관절 19개(허리 3, 팔 4×2, 다리 3×2, 바퀴 2) + 무릎 연동 롤러 2개(mimic 관절, 독립 자유도 아님)
-- 좌표계: X 전방, Y 왼쪽, Z 위쪽, 단위 m. 베이스 링크 `pelvis`의 원점은 골반 상면(허리 yaw 모터 면)
-- 0 자세의 전체 높이는 1.358 m이고, 바퀴 최하단은 pelvis 원점에서 0.8867 m 아래입니다.
+- Degrees of freedom: 19 actuated joints (waist 3, arms 4×2, legs 3×2, wheels 2) plus 2 knee-linkage
+  rollers (mimic joints, not independent DOF)
+- Frame: X forward, Y left, Z up, metres. Base link `pelvis` origin is the top of the pelvis (waist
+  yaw motor face)
+- Zero-pose height is 1.358 m; the wheel bottoms sit 0.8867 m below the pelvis origin
 
-## 폴더 구성
+## Layout
 ```
-urdf/wheel_humanoid.urdf        메쉬 경로는 ../meshes/... 상대경로
-meshes/visual/                  원본 STL (파일명 그대로)
-meshes/collision/               링크별 볼록 껍질(≤1500면). 바퀴와 롤러는 실린더 프리미티브
-isaaclab/wheel_humanoid_cfg.py  ArticulationCfg 템플릿
-tools/set_masses.py             질량 보정 (전체 질량 스케일 또는 CAD 값 입력)
-tools/link_masses.csv           링크별 추정 질량 (cad_mass_kg 열을 채워서 사용)
+urdf/wheel_humanoid.urdf        mesh paths are ../meshes/... relative
+meshes/visual/                  original STLs (filenames unchanged)
+meshes/collision/               convex hulls per link (≤1500 faces). Wheels and rollers are cylinders
+isaaclab/wheel_humanoid_cfg.py  ArticulationCfg template
+tools/set_masses.py             mass correction (scale total mass or inject CAD values)
+tools/link_masses.csv           estimated mass per link (fill the cad_mass_kg column)
 ```
 
-## 관절 위치를 정한 방법
-각 모터의 축은 단면 원 피팅으로 찾았고, 축 방향 위치는 출력 플랜지 면과 자식 링크 플랜지 면을 맞춰서 정했습니다.
-아래 항목들로 추정이 맞는지 교차 확인했습니다.
+## How joint origins were chosen
+Each motor axis came from a circle fit on a cross-section; the axial position was set by mating the
+output flange to the child-link flange. These checks were used to confirm the guess:
 
-- **무릎**: 허벅지 쪽 기어(치폭 6 mm)와 정강이 쪽 기어의 치면이 오프셋 30 mm에서 정확히 일치합니다. 반대편의 허벅지 보조축(r 9.7)도 정강이 판의 베어링 구멍(r 9.75)에 들어갑니다.
-- **바퀴**: 정강이 쪽 베어링 링(r 55)과 바퀴 내경(r 54.9)이 오프셋 26 mm에서 겹칩니다.
-- **허리**: 십자축(U-조인트)의 축 길이가 요크 베어링과 대칭으로 맞습니다. 상체 푸시로드 끝단과 waist_yaw 소켓 사이의 오차도 0.2 mm 이내입니다.
-- **어깨·팔꿈치**: Ø98 모터의 후면(출력) 위치를 다른 링크의 같은 모터와 대조해서 정했습니다. 그 결과 상완이 어깨 roll 모터 바로 아래(x 오차 0.07 mm)에 옵니다.
-- **고관절**: Ø107 모터의 출력 허브 끝면과 자식 링크의 센터링 립 위치를 맞췄습니다. hip roll은 후면 스터브와 허벅지 보어의 위치도 일치합니다.
+- **Knee**: the thigh gear (6 mm face width) and shin gear faces line up at a 30 mm offset. The
+  opposite thigh idler shaft (r 9.7) also seats in the shin plate bearing bore (r 9.75).
+- **Wheel**: the shin bearing ring (r 55) and wheel bore (r 54.9) overlap at a 26 mm offset.
+- **Waist**: U-joint cross length is symmetric in the yoke bearings. Pushrod tip vs `waist_yaw`
+  socket error is within 0.2 mm.
+- **Shoulder / elbow**: Ø98 motor rear (output) faces were matched to the same motor on other links.
+  The upper arm then sits directly under the shoulder-roll motor (x error 0.07 mm).
+- **Hip**: Ø107 motor output-hub face was mated to the child centering lip. Hip roll also matches
+  the rear stub to the thigh bore.
 
-| 관절 | 부모 → 자식 | 원점 xyz (mm) | 축 | 한계 (rad, 임시) | 토크 N·m / 속도 rad/s (임시) |
+| Joint | Parent → child | Origin xyz (mm) | Axis | Limits (rad, provisional) | Torque N·m / speed rad/s (provisional) |
 |---|---|---|---|---|---|
 | `waist_yaw_joint` | pelvis → waist_yaw_link | 0.00, 0.00, 0.00 | Z | -1.57 ~ 1.57 | 30 / 10 |
 | `waist_roll_joint` | waist_yaw_link → waist_roll_link | 0.00, 0.00, 37.80 | X | -0.35 ~ 0.35 | 40 / 6 |
@@ -154,83 +185,75 @@ tools/link_masses.csv           링크별 추정 질량 (cad_mass_kg 열을 채�
 | `l_hip_pitch_joint` | pelvis → l_hip_pitch_link | 0.00, 84.00, -126.70 | Y | -1.8 ~ 1.2 | 60 / 12 |
 | `l_hip_roll_joint` | l_hip_pitch_link → l_thigh_link | 27.00, 73.00, -98.00 | X | -0.35 ~ 0.8 | 60 / 12 |
 | `l_knee_joint` | l_thigh_link → l_shin_link | -27.00, -30.00, -222.00 | Y | -0.2 ~ 2.6 | 60 / 12 |
-| `l_wheel_joint` | l_shin_link → l_wheel_link | 0.00, 26.00, -340.00 | Y | 연속 | 20 / 30 |
+| `l_wheel_joint` | l_shin_link → l_wheel_link | 0.00, 26.00, -340.00 | Y | continuous | 20 / 30 |
 | `r_hip_pitch_joint` | pelvis → r_hip_pitch_link | 0.00, -84.00, -126.70 | Y | -1.8 ~ 1.2 | 60 / 12 |
 | `r_hip_roll_joint` | r_hip_pitch_link → r_thigh_link | 27.00, -68.00, -98.00 | X | -0.8 ~ 0.35 | 60 / 12 |
 | `r_knee_joint` | r_thigh_link → r_shin_link | -27.00, 30.00, -222.00 | Y | -0.2 ~ 2.6 | 60 / 12 |
-| `r_wheel_joint` | r_shin_link → r_wheel_link | 0.00, -26.00, -340.00 | Y | 연속 | 20 / 30 |
+| `r_wheel_joint` | r_shin_link → r_wheel_link | 0.00, -26.00, -340.00 | Y | continuous | 20 / 30 |
 | `l_knee_roller_joint` | l_thigh_link → l_knee_roller_link | -27.00, -47.60, -222.00 | Y | -0.1 ~ 1.2 (mimic) | 60 / 12 |
 | `r_knee_roller_joint` | r_thigh_link → r_knee_roller_link | -27.00, 47.10, -222.00 | Y | -0.1 ~ 1.2 (mimic) | 60 / 12 |
 
-부호 규약: 좌우 관절의 축 방향을 같게 두었습니다(+X/+Y/+Z). 예를 들어 hip pitch는 음수일 때 다리가 앞으로 가고, knee는 양수일 때 정강이가 뒤로 접힙니다.
+Sign convention: left and right joints share the same axis directions (+X/+Y/+Z). Negative hip pitch
+swings the leg forward; positive knee folds the shin backward.
 
-## 무릎 롤러 연동 기구
-`lower_leg_*_w_link_1_2`의 기어는 72T(모듈 1) 섹터 기어이고, 무릎축과 같은 축에서 돕니다. 레버 끝에 롤러 2개(r 25 mm)가 달려 있습니다.
+## Knee-roller linkage
+The gear on `lower_leg_*_w_link_1_2` is a 72T (module 1) sector that spins on the knee axis. Two
+rollers (r 25 mm) sit at the end of the lever.
 
-기어열은 정강이 52T(무릎축, 정강이에 고정) → 허벅지 복합 아이들러 52T/32T(무릎축에서 52 mm 위) → 롤러 섹터 72T 순서입니다.
+Gear train: shin 52T (on the knee axis, fixed to the shin) → thigh compound idler 52T/32T (52 mm
+above the knee) → roller sector 72T.
 
-- 아이들러와 무릎축 사이 중심거리 52 mm는 두 기어쌍의 피치반경 합과 모두 일치합니다(26+26, 16+36).
-- 외접 맞물림이 두 번이라 롤러는 허벅지 기준으로 무릎과 같은 방향으로 돕니다. 비율은 32/72 = 0.444입니다.
-- 정강이 기준으로 보면 롤러는 무릎 각도의 −0.556배만큼 앞쪽으로 회전합니다. 그래서 무릎을 접으면 롤러가 정강이 앞쪽(무릎 아래)으로 나옵니다.
+- Centre distance idler–knee 52 mm matches both pitch-radius sums (26+26 and 16+36).
+- Two external meshes, so the roller turns the same way as the knee relative to the thigh. Ratio
+  32/72 = 0.444.
+- Relative to the shin the roller rotates −0.556× the knee angle, so folding the knee brings the
+  rollers forward under the knee.
 
-URDF에는 `<mimic joint="*_knee_joint" multiplier="0.444444"/>`로 넣었고, 부모는 thigh입니다.
-- Isaac Sim 4.5 이상의 URDF importer는 mimic을 PhysX mimic joint로 변환합니다. 그보다 이전 버전에서는 mimic이 무시되어 롤러가 자유 관절이 되므로, 해당 관절을 고정하거나 무릎 각도로 직접 구동해야 합니다.
-- 액추에이터 그룹에는 넣지 않았습니다.
+URDF uses `<mimic joint="*_knee_joint" multiplier="0.444444"/>` with the thigh as parent.
+- Isaac Sim 4.5+ URDF import turns mimic into a PhysX mimic joint. Older versions ignore mimic and
+  leave a free joint — then lock it or drive it from the knee angle.
+- Not included in any actuator group.
 
-## 확인이 필요한 부분
-1. **좌우 비대칭**: hip roll 모터 위치가 L +73 mm, R −68 mm로 5 mm 다릅니다. `05_urdf_thigh_joint_r.stl` 형상에 이 차이가 그대로 들어 있어서 그대로 반영했습니다. 의도한 설계인지 확인해 주세요.
-2. **무릎 롤러 기어 정렬**: 롤러 레버의 축 방향 위치는 기어 치면 정렬로 정했습니다. 그런데 이 위치에서는 반대쪽 판(8.5 mm)이 허벅지 모터 후면 허브(r 35)와 약 3 mm 겹칩니다. 실제 조립 간격을 확인해 주세요.
-3. **허리 병렬 기구**: 상체 안의 모터 2개와 푸시로드로 구동되는 구조를 직렬 yaw→roll→pitch로 단순화했습니다. 푸시로드는 상체 메쉬에 포함되어 있어서, 허리를 움직이면 상체와 함께 강체로 움직입니다.
-4. **질량·관성**: 모든 링크에 균일 밀도 1000 kg/m³를 가정했습니다(총 18.39 kg). 모터나 금속부는 실제보다 가볍게 나오므로 `tools/set_masses.py`로 보정하세요.
-5. **관절 한계·토크·속도·게인**: 모두 임시값입니다.
-6. **충돌체**: 볼록 껍질이라 인접하지 않은 링크끼리 겹치는 곳이 있습니다(waist_yaw↔torso, 롤러↔정강이 등). self-collision을 끄고 쓰는 것을 권장합니다. 정밀한 충돌체가 필요하면 Isaac Lab URDF importer의 convex decomposition 옵션을 쓰세요.
+## Items to verify
+1. **Left/right asymmetry**: hip-roll motor at L +73 mm vs R −68 mm (5 mm). That offset is in
+   `05_urdf_thigh_joint_r.stl`, so it was kept. Confirm it is intentional.
+2. **Knee-roller gear alignment**: lever axial position was set from gear-face alignment. At that
+   pose the opposite 8.5 mm plate overlaps the thigh motor rear hub (r 35) by ~3 mm. Check the real
+   assembly gap.
+3. **Waist parallel mechanism**: the two motors and pushrods in the torso were simplified to serial
+   yaw→roll→pitch. Pushrods live in the torso mesh, so they move as a rigid body with the waist.
+4. **Mass / inertia**: every link assumed uniform 1000 kg/m³ (18.39 kg total). Motors and metal come
+   out light — correct with `tools/set_masses.py`.
+5. **Joint limits, torque, speed, gains**: all provisional.
+6. **Collision**: convex hulls overlap non-adjacent links (`waist_yaw`↔torso, roller↔shin, …). Keep
+   self-collision off. For tighter collision, use the Isaac Lab URDF importer convex-decomposition
+   option.
 
-## 사용법
+## Usage
 ```bash
-# 질량 보정
-python tools/set_masses.py --total 32.0                  # 실제 총질량으로 스케일
-python tools/set_masses.py --csv tools/link_masses.csv   # cad_mass_kg 값을 채운 링크만 교체
+# Mass correction
+python tools/set_masses.py --total 32.0                  # scale to a measured total mass
+python tools/set_masses.py --csv tools/link_masses.csv   # replace links that have cad_mass_kg
 
-# Isaac Lab URDF → USD 변환 (2.x)
+# Isaac Lab URDF → USD (2.x)
 ./isaaclab.sh -p scripts/tools/convert_urdf.py urdf/wheel_humanoid.urdf wheel_humanoid.usd --joint-stiffness 0.0 --joint-damping 0.0
 ```
-`isaaclab/wheel_humanoid_cfg.py`는 URDF를 직접 스폰하는 템플릿입니다. API 이름(`effort_limit_sim` 등)은 사용 중인 Isaac Lab 버전에 맞게 확인하세요.
+`isaaclab/wheel_humanoid_cfg.py` is a template that spawns the URDF directly. Check API names such as
+`effort_limit_sim` against your Isaac Lab version.
 
-## Isaac Lab standing-skate PPO (AgiBot Lingxi X2 style)
+## Legacy standing-skate PPO (`Isaac-WheelHumanoid-Skateboard-v0`)
 
-Trains an **upright two-wheel skate**: the robot stands on the two foot wheels, bends the knees only a little for balance, and rolls like [Lingxi X2](https://www.youtube.com/watch?v=oJZ8tMIYlY4). Knee rollers stay off the ground. PPO tracks planar velocity and matches wheel spin to commanded speed (differential yaw). WASD in Isaac Sim sends a world-frame direction; the policy turns to face that direction and rolls forward.
-
-Requires the local Isaac Lab 2.3 env at `~/isaac/env_isaaclab` and `~/isaac/IsaacLab`.
+Older upright two-wheel skate task (ideal implicit PD, not the CubeMars Q1 plant). Knee rollers stay
+off the ground. Use `./train_skate.sh` / `./play_skateboard.sh` for the current Q1 policy instead.
 
 ```bash
-# Train PPO (headless). Writes checkpoints/skateboard_ppo.pt
-./train_skateboard.sh
-
-# Resume the standing checkpoint and keep skating
+./train_skateboard.sh           # writes checkpoints/skateboard_ppo.pt
 RESUME=1 MAX_ITERS=3000 ./train_skateboard.sh
-
-# Optional: fewer envs / fewer iters
-NUM_ENVS=256 MAX_ITERS=500 ./train_skateboard.sh
-
-# Play in Isaac Sim with WASD (focus the viewport first)
-./play_skateboard.sh
-
-# Headless RGB recording
-./record_stand_skate.sh
+./record_stand_skate.sh         # headless RGB of the legacy checkpoint
 ```
 
-Keyboard while playing:
-
-| Key | Motion |
-|---|---|
-| W / S | Slide world +X / −X |
-| A / D | Slide world +Y / −Y (left / right) |
-| Q / E | Yaw in place |
-| Space or L | Stop |
-| R | Reset episode |
-
-## 링크 ↔ 원본 STL
-| 링크 | STL |
+## Link ↔ source STL
+| Link | STL |
 |---|---|
 | `pelvis` | `hip.stl` |
 | `waist_yaw_link` | `waist_yaw.stl` |

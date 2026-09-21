@@ -1,5 +1,6 @@
-"""Isaac Lab ArticulationCfg 템플릿 (Isaac Lab 2.x 기준 — 사용 중인 버전의 API 이름을 확인하세요).
-게인/토크/속도 값은 모두 임시값입니다.
+"""Isaac Lab ArticulationCfg template (Isaac Lab 2.x — check API names for your version).
+
+Gains, torque, and speed limits are provisional.
 """
 import os
 import isaaclab.sim as sim_utils
@@ -22,14 +23,14 @@ WHEEL_HUMANOID_CFG = ArticulationCfg(
             disable_gravity=False, max_depenetration_velocity=1.0
         ),
         articulation_props=sim_utils.ArticulationRootPropertiesCfg(
-            # 볼록 껍질 충돌체가 인접하지 않은 링크끼리 겹치므로(허리·무릎 롤러) self-collision은 끕니다.
+            # Convex hulls overlap non-adjacent links (waist, knee rollers), so disable self-collision.
             enabled_self_collisions=False,
             solver_position_iteration_count=8,
             solver_velocity_iteration_count=4,
         ),
     ),
     init_state=ArticulationCfg.InitialStateCfg(
-        # 0 자세에서 바퀴 최하단이 pelvis 원점 아래 0.8867 m
+        # Zero pose: wheel bottoms sit 0.8867 m below the pelvis origin.
         pos=(0.0, 0.0, 0.90),
         joint_pos={".*": 0.0},
         joint_vel={".*": 0.0},
@@ -41,7 +42,7 @@ WHEEL_HUMANOID_CFG = ArticulationCfg(
             effort_limit_sim=60.0, velocity_limit_sim=12.0,
             stiffness=80.0, damping=4.0,
         ),
-        "wheels": ImplicitActuatorCfg(  # 속도 제어: stiffness=0
+        "wheels": ImplicitActuatorCfg(  # velocity control: stiffness=0
             joint_names_expr=[".*_wheel_joint"],
             effort_limit_sim=20.0, velocity_limit_sim=30.0,
             stiffness=0.0, damping=2.0,
@@ -56,7 +57,7 @@ WHEEL_HUMANOID_CFG = ArticulationCfg(
             effort_limit_sim=30.0, velocity_limit_sim=10.0,
             stiffness=40.0, damping=2.0,
         ),
-        # *_knee_roller_joint 는 URDF <mimic> (q = 0.444 * q_knee) 으로 무릎에 연동됩니다.
-        # Isaac Sim 4.5+ 에서는 PhysX mimic joint 로 변환되므로 액추에이터를 붙이지 않습니다.
+        # *_knee_roller_joint uses URDF <mimic> (q = 0.444 * q_knee).
+        # Isaac Sim 4.5+ turns that into a PhysX mimic joint, so do not attach an actuator.
     },
 )

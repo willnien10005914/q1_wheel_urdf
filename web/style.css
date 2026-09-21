@@ -65,6 +65,74 @@ html, body {
   font-size: 13px;
 }
 
+.status {
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 600;
+  pointer-events: auto;
+}
+
+.status::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.status.offline {
+  color: var(--danger);
+  background: rgba(224, 107, 107, 0.12);
+}
+
+.status.online {
+  color: var(--ok);
+  background: rgba(125, 206, 130, 0.12);
+}
+
+.cmd-readout {
+  margin-top: 6px;
+  font: 11px var(--mono);
+  color: var(--accent-2);
+}
+
+.joint-meta {
+  text-align: right;
+}
+
+.joint-extra {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.follow-btn {
+  margin-top: 4px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--accent-2);
+  border-radius: 6px;
+  padding: 2px 7px;
+  font: 10px var(--font);
+  cursor: pointer;
+}
+
+.joint.overridden {
+  background: rgba(94, 200, 197, 0.08);
+}
+
+.joint.overridden .joint-name::after {
+  content: " · manual";
+  color: var(--accent-2);
+  font-weight: 500;
+  font-size: 10px;
+}
+
 .views {
   position: absolute;
   left: 16px;
@@ -76,7 +144,8 @@ html, body {
 
 .views button,
 .toolbar button,
-.preset-row button {
+.preset-row button,
+.follow-btn {
   pointer-events: auto;
   border: 1px solid var(--line);
   background: rgba(20, 26, 36, 0.86);

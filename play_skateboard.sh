@@ -20,11 +20,12 @@ cd "$ROOT"
 source "$HOME/isaac/env_isaaclab/bin/activate"
 python -m pip install -e source/wheel_humanoid_lab -q
 
-CKPT="${CHECKPOINT:-$ROOT/checkpoints/skateboard_ppo.pt}"
+TASK="${TASK:-Isaac-Q1-Skate-Play-v0}"
+CKPT="${CHECKPOINT:-$ROOT/checkpoints/q1_skate_ppo.pt}"
 NUM_ENVS="${NUM_ENVS:-1}"
 
 ARGS=(
-  --task Isaac-WheelHumanoid-Skateboard-Play-v0
+  --task "$TASK"
   --num_envs "$NUM_ENVS"
   --real-time
 )
