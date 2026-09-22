@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import re
 from typing import TYPE_CHECKING
 
 import torch
 
 import isaaclab.utils.math as math_utils
 from isaaclab.assets import Articulation
-from isaaclab.managers import SceneEntityCfg
+from isaaclab.managers import ManagerTermBase, RewardTermCfg, SceneEntityCfg
 from isaaclab.sensors import ContactSensor
 
 from wheel_humanoid_lab.assets import WHEEL_RADIUS
@@ -262,3 +263,129 @@ def any_contact(env: ManagerBasedRLEnv, sensor_cfg: SceneEntityCfg, threshold: f
     sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
     f = sensor.data.net_forces_w_history[:, :, sensor_cfg.body_ids, :].norm(dim=-1).max(dim=1)[0]
     return (f > threshold).any(dim=1).float()
+
+
+# ------------------------------------------------------------------------------------------------
+# posture task (kneel <-> stand) terms. ``command_name`` is the 1-D PostureCommand (1 = kneel).
+# ------------------------------------------------------------------------------------------------
+def _posture_target(env: ManagerBasedRLEnv, command_name: str) -> torch.Tensor:
+    return env.command_manager.get_command(command_name)[:, 0]
+
+
+def posture_height(
+    env: ManagerBasedRLEnv,
+    command_name: str,
+    stand_z: float,
+    kneel_z: float,
+    std: float = 0.06,
+    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+) -> torch.Tensor:
+    """Gaussian on pelvis height vs the height of the commanded posture."""
+    asset: Articulation = env.scene[asset_cfg.name]
+    k = _posture_target(env, command_name)
+    z_t = stand_z + (kneel_z - stand_z) * k
+    return torch.exp(-((asset.data.root_pos_w[:, 2] - z_t) ** 2) / std**2)
+
+
+class posture_keyframe(ManagerTermBase):
+    """exp(-RMS(q - q_target)^2 / std^2) over the listed joints; q_target is the stand default pose or the
+    kneel keyframe (``kneel_pose`` {joint regex: value}) depending on the posture command."""
+
+    def __init__(self, cfg: RewardTermCfg, env: ManagerBasedRLEnv):
+        super().__init__(cfg, env)
+        asset_cfg: SceneEntityCfg = cfg.params["asset_cfg"]
+        self.asset: Articulation = env.scene[asset_cfg.name]
+        self.ids = torch.tensor(asset_cfg.joint_ids, device=env.device)
+        names = [self.asset.joint_names[i] for i in asset_cfg.joint_ids]
+        kneel = self.asset.data.default_joint_pos[0, self.ids].clone()
+        for i, n in enumerate(names):
+            for pat, val in cfg.params["kneel_pose"].items():
+                if re.fullmatch(pat, n):
+                    kneel[i] = float(val)
+        self.kneel = kneel.unsqueeze(0)
+
+    def __call__(self, env: ManagerBasedRLEnv, command_name: str, asset_cfg: SceneEntityCfg, kneel_pose: dict, std: float = 0.3) -> torch.Tensor:
+        k = _posture_target(env, command_name).unsqueeze(1)
+        q_t = self.asset.data.default_joint_pos[:, self.ids] * (1.0 - k) + self.kneel * k
+        dq = self.asset.data.joint_pos[:, self.ids] - q_t
+        return torch.exp(-torch.mean(dq**2, dim=1) / std**2)
+
+
+def posture_contacts(
+    env: ManagerBasedRLEnv,
+    command_name: str,
+    wheel_cfg: SceneEntityCfg,
+    roller_cfg: SceneEntityCfg,
+    threshold: float = 5.0,
+) -> torch.Tensor:
+    """Kneel target: both wheels AND both rollers loaded. Stand target: both wheels loaded, rollers free."""
+    sensor: ContactSensor = env.scene.sensors[wheel_cfg.name]
+    f = sensor.data.net_forces_w_history.norm(dim=-1).max(dim=1)[0]
+    wheels = (f[:, wheel_cfg.body_ids] > threshold).all(dim=1).float()
+    rollers = (f[:, roller_cfg.body_ids] > threshold).all(dim=1).float()
+    rollers_free = (f[:, roller_cfg.body_ids] <= threshold).all(dim=1).float()
+    k = _posture_target(env, command_name)
+    return wheels * (k * rollers + (1.0 - k) * rollers_free)
+
+
+def roller_contact_when_standing(
+    env: ManagerBasedRLEnv, command_name: str, sensor_cfg: SceneEntityCfg, threshold: float = 1.0
+) -> torch.Tensor:
+    """Roller touch is only a fault while the stand posture is commanded."""
+    return any_contact(env, sensor_cfg, threshold) * (1.0 - _posture_target(env, command_name))
+
+
+def stationary_base(env: ManagerBasedRLEnv, std: float = 0.3, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
+    """Planar base speed near zero (the posture task must not roll away while squatting)."""
+    v = env.scene[asset_cfg.name].data.root_lin_vel_b[:, :2]
+    return torch.exp(-torch.sum(v**2, dim=1) / std**2)
+
+
+# ------------------------------------------------------------------------------------------------
+# slide / push-skate terms
+# ------------------------------------------------------------------------------------------------
+def single_support(
+    env: ManagerBasedRLEnv,
+    sensor_cfg: SceneEntityCfg,
+    command_name: str,
+    threshold: float = 5.0,
+    min_cmd: float = 0.2,
+    max_tilt: float = 0.45,
+    min_height: float = 0.65,
+    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+) -> torch.Tensor:
+    """Exactly one wheel loaded while a forward speed is commanded and the trunk is upright: the
+    X2-style stride (one leg glides, the other is lifted / pushes). ``long_air`` keeps the lift short."""
+    sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
+    asset: Articulation = env.scene[asset_cfg.name]
+    f = sensor.data.net_forces_w[:, sensor_cfg.body_ids].norm(dim=-1)
+    one = ((f > threshold).sum(dim=1) == 1).float()
+    cmd = env.command_manager.get_command(command_name)
+    return one * (cmd[:, 0] > min_cmd).float() * _upright_gate(env, asset, max_tilt, min_height)
+
+
+class stride_alternation(ManagerTermBase):
+    """Reward a touchdown of wheel A only if the previous touchdown was wheel B (left/right alternate),
+    so the policy strides instead of hopping on one leg."""
+
+    def __init__(self, cfg: RewardTermCfg, env: ManagerBasedRLEnv):
+        super().__init__(cfg, env)
+        self.last = torch.full((env.num_envs,), -1, dtype=torch.long, device=env.device)
+
+    def reset(self, env_ids=None) -> None:
+        if env_ids is None:
+            self.last[:] = -1
+        else:
+            self.last[env_ids] = -1
+
+    def __call__(self, env: ManagerBasedRLEnv, sensor_cfg: SceneEntityCfg, command_name: str, min_air: float = 0.08) -> torch.Tensor:
+        sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
+        first = sensor.compute_first_contact(env.step_dt)[:, sensor_cfg.body_ids]
+        air = sensor.data.last_air_time[:, sensor_cfg.body_ids]
+        valid = first & (air > min_air)
+        idx = torch.argmax(valid.float(), dim=1)
+        any_td = valid.any(dim=1)
+        r = (any_td & (self.last >= 0) & (idx != self.last)).float()
+        self.last = torch.where(any_td, idx, self.last)
+        cmd = env.command_manager.get_command(command_name)
+        return r * (cmd[:, 0] > 0.2).float()

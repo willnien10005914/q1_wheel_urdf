@@ -15,6 +15,38 @@ if TYPE_CHECKING:
     from isaaclab.envs import ManagerBasedEnv
 
 
+def reset_posture_pose(
+    env: ManagerBasedEnv,
+    env_ids: torch.Tensor,
+    kneel_pose: dict[str, float],
+    kneel_root_z: float,
+    p_kneel: float = 0.5,
+    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+):
+    """Start a random subset of episodes already in the four-wheel kneel (the rest keep the stand
+    default from ``reset_robot_joints``). Must run after ``reset_base`` / ``reset_robot_joints``."""
+    import re
+
+    asset: Articulation = env.scene[asset_cfg.name]
+    if env_ids is None or len(env_ids) == 0:
+        return
+    pick = env_ids[torch.rand(len(env_ids), device=env.device) < p_kneel]
+    if len(pick) == 0:
+        return
+    q = asset.data.default_joint_pos[pick].clone()
+    for i, name in enumerate(asset.joint_names):
+        for pat, val in kneel_pose.items():
+            if re.fullmatch(pat, name):
+                q[:, i] = float(val)
+    qd = torch.zeros_like(q)
+    asset.write_joint_state_to_sim(q, qd, env_ids=pick)
+    root = asset.data.root_state_w[pick].clone()
+    root[:, 2] = kneel_root_z + env.scene.env_origins[pick, 2]
+    root[:, 7:] = 0.0
+    asset.write_root_pose_to_sim(root[:, :7], env_ids=pick)
+    asset.write_root_velocity_to_sim(root[:, 7:], env_ids=pick)
+
+
 class randomize_com(ManagerTermBase):
     """CoM offset DR that never accumulates.
 

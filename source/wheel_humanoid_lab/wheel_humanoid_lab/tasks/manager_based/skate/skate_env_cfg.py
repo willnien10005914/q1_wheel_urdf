@@ -110,12 +110,13 @@ _POS_ACTION_SCALE = {
 WHEEL_VEL_ACTION_SCALE = 25.0  # rad/s per unit action (2.5 m/s rim speed at r = 0.1 m)
 
 
-def _position_action_clip() -> dict[str, tuple[float, float]]:
+def _position_action_clip(scale_map: dict[str, float] | None = None) -> dict[str, tuple[float, float]]:
     """Joint-space clamp equivalent to |a| <= 1: default -/+ scale for every position joint."""
+    scale_map = _POS_ACTION_SCALE if scale_map is None else scale_map
     defaults = Q1_WHEEL_CUBEMARS_CFG.init_state.joint_pos
     clip: dict[str, tuple[float, float]] = {}
     for joint in Q1_POSITION_JOINTS:
-        scale = next(s for pat, s in _POS_ACTION_SCALE.items() if re.fullmatch(pat, joint))
+        scale = next(s for pat, s in scale_map.items() if re.fullmatch(pat, joint))
         q0 = next((q for pat, q in defaults.items() if re.fullmatch(pat, joint)), 0.0)
         clip[joint] = (q0 - scale, q0 + scale)
     return clip
@@ -198,6 +199,12 @@ class ActionsCfg:
         scale=WHEEL_VEL_ACTION_SCALE,
         use_default_offset=True,
         clip={".*_wheel_joint": (-WHEEL_VEL_ACTION_SCALE, WHEEL_VEL_ACTION_SCALE)},
+    )
+    # 0-D: keeps the passive knee rollers on the real 0.444 * knee linkage (importer drops <mimic>).
+    roller_mimic = mdp.RollerMimicActionCfg(
+        asset_name="robot",
+        roller_joint_names=["l_knee_roller_joint", "r_knee_roller_joint"],
+        knee_joint_names=["l_knee_joint", "r_knee_joint"],
     )
 
 

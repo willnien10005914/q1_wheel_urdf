@@ -19,6 +19,10 @@ from .q1_spec import (
     WHEEL_RADIUS,
 )
 from .wheel_humanoid import (
+    KNEEL_HIP_PITCH,
+    KNEEL_KNEE,
+    KNEEL_PELVIS_Z,
+    KNEEL_WAIST_PITCH,
     Q1_WHEEL_CUBEMARS_CFG,
     SKATE_ELBOW,
     SKATE_HIP_PITCH,

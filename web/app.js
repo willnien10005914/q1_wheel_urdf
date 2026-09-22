@@ -146,6 +146,8 @@ const els = {
   spin: document.getElementById("spin-wheels"),
   isaac: document.getElementById("isaac-status"),
   cmd: document.getElementById("cmd-readout"),
+  pose: document.getElementById("pose-readout"),
+  train: document.getElementById("train-status"),
 };
 
 const sliderEls = {};
@@ -312,6 +314,17 @@ function applyIsaacState(state) {
     els.cmd.textContent = `vx ${num(state.cmd.vx).toFixed(2)} · yaw ${num(state.cmd.yaw).toFixed(2)} · z ${
       Number.isFinite(state.base?.z) ? state.base.z.toFixed(2) : "--"
     } m`;
+  }
+  if (els.pose) {
+    const pol = state.policies || {};
+    const bits = [
+      pol.posture ? "kneel-ppo" : "kneel-scripted",
+      pol.slide ? "slide-ppo" : "slide-pending",
+    ];
+    els.pose.textContent = `pose ${state.pose || "ppo"} · ${bits.join(" · ")}`;
+  }
+  if (els.train && state.train) {
+    els.train.textContent = fmtTrain(state.train);
   }
   const joints = state.joints || {};
   const liveOverrides = new Set(Object.keys(state.overrides || {}));
@@ -556,6 +569,64 @@ document.getElementById("reset-sim").addEventListener("click", async () => {
     /* ignore */
   }
 });
+
+async function requestPose(name) {
+  await releaseAll();
+  try {
+    await postJson("/api/pose", { name });
+  } catch {
+    /* ignore */
+  }
+}
+
+document.getElementById("pose-kneel").addEventListener("click", () => requestPose("kneel"));
+document.getElementById("pose-stand").addEventListener("click", () => requestPose("stand"));
+document.getElementById("pose-slide").addEventListener("click", () => requestPose("slide"));
+document.getElementById("pose-skate").addEventListener("click", () => requestPose("skate"));
+
+function fmtTrain(payload) {
+  const jobs = payload.jobs || payload;
+  const parts = [];
+  ["posture", "slide"].forEach((name) => {
+    const j = jobs[name];
+    if (!j) return;
+    if (j.running) parts.push(`${name} training`);
+    else if (j.checkpoint) parts.push(`${name} ready`);
+    else parts.push(`${name} none`);
+  });
+  return `train: ${parts.join(" · ") || "idle"}`;
+}
+
+async function requestTrain(name) {
+  try {
+    const res = await postJson("/api/train", { name });
+    if (els.train) {
+      els.train.textContent = res.ok
+        ? `train: started ${res.label || name} (pid ${res.pid})`
+        : `train: ${res.error || "failed"}`;
+    }
+    if (!res.ok) window.alert(res.error || "Could not start training");
+  } catch (err) {
+    if (els.train) els.train.textContent = "train: API offline";
+    window.alert("Train API is not running. Use ./train_slide.sh or ./train_posture.sh");
+  }
+}
+
+document.getElementById("train-posture").addEventListener("click", () => requestTrain("posture"));
+document.getElementById("train-slide").addEventListener("click", () => requestTrain("slide"));
+
+async function pollTrain() {
+  try {
+    const res = await fetch(`${API}/api/train`, { cache: "no-store" });
+    if (!res.ok) return;
+    const payload = await res.json();
+    if (els.train) els.train.textContent = fmtTrain(payload);
+  } catch {
+    /* ignore */
+  }
+}
+setInterval(pollTrain, 4000);
+pollTrain();
 document.getElementById("copy").addEventListener("click", async () => {
   refreshJson();
   await navigator.clipboard.writeText(els.json.value);

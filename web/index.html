@@ -24,6 +24,7 @@
         <p>24 actuated DOF · drag a slider to override that motor in Isaac Sim</p>
         <div id="isaac-status" class="status offline">Isaac Sim: offline</div>
         <div id="cmd-readout" class="cmd-readout">vx 0.00 · yaw 0.00</div>
+        <div id="pose-readout" class="cmd-readout">pose ppo</div>
       </div>
       <div class="views">
         <button data-view="iso">Iso</button>
@@ -44,9 +45,21 @@
     <aside id="sidebar">
       <div class="side-head">
         <h2>Joint control</h2>
+        <div class="preset-row pose-row">
+          <button id="pose-kneel" type="button">Kneel (4 wheels)</button>
+          <button id="pose-stand" type="button">Stand up</button>
+        </div>
+        <div class="preset-row pose-row">
+          <button id="pose-slide" type="button">Slide (X2 skate)</button>
+          <button id="pose-skate" type="button">Balance skate</button>
+        </div>
+        <div class="preset-row pose-row">
+          <button id="train-posture" type="button">Train kneel/stand PPO</button>
+          <button id="train-slide" type="button">Train slide PPO</button>
+        </div>
+        <div id="train-status" class="cmd-readout">train: idle</div>
         <div class="preset-row">
           <button data-preset="zero">Zero</button>
-          <button data-preset="kneel">Kneel</button>
           <button data-preset="tpose">T-pose</button>
           <button data-preset="reach">Reach</button>
         </div>

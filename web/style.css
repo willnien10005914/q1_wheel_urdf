@@ -101,6 +101,23 @@ html, body {
   color: var(--accent-2);
 }
 
+.pose-row {
+  margin-bottom: 8px;
+}
+
+.pose-row button {
+  font-weight: 650;
+}
+
+#pose-kneel {
+  border-color: var(--accent);
+}
+
+#pose-stand {
+  border-color: var(--ok);
+  color: var(--ok);
+}
+
 .joint-meta {
   text-align: right;
 }

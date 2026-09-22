@@ -51,6 +51,18 @@ parser.add_argument(
 )
 parser.add_argument("--web-port", type=int, default=8766, help="Port for the live motor web UI.")
 parser.add_argument(
+    "--posture-checkpoint",
+    type=str,
+    default=None,
+    help="Kneel/stand posture PPO (default checkpoints/q1_posture_ppo.pt; scripted fallback if missing).",
+)
+parser.add_argument(
+    "--slide-checkpoint",
+    type=str,
+    default=None,
+    help="Push-skate slide PPO (default checkpoints/q1_slide_ppo.pt; skate PPO wanders if missing).",
+)
+parser.add_argument(
     "--no-web",
     action="store_true",
     default=False,
@@ -102,6 +114,7 @@ from isaaclab_tasks.utils import get_checkpoint_path
 from isaaclab_tasks.utils.hydra import hydra_task_config
 
 import wheel_humanoid_lab.tasks  # noqa: F401
+from play_modes import LoadedPolicy, ModeController
 from play_web import start_play_web
 
 
@@ -155,6 +168,126 @@ def _hard_reset(env, policy_nn) -> object:
     return env.get_observations()
 
 
+def _named_joints(robot) -> dict[str, float]:
+    q = robot.data.joint_pos[0].detach().cpu()
+    return {name: float(q[i]) for i, name in enumerate(robot.joint_names)}
+
+
+def _named_defaults(robot) -> dict[str, float]:
+    q = robot.data.default_joint_pos[0].detach().cpu()
+    return {name: float(q[i]) for i, name in enumerate(robot.joint_names)}
+
+
+# Scripted FALLBACK only (used when checkpoints/q1_posture_ppo.pt does not exist yet). PD targets
+# measured in sim to rest on four wheels: the knee sags ~0.1 rad under load, so the target is below
+# the ~2.35 rad the joint actually settles at. Open-loop, so it is not robust - the posture PPO is.
+_KNEEL_PATCH = {
+    "l_hip_pitch_joint": -1.00,
+    "r_hip_pitch_joint": -1.00,
+    "l_hip_roll_joint": 0.0,
+    "r_hip_roll_joint": 0.0,
+    "l_knee_joint": 2.25,
+    "r_knee_joint": 2.25,
+    "waist_pitch_joint": 0.35,
+    "waist_yaw_joint": 0.0,
+    "waist_roll_joint": 0.0,
+}
+
+
+# Fallback squat must stay slow enough that the foot wheels never leave the ground.
+_KNEEL_DURATION_S = 3.0
+_STAND_DURATION_S = 3.2
+
+
+class ScriptedKneelStand:
+    """Fallback: interpolate hip/knee between skate and four-wheel kneel when no posture PPO exists."""
+
+    def __init__(self) -> None:
+        self.mode = "ppo"  # ppo | kneel_motion | kneel_hold | stand_motion
+        self.latest: dict[str, float] | None = None
+        self._t = 0.0
+        self._duration = 1.0
+        self._start: dict[str, float] = {}
+        self._end: dict[str, float] = {}
+
+    def reset(self) -> None:
+        self.mode = "ppo"
+        self.latest = None
+        self._t = 0.0
+        self._start = {}
+        self._end = {}
+
+    def request_kneel(self, current: dict[str, float], defaults: dict[str, float]) -> bool:
+        if self.mode in {"kneel_motion", "kneel_hold"}:
+            return False
+        self._start = dict(current)
+        self._end = {**defaults, **_KNEEL_PATCH}
+        self._t = 0.0
+        self._duration = _KNEEL_DURATION_S
+        self.mode = "kneel_motion"
+        return True
+
+    def request_stand(self, current: dict[str, float], defaults: dict[str, float]) -> bool:
+        if self.mode == "stand_motion":
+            return False
+        self._start = dict(current)
+        self._end = dict(defaults)
+        self._t = 0.0
+        self._duration = _STAND_DURATION_S
+        self.mode = "stand_motion"
+        return True
+
+    def step(self, dt: float) -> tuple[dict[str, float] | None, str | None]:
+        """Return (joint overrides or None, event). Wheel keys are velocity targets (0)."""
+        if self.mode == "ppo":
+            self.latest = None
+            return None, None
+        event = None
+        if self.mode in {"kneel_motion", "stand_motion"}:
+            self._t += dt
+            u = min(1.0, self._t / max(self._duration, 1e-3))
+            s = u * u * (3.0 - 2.0 * u)
+            pose = {}
+            keys = set(self._start) | set(self._end)
+            for name in keys:
+                if name.endswith("_wheel_joint") or name.endswith("_roller_joint"):
+                    continue
+                a = self._start.get(name, self._end.get(name, 0.0))
+                b = self._end.get(name, a)
+                pose[name] = a + (b - a) * s
+            pose["l_wheel_joint"] = 0.0
+            pose["r_wheel_joint"] = 0.0
+            self.latest = pose
+            if u >= 1.0:
+                if self.mode == "kneel_motion":
+                    self.mode = "kneel_hold"
+                    event = "knelt"
+                else:
+                    # Keep this frame's skate targets so the last apply isn't PPO.
+                    self.mode = "ppo"
+                    event = "stood"
+            return pose, event
+        pose = {k: v for k, v in self._end.items() if not k.endswith("_roller_joint")}
+        pose["l_wheel_joint"] = 0.0
+        pose["r_wheel_joint"] = 0.0
+        self.latest = pose
+        return pose, None
+
+    @property
+    def blocking(self) -> bool:
+        # Stay blocking on the last stand frame while skate targets are still applied.
+        return self.mode != "ppo" or self.latest is not None
+
+    @property
+    def label(self) -> str:
+        return {
+            "ppo": "ppo",
+            "kneel_motion": "kneeling",
+            "kneel_hold": "kneel",
+            "stand_motion": "standing",
+        }[self.mode]
+
+
 class WasdSkateTeleop:
     """Body-frame teleop that matches how the skate PPO was trained.
 
@@ -179,6 +312,9 @@ class WasdSkateTeleop:
         self.yaw = yaw
         self._pressed: set[str] = set()
         self.reset_requested = False
+        self.kneel_requested = False
+        self.stand_requested = False
+        self.slide_toggle_requested = False
         self._cmd = torch.zeros(3, device=device)
         self._carb = carb
         self._appwindow = omni.appwindow.get_default_app_window()
@@ -201,6 +337,12 @@ class WasdSkateTeleop:
         if event.type == self._carb.input.KeyboardEventType.KEY_PRESS:
             if name in {"R", "HOME"}:
                 self.reset_requested = True
+            elif name in {"K"}:
+                self.kneel_requested = True
+            elif name in {"U"}:
+                self.stand_requested = True
+            elif name in {"P"}:
+                self.slide_toggle_requested = True
             elif name in {"L", "SPACE", "X"}:
                 self._pressed.clear()
                 self._cmd.zero_()
@@ -243,33 +385,90 @@ class WasdSkateTeleop:
         self._pressed.clear()
         self._cmd.zero_()
 
-
-def _install_override_hook(env, web_state) -> None:
-    """After PPO actions are processed, overwrite joint targets the web UI is holding."""
-    mgr = env.unwrapped.action_manager
-    orig = mgr.process_action
-
-    def hooked(action: torch.Tensor) -> None:
-        orig(action)
-        if web_state is None:
-            return
-        overrides = web_state.pop_overrides()
-        if not overrides:
-            return
-        for name in mgr.active_terms:
-            term = mgr.get_term(name)
-            joint_names = getattr(term, "_joint_names", None)
-            processed = getattr(term, "_processed_actions", None)
-            if joint_names is None or processed is None:
-                continue
-            for i, joint in enumerate(joint_names):
-                if joint in overrides:
-                    processed[:, i] = float(overrides[joint])
-
-    mgr.process_action = hooked
+    @property
+    def any_pressed(self) -> bool:
+        return bool(self._pressed & {"W", "A", "S", "D", "Q", "E"})
 
 
-def _publish_web_state(env, web_state, cmd: torch.Tensor) -> None:
+def _write_processed_overrides(mgr, overrides: dict[str, float]) -> None:
+    if not overrides:
+        return
+    for name in mgr.active_terms:
+        term = mgr.get_term(name)
+        joint_names = getattr(term, "_joint_names", None)
+        processed = getattr(term, "_processed_actions", None)
+        if joint_names is None or processed is None:
+            continue
+        for i, joint in enumerate(joint_names):
+            if joint in overrides:
+                processed[:, i] = float(overrides[joint])
+
+
+def _install_override_hook(
+    env, web_state, pose_ctrl: ScriptedKneelStand | None = None, mode_ctrl: ModeController | None = None
+) -> None:
+    """Rewrite the joint targets after PPO processing and again every physics apply.
+
+    Priority: posture-PPO remap (wider leg clip) < web slider overrides < scripted kneel fallback.
+    Fall/contact episode resets are suppressed while a posture transition runs: the kneel drops the
+    pelvis to ~0.45 m (the skate PLAY env terminates below 0.60 m), which otherwise snapped the robot
+    back to the skate pose mid-kneel - the kneel/stand loop seen before.
+    """
+    unwrapped = env.unwrapped
+    mgr = unwrapped.action_manager
+    orig_process = mgr.process_action
+    orig_apply = mgr.apply_action
+    pos_term = mgr.get_term("joint_pos")
+
+    def _overrides() -> dict[str, float]:
+        overrides: dict[str, float] = {}
+        if web_state is not None:
+            overrides.update(web_state.pop_overrides())
+        if pose_ctrl is not None and pose_ctrl.latest:
+            overrides.update(pose_ctrl.latest)
+        return overrides
+
+    def _apply_all(include_web: bool) -> None:
+        if mode_ctrl is not None and mode_ctrl.processed_override is not None:
+            pos_term._processed_actions[:] = mode_ctrl.processed_override
+        if include_web:
+            _write_processed_overrides(mgr, _overrides())
+        elif pose_ctrl is not None and pose_ctrl.latest:
+            _write_processed_overrides(mgr, pose_ctrl.latest)
+
+    def hooked_process(action: torch.Tensor) -> None:
+        orig_process(action)
+        _apply_all(include_web=True)
+
+    def hooked_apply() -> None:
+        # Re-apply every physics substep so the skate clip cannot sneak back in.
+        _apply_all(include_web=False)
+        orig_apply()
+
+    mgr.process_action = hooked_process
+    mgr.apply_action = hooked_apply
+
+    tm = unwrapped.termination_manager
+    orig_compute = tm.compute
+
+    def hooked_compute(*args, **kwargs):
+        reset_buf = orig_compute(*args, **kwargs)
+        suppress = (pose_ctrl is not None and pose_ctrl.blocking) or (
+            mode_ctrl is not None and mode_ctrl.suppress_terminations
+        )
+        if not suppress:
+            return reset_buf
+        tm._truncated_buf[:] = False
+        tm._terminated_buf[:] = False
+        return tm._truncated_buf | tm._terminated_buf
+
+    tm.compute = hooked_compute
+
+
+def _publish_web_state(
+    env, web_state, cmd: torch.Tensor, pose_label: str = "ppo", extra: dict | None = None
+) -> None:
+    extra = extra or {}
     unwrapped = env.unwrapped
     robot = unwrapped.scene["robot"]
     names = list(robot.joint_names)
@@ -312,6 +511,9 @@ def _publish_web_state(env, web_state, cmd: torch.Tensor) -> None:
             "ok": True,
             "t": float(unwrapped.episode_length_buf[0].item()) * float(unwrapped.step_dt),
             "cmd": {"vx": float(cmd0[0]), "vy": float(cmd0[1]), "yaw": float(cmd0[2])},
+            "pose": pose_label,
+            "policies": extra.get("policies") or {},
+            "train": extra.get("train") or {},
             "base": {
                 "x": float(root[0]),
                 "y": float(root[1]),
@@ -414,13 +616,41 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
             "  A/D   : yaw left / right  (NOT strafe — vy is always 0)\n"
             "  Q/E   : extra yaw\n"
             "  SPACE/X/L : stop  (Space no longer pauses Isaac Sim)\n"
+            "  K         : kneel (posture PPO if trained, else scripted)\n"
+            "  U         : stand up, then skate PPO balances\n"
+            "  P         : toggle slide (X2 push-skate, random wander; WASD overrides)\n"
             "  R/Home    : respawn at origin\n"
         )
 
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+    posture_ckpt = args_cli.posture_checkpoint or os.path.join(project_root, "checkpoints", "q1_posture_ppo.pt")
+    slide_ckpt = args_cli.slide_checkpoint or os.path.join(project_root, "checkpoints", "q1_slide_ppo.pt")
+    device = env.unwrapped.device
+    mode_ctrl = ModeController(
+        env,
+        {
+            "skate": LoadedPolicy.wrap(env, agent_cfg, resume_path, str(device), runner, policy, policy_nn),
+            "posture": LoadedPolicy(env, agent_cfg, posture_ckpt, str(device)),
+            "slide": LoadedPolicy(env, agent_cfg, slide_ckpt, str(device)),
+        },
+        str(device),
+    )
+    if mode_ctrl.has_posture_policy:
+        print(f"[INFO] Kneel/stand posture PPO: {posture_ckpt}")
+    else:
+        print("[INFO] No q1_posture_ppo.pt yet — K/U uses the scripted squat. Train with ./train_posture.sh")
+    if mode_ctrl.has_slide_policy:
+        print(f"[INFO] Slide / X2-skate PPO: {slide_ckpt}")
+    else:
+        print("[INFO] No q1_slide_ppo.pt yet — P wanders with the skate PPO. Train with ./train_slide.sh")
+
+    pose_ctrl = ScriptedKneelStand()
     web_state = None
     if not args_cli.no_web and not args_cli.headless:
         web_state = start_play_web(port=args_cli.web_port, open_browser=not args_cli.no_browser)
-        _install_override_hook(env, web_state)
+        _install_override_hook(env, web_state, pose_ctrl, mode_ctrl)
+    else:
+        _install_override_hook(env, None, pose_ctrl, mode_ctrl)
 
     cmd_profile: list[tuple[int, float]] = []
     if args_cli.cmd_profile:
@@ -446,12 +676,83 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
                 if teleop is not None:
                     teleop.reset_requested = False
                     teleop.zero()
+                pose_ctrl.reset()
+                mode_ctrl.reset()
+                if web_state is not None:
+                    web_state.apply_joint_msg({"release_all": True})
                 obs = _hard_reset(env, policy_nn)
                 last_cmd.zero_()
                 print("[INFO] Reset: robot respawned at origin.")
 
+            robot = env.unwrapped.scene["robot"]
+            defaults = _named_defaults(robot)
+            current = _named_joints(robot)
+
+            def _dispatch_pose(name: str) -> None:
+                if name in {"slide", "skate"}:
+                    if pose_ctrl.blocking:
+                        print("[INFO] Stand up before changing skate/slide mode.")
+                        return
+                    msg = mode_ctrl.request(name)
+                    if msg:
+                        print(f"[INFO] {msg}")
+                    return
+                if mode_ctrl.has_posture_policy:
+                    msg = mode_ctrl.request(name)
+                    if msg:
+                        pose_ctrl.reset()
+                        if teleop is not None:
+                            teleop.zero()
+                        print(f"[INFO] {msg}")
+                    return
+                if name == "kneel" and pose_ctrl.request_kneel(current, defaults):
+                    if teleop is not None:
+                        teleop.zero()
+                    print("[INFO] Kneel: scripted squat (train posture PPO with ./train_posture.sh).")
+                elif name == "stand" and pose_ctrl.request_stand(current, defaults):
+                    print("[INFO] Stand: scripted interpolation, then skate PPO.")
+
+            if teleop is not None and teleop.kneel_requested:
+                teleop.kneel_requested = False
+                _dispatch_pose("kneel")
+            if teleop is not None and teleop.stand_requested:
+                teleop.stand_requested = False
+                _dispatch_pose("stand")
+            if teleop is not None and teleop.slide_toggle_requested:
+                teleop.slide_toggle_requested = False
+                _dispatch_pose("skate" if mode_ctrl.mode == "slide" else "slide")
+            if web_state is not None:
+                pose_name = web_state.consume_pose()
+                if pose_name:
+                    _dispatch_pose(pose_name)
+
+            if mode_ctrl.mode == "posture":
+                pose_ctrl.reset()
+            else:
+                _, pose_event = pose_ctrl.step(dt)
+                if pose_event == "knelt":
+                    print("[INFO] Kneel hold: four wheels on the ground.")
+                elif pose_event == "stood":
+                    if web_state is not None:
+                        web_state.apply_joint_msg({"release_all": True})
+                    if hasattr(policy_nn, "reset"):
+                        policy_nn.reset(torch.ones(n_envs, dtype=torch.bool, device=device))
+                    print("[INFO] Standing skate pose reached — skate PPO balancing.")
+
+            blocking = pose_ctrl.blocking or mode_ctrl.blocking
             cmd = last_cmd
-            if teleop is not None:
+            if blocking:
+                vel_term = env.unwrapped.command_manager.get_term("base_velocity")
+                vel_term.vel_command_b[:] = 0.0
+                vel_term.is_standing_env[:] = True
+                cmd = vel_term.vel_command_b
+                last_cmd = cmd
+            elif mode_ctrl.mode == "slide" and (teleop is None or not teleop.any_pressed):
+                cmd = mode_ctrl.wander.step(dt)
+                vel_term = env.unwrapped.command_manager.get_term("base_velocity")
+                vel_term.vel_command_b[:] = cmd
+                vel_term.is_standing_env[:] = False
+            elif teleop is not None:
                 cmd = teleop.command(n_envs, dt)
                 vel_term = env.unwrapped.command_manager.get_term("base_velocity")
                 vel_term.vel_command_b[:] = cmd
@@ -487,7 +788,13 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
                 vel_term.is_standing_env[:] = False
             last_cmd = cmd
 
-            if web_state is not None and web_state.web_cmd and teleop is not None and not teleop._pressed:
+            if (
+                web_state is not None
+                and web_state.web_cmd
+                and teleop is not None
+                and not teleop._pressed
+                and not blocking
+            ):
                 with web_state._lock:
                     wcmd = dict(web_state.web_cmd or {})
                 vel_term = env.unwrapped.command_manager.get_term("base_velocity")
@@ -499,12 +806,28 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
                 cmd = vel_term.vel_command_b
                 last_cmd = cmd
 
-            actions = policy(obs)
+            if timestep % 50 == 0:
+                mode_ctrl.poll_reload()
+            if pose_ctrl.blocking and not mode_ctrl.has_posture_policy:
+                act_dim = env.unwrapped.action_manager.total_action_dim
+                actions = torch.zeros(n_envs, act_dim, device=device)
+            else:
+                actions = mode_ctrl.act(obs, dt)
             obs, _, dones, _ = env.step(actions)
-            if hasattr(policy_nn, "reset"):
+            handover = mode_ctrl.after_step(dones)
+            if handover:
+                print(f"[INFO] {handover}")
+            elif hasattr(policy_nn, "reset") and not blocking:
                 policy_nn.reset(dones)
             if web_state is not None:
-                _publish_web_state(env, web_state, cmd)
+                pose_label = mode_ctrl.label if not pose_ctrl.blocking else pose_ctrl.label
+                extra = {
+                    "policies": {
+                        "posture": mode_ctrl.has_posture_policy,
+                        "slide": mode_ctrl.has_slide_policy,
+                    },
+                }
+                _publish_web_state(env, web_state, cmd, pose_label, extra)
         timestep += 1
         if args_cli.video and timestep == args_cli.video_length:
             break

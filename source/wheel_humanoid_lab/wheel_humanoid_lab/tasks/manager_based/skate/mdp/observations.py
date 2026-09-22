@@ -153,14 +153,29 @@ def joint_pos_contract_clean(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg) 
     return torch.where(mask, math_utils.wrap_to_pi(q), q)
 
 
-def skate_command(env: ManagerBasedRLEnv, command_name: str = "base_velocity", arm_style: float = 1.0) -> torch.Tensor:
-    """Fixed-width command block: twist(3) | head(4) | body(6) | arm_style(1). Unused slots are zero."""
+def skate_command(
+    env: ManagerBasedRLEnv,
+    command_name: str = "base_velocity",
+    arm_style: float = 1.0,
+    posture_command_name: str | None = None,
+) -> torch.Tensor:
+    """Fixed-width command block: twist(3) | head(4) | body(6) | arm_style(1). Unused slots are zero.
+
+    ``body[0]`` is the posture target (0 = standing skate, 1 = four-wheel kneel) when a posture command
+    term is given (posture task); the skate/slide policies always see 0 there.
+    """
     twist = env.command_manager.get_command(command_name)[:, :CMD_TWIST_DIM]
     n = twist.shape[0]
     head = torch.zeros(n, CMD_HEAD_DIM, device=env.device)
     body = torch.zeros(n, CMD_BODY_DIM, device=env.device)
+    if posture_command_name is not None:
+        body[:, 0] = env.command_manager.get_command(posture_command_name)[:, 0]
     style = torch.full((n, CMD_ARM_STYLE_DIM), float(arm_style), device=env.device)
     return torch.cat([twist, head, body, style], dim=1)
+
+
+# Index of body[0] inside the 92-D actor observation (used by play.py to inject the posture target).
+POSTURE_OBS_INDEX = 3 + 3 + 24 + 24 + 24 + CMD_TWIST_DIM + CMD_HEAD_DIM
 
 
 def wheel_rim_speed(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg, wheel_radius: float = WHEEL_RADIUS) -> torch.Tensor:

@@ -8,6 +8,8 @@ outputs/
 checkpoints/*
 !checkpoints/skateboard_ppo.pt
 !checkpoints/q1_skate_ppo.pt
+!checkpoints/q1_posture_ppo.pt
+!checkpoints/q1_slide_ppo.pt
 !checkpoints/exported/
 !checkpoints/exported/policy.onnx
 !checkpoints/exported/policy.pt

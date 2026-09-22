@@ -35,6 +35,16 @@ SKATE_WAIST_PITCH = 0.10
 SKATE_SHOULDER_PITCH = 0.55
 SKATE_SHOULDER_ROLL = 0.20  # left +, right - (abduction)
 SKATE_ELBOW = -0.50
+# Four-wheel kneel keyframe (measured in sim, CubeMars plant, roller mimic enforced): knee ~2.35 /
+# hip ~-1.05 / pelvis pitched ~15 deg forward puts BOTH foot wheels (~75 N each) and both knee rollers
+# (~120 N each) on the ground with the pelvis at ~0.45 m; roller 0.22 m ahead of the pelvis, wheel
+# 0.10 m behind, CoM ~0.13 m inside the polygon. Holding it needs ~30 Nm at the knee, i.e. ~0.15 rad
+# of PD sag, which is why the transition is learned (posture PPO) rather than a fixed-angle script.
+# (The earlier -0.40 / 2.18 guess left the wheels in the air and the robot rocked on its thighs.)
+KNEEL_PELVIS_Z = 0.45
+KNEEL_HIP_PITCH = -1.02
+KNEEL_KNEE = 2.36
+KNEEL_WAIST_PITCH = 0.30
 
 _BUS = Q1_COMPONENTS["bus"]
 _PACK_DR = tuple(_BUS["pack_voltage_dr_v"])
@@ -226,13 +236,14 @@ Q1_WHEEL_CUBEMARS_CFG = ArticulationCfg(
             fric=_FRIC_AK45_10, sag=0.05,
         ),
         # knee rollers are a mimic linkage on the real robot (0.444 * knee); the URDF importer does not
-        # create the constraint, so a weak implicit spring keeps them near the linkage angle.
+        # create the constraint. ``RollerMimicActionCfg`` in the task writes the linkage angle as the
+        # position target every physics step and this stiff PD holds it (also under the kneel load).
         "passive_rollers": ImplicitActuatorCfg(
             joint_names_expr=[".*_knee_roller_joint"],
-            effort_limit_sim=5.0,
+            effort_limit_sim=60.0,
             velocity_limit_sim=12.0,
-            stiffness=5.0,
-            damping=0.3,
+            stiffness=120.0,
+            damping=2.0,
         ),
     },
 )
