@@ -143,6 +143,8 @@ def skate_metrics(
         "both_contact_frac": float((n_loaded == 2).float().mean()),
         "single_contact_frac": float((n_loaded == 1).float().mean()),
         "peak_air_time": float(sensor.data.current_air_time[:, sensor_cfg.body_ids].max()),
+        "mean_air_time": float(sensor.data.current_air_time[:, sensor_cfg.body_ids].mean()),
+        "air_over_022_frac": float((sensor.data.current_air_time[:, sensor_cfg.body_ids] > 0.22).any(dim=1).float().mean()),
         "torso_pitch_gx": float(g_t[:, 0].mean()),
         "shoulder_pitch_mean": float(asset.data.joint_pos[:, shoulder_cfg.joint_ids].mean()),
         "ake90_saturation_pct": float(100.0 * sat_frac),

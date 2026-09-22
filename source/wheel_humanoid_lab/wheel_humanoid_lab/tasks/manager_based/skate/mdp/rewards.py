@@ -350,42 +350,152 @@ def single_support(
     command_name: str,
     threshold: float = 5.0,
     min_cmd: float = 0.2,
+    min_air: float = 0.05,
+    max_air: float = 0.22,
     max_tilt: float = 0.45,
     min_height: float = 0.65,
     asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
 ) -> torch.Tensor:
-    """Exactly one wheel loaded while a forward speed is commanded and the trunk is upright: the
-    X2-style stride (one leg glides, the other is lifted / pushes). ``long_air`` keeps the lift short."""
+    """Exactly one wheel loaded, and that unweight is still inside ``[min_air, max_air]`` s.
+
+    Without the air-time window this term pays forever for a planted one-wheel glide (the failed
+    ``slide_8192envs_lift`` habit). ``air_over_cap`` / ``long_air`` handle anything longer.
+    """
     sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
     asset: Articulation = env.scene[asset_cfg.name]
     f = sensor.data.net_forces_w[:, sensor_cfg.body_ids].norm(dim=-1)
+    air = sensor.data.current_air_time[:, sensor_cfg.body_ids]
     one = ((f > threshold).sum(dim=1) == 1).float()
+    in_window = ((air > min_air) & (air <= max_air)).any(dim=1).float()
     cmd = env.command_manager.get_command(command_name)
-    return one * (cmd[:, 0] > min_cmd).float() * _upright_gate(env, asset, max_tilt, min_height)
+    return one * in_window * (cmd[:, 0] > min_cmd).float() * _upright_gate(env, asset, max_tilt, min_height)
+
+
+def micro_unweight(
+    env: ManagerBasedRLEnv,
+    sensor_cfg: SceneEntityCfg,
+    command_name: str,
+    min_air: float = 0.05,
+    max_air: float = 0.22,
+    load_thr: float = 5.0,
+    min_cmd: float = 0.2,
+    max_tilt: float = 0.45,
+    min_height: float = 0.65,
+    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+) -> torch.Tensor:
+    """Dense micro-lift: exactly one wheel airborne for ``[min_air, max_air]`` s, the other loaded.
+
+    Drops to 0 the moment the lift exceeds ``max_air``, so a 0.4 s one-wheel glide does not score.
+    """
+    sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
+    asset: Articulation = env.scene[asset_cfg.name]
+    air = sensor.data.current_air_time[:, sensor_cfg.body_ids]
+    f = sensor.data.net_forces_w[:, sensor_cfg.body_ids].norm(dim=-1)
+    one_air = ((air > min_air).sum(dim=1) == 1)
+    in_window = ((air > min_air) & (air <= max_air)).any(dim=1)
+    one_loaded = (f > load_thr).sum(dim=1) == 1
+    cmd = env.command_manager.get_command(command_name)
+    return (one_air & in_window & one_loaded).float() * (cmd[:, 0] > min_cmd).float() * _upright_gate(
+        env, asset, max_tilt, min_height
+    )
+
+
+def air_over_cap(env: ManagerBasedRLEnv, sensor_cfg: SceneEntityCfg, cap: float = 0.22) -> torch.Tensor:
+    """Binary cost: any wheel has been off the ground longer than ``cap`` (default 220 ms)."""
+    sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
+    air = sensor.data.current_air_time[:, sensor_cfg.body_ids]
+    return (air > cap).any(dim=1).float()
+
+
+def one_wheel_glide(
+    env: ManagerBasedRLEnv,
+    sensor_cfg: SceneEntityCfg,
+    command_name: str,
+    load_thr: float = 5.0,
+    unload_thr: float = 1.5,
+    min_cmd: float = 0.2,
+    max_tilt: float = 0.45,
+    min_height: float = 0.65,
+    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+) -> torch.Tensor:
+    """Dense X2 cue: one wheel clearly loaded, the other clearly unloaded, while moving upright."""
+    sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
+    asset: Articulation = env.scene[asset_cfg.name]
+    f = sensor.data.net_forces_w[:, sensor_cfg.body_ids].norm(dim=-1)
+    loaded = (f > load_thr).sum(dim=1) == 1
+    unloaded = (f < unload_thr).sum(dim=1) == 1
+    cmd = env.command_manager.get_command(command_name)
+    return (loaded & unloaded).float() * (cmd[:, 0] > min_cmd).float() * _upright_gate(env, asset, max_tilt, min_height)
+
+
+def double_support_when_moving(
+    env: ManagerBasedRLEnv,
+    sensor_cfg: SceneEntityCfg,
+    command_name: str,
+    threshold: float = 5.0,
+    min_cmd: float = 0.25,
+) -> torch.Tensor:
+    """Cost: both wheels planted while a forward stride is commanded (the failed slide habit)."""
+    sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
+    f = sensor.data.net_forces_w[:, sensor_cfg.body_ids].norm(dim=-1)
+    both = (f > threshold).all(dim=1).float()
+    cmd = env.command_manager.get_command(command_name)
+    return both * (cmd[:, 0] > min_cmd).float()
+
+
+def stride_leg_split(
+    env: ManagerBasedRLEnv,
+    command_name: str,
+    std: float = 0.30,
+    min_cmd: float = 0.2,
+    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+) -> torch.Tensor:
+    """Pay for L/R hip-pitch and knee difference while moving (a push stride, not a symmetric stance)."""
+    asset: Articulation = env.scene[asset_cfg.name]
+    names = asset.joint_names
+    idx = {n: i for i, n in enumerate(names)}
+    dq = (asset.data.joint_pos[:, idx["l_hip_pitch_joint"]] - asset.data.joint_pos[:, idx["r_hip_pitch_joint"]]).abs()
+    dq = dq + (asset.data.joint_pos[:, idx["l_knee_joint"]] - asset.data.joint_pos[:, idx["r_knee_joint"]]).abs()
+    cmd = env.command_manager.get_command(command_name)
+    return (1.0 - torch.exp(-dq / std)) * (cmd[:, 0] > min_cmd).float()
 
 
 class stride_alternation(ManagerTermBase):
-    """Reward a touchdown of wheel A only if the previous touchdown was wheel B (left/right alternate),
-    so the policy strides instead of hopping on one leg."""
+    """Dense: pay while the currently airborne wheel is the opposite of the last completed lift.
+
+    The previous pulse-on-touchdown version was ~1 bonus per stride vs thousands of per-step
+    single-support points, so the policy parked on one wheel. Completing a lift (air → 0) records
+    that side; the next lift only scores if it is the other wheel.
+    """
 
     def __init__(self, cfg: RewardTermCfg, env: ManagerBasedRLEnv):
         super().__init__(cfg, env)
-        self.last = torch.full((env.num_envs,), -1, dtype=torch.long, device=env.device)
+        n = env.num_envs
+        self.n_prev = torch.zeros(n, dtype=torch.long, device=env.device)
+        self.cur = torch.zeros(n, dtype=torch.long, device=env.device)
+        self.completed = torch.full((n,), -1, dtype=torch.long, device=env.device)
 
     def reset(self, env_ids=None) -> None:
         if env_ids is None:
-            self.last[:] = -1
+            self.n_prev[:] = 0
+            self.cur[:] = 0
+            self.completed[:] = -1
         else:
-            self.last[env_ids] = -1
+            self.n_prev[env_ids] = 0
+            self.cur[env_ids] = 0
+            self.completed[env_ids] = -1
 
-    def __call__(self, env: ManagerBasedRLEnv, sensor_cfg: SceneEntityCfg, command_name: str, min_air: float = 0.08) -> torch.Tensor:
+    def __call__(
+        self, env: ManagerBasedRLEnv, sensor_cfg: SceneEntityCfg, command_name: str, min_air: float = 0.05
+    ) -> torch.Tensor:
         sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
-        first = sensor.compute_first_contact(env.step_dt)[:, sensor_cfg.body_ids]
-        air = sensor.data.last_air_time[:, sensor_cfg.body_ids]
-        valid = first & (air > min_air)
-        idx = torch.argmax(valid.float(), dim=1)
-        any_td = valid.any(dim=1)
-        r = (any_td & (self.last >= 0) & (idx != self.last)).float()
-        self.last = torch.where(any_td, idx, self.last)
+        air = sensor.data.current_air_time[:, sensor_cfg.body_ids]
+        n = (air > min_air).sum(dim=1)
+        side = torch.argmax(air, dim=1)
+        ended = (self.n_prev == 1) & (n == 0)
+        self.completed = torch.where(ended, self.cur, self.completed)
+        self.cur = torch.where(n == 1, side, self.cur)
+        alt = (n == 1) & (self.completed >= 0) & (side != self.completed)
+        self.n_prev = n.long()
         cmd = env.command_manager.get_command(command_name)
-        return r * (cmd[:, 0] > 0.2).float()
+        return alt.float() * (cmd[:, 0] > 0.2).float()
