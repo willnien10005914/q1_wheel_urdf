@@ -1,5 +1,5 @@
 #!/bin/bash
-# Fine-tune skate PPO into an X2 push-skate: feet trade front/back, each lifts 20–220 ms.
+# Fine-tune skate PPO into L/R front-back sliding (world-space wheel split + periodic swap).
 #   ./train_slide.sh                          # headless, 8192 envs, +12k iters from skate ckpt
 #   NUM_ENVS=64 MAX_ITERS=5 ./train_slide.sh  # smoke test
 #   WARM_START=none ./train_slide.sh          # train from scratch
@@ -24,7 +24,7 @@ if [[ "${1:-}" == "gui" || "${1:-}" == "headless" ]]; then shift || true; fi
 
 NUM_ENVS="${NUM_ENVS:-8192}"
 MAX_ITERS="${MAX_ITERS:-12000}"
-RUN_NAME="${RUN_NAME:-slide_${NUM_ENVS}envs_stride}"
+RUN_NAME="${RUN_NAME:-slide_${NUM_ENVS}envs_foreaft}"
 WARM_START="${WARM_START:-$ROOT/checkpoints/q1_skate_ppo.pt}"
 export RESET_NOISE_STD="${RESET_NOISE_STD:-0.45}"
 

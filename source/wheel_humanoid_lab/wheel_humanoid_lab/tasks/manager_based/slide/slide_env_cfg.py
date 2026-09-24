@@ -1,19 +1,13 @@
-"""Q1 slide task: X2 push-skate. Left and right feet trade places, each one lifting briefly.
+"""Q1 slide: left and right wheels take turns being the front (前後輪流滑).
 
-Same plant / obs / action as skate PPO so we warm-start from ``checkpoints/q1_skate_ppo.pt``.
+`slide_8192envs_stride` learned to unweight one wheel (``micro_unweight`` 1.64) but
+``stride_swap`` stayed 0: the feet never traded front/back. Hip-pitch proxies were a no-op.
 
-`slide_8192envs_microlift` never lifted. `grounded` (0.69 / 0.70) and `wheel_speed` paid for
-both wheels rolling, `stride_leg_split` saturated on a frozen hip difference, and
-`micro_unweight` stayed at ~0.01. Mean air time was 0.4 ms.
-
-This mix:
-* no reward for both wheels planted or for a symmetric stance while a stride is commanded,
-* `double_support_when_moving` costs a planted pair during forward commands,
-* `rear_foot_unweight` pays only while the rearward foot is actively unloading (or briefly airborne),
-* `stride_swap` pays only after the other foot becomes the rear one (a frozen split scores 0),
-* `loaded_wheel_speed` matches vx on the wheel that is still down, so the lift is not a speed penalty,
-* `roll_shift` pays a small left/right lean inside the same 20–220 ms window,
-* `air_over_cap` still kills a parked one-wheel glide.
+This mix scores **world-space** wheel positions along the heading:
+* ``foot_fore_aft_split``: 10–42 cm sagittal split (peak ~22 cm)
+* ``foot_fore_aft_swap``: + after the leading wheel changes, − if the same foot stays in front >1.1 s
+* ``feet_abreast``: cost for side-by-side feet while moving
+* lift is optional and weak so a one-wheel hover without a split cannot win
 """
 
 from __future__ import annotations
@@ -43,49 +37,24 @@ SLIDE_CMD_YAW = (-0.4, 0.4)
 
 @configclass
 class SlideRewardsCfg(RewardsCfg):
+    foot_fore_aft_split = RewTerm(
+        func=mdp.foot_fore_aft_split,
+        weight=2.5,
+        params={"sensor_cfg": _WHEELS_B, "command_name": "base_velocity", "min_split": 0.10, "target": 0.22, "max_split": 0.42},
+    )
+    foot_fore_aft_swap = RewTerm(
+        func=mdp.foot_fore_aft_swap,
+        weight=2.5,
+        params={"sensor_cfg": _WHEELS_B, "command_name": "base_velocity", "min_split": 0.10, "swap_window": 0.55, "stale_s": 1.10},
+    )
+    feet_abreast = RewTerm(
+        func=mdp.feet_abreast,
+        weight=-1.8,
+        params={"sensor_cfg": _WHEELS_B, "command_name": "base_velocity", "max_split": 0.08, "min_cmd": 0.30},
+    )
     micro_unweight = RewTerm(
         func=mdp.micro_unweight,
-        weight=2.0,
-        params={
-            "sensor_cfg": _WHEELS_B,
-            "command_name": "base_velocity",
-            "min_air": MICRO_AIR_MIN,
-            "max_air": MICRO_AIR_MAX,
-            "max_tilt": UPRIGHT_TILT,
-            "min_height": MIN_STAND_Z,
-        },
-    )
-    stride_alternation = RewTerm(
-        func=mdp.stride_alternation,
-        weight=1.5,
-        params={"sensor_cfg": _WHEELS_B, "command_name": "base_velocity", "min_air": MICRO_AIR_MIN},
-    )
-    stride_leg_split = RewTerm(
-        func=mdp.stride_leg_split,
-        weight=0.0,
-        params={"command_name": "base_velocity", "std": 0.28},
-    )
-    rear_foot_unweight = RewTerm(
-        func=mdp.rear_foot_unweight,
-        weight=2.0,
-        params={
-            "sensor_cfg": _WHEELS_B,
-            "command_name": "base_velocity",
-            "min_split": 0.28,
-            "min_air": MICRO_AIR_MIN,
-            "max_air": MICRO_AIR_MAX,
-            "max_tilt": UPRIGHT_TILT,
-            "min_height": MIN_STAND_Z,
-        },
-    )
-    stride_swap = RewTerm(
-        func=mdp.stride_swap,
-        weight=2.0,
-        params={"command_name": "base_velocity", "min_split": 0.30, "swap_window": 0.9},
-    )
-    roll_shift = RewTerm(
-        func=mdp.roll_shift,
-        weight=0.5,
+        weight=0.6,
         params={
             "sensor_cfg": _WHEELS_B,
             "command_name": "base_velocity",
@@ -97,18 +66,8 @@ class SlideRewardsCfg(RewardsCfg):
     )
     loaded_wheel_speed = RewTerm(
         func=mdp.loaded_wheel_speed,
-        weight=0.8,
-        params={
-            "command_name": "base_velocity",
-            "std": 0.35,
-            "asset_cfg": _WHEELS_J,
-            "sensor_cfg": _WHEELS_B,
-        },
-    )
-    double_support_when_moving = RewTerm(
-        func=mdp.double_support_when_moving,
-        weight=-1.0,
-        params={"sensor_cfg": _WHEELS_B, "command_name": "base_velocity", "threshold": 5.0, "min_cmd": 0.25},
+        weight=1.0,
+        params={"command_name": "base_velocity", "std": 0.35, "asset_cfg": _WHEELS_J, "sensor_cfg": _WHEELS_B},
     )
     air_over_cap = RewTerm(
         func=mdp.air_over_cap,
@@ -138,15 +97,14 @@ class Q1SlideEnvCfg(Q1SkateEnvCfg):
         self.events.randomize_com.params["com_range"] = {"x": (-0.03, 0.03), "y": (-0.03, 0.03), "z": (-0.03, 0.03)}
 
         r = self.rewards
-        # Skate's final action-rate weight (-0.6) freezes the legs. A stride has to move.
         r.action_rate_l2.weight = -0.15
-        # Mean of both wheels made a one-foot lift look like a speed error. Score the loaded wheel.
         r.wheel_speed.weight = 0.0
         r.base_vx_track.weight = 2.0
-        r.heading_hold.weight = 0.8
+        r.heading_hold.weight = 1.0
         r.leg_symmetry.weight = 0.0
-        r.grounded.weight = 0.0
-        r.skating_air_time.weight = 1.5
+        # Both wheels may stay down: the gait is front/back sliding, not a one-wheel hover.
+        r.grounded.weight = 0.4
+        r.skating_air_time.weight = 0.4
         r.skating_air_time.params["min_air"] = MICRO_AIR_MIN
         r.skating_air_time.params["max_air"] = MICRO_AIR_MAX
         r.forward_lean.weight = 1.0

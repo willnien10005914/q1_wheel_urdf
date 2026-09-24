@@ -125,7 +125,7 @@ def skate_metrics(
 ) -> dict[str, float]:
     """Debug metrics over all envs (logged under Curriculum/): wheel omega, slip, contact fractions,
     peak air time, torso pitch, shoulder pitch, AKE90 saturation %."""
-    from .rewards import wheel_ground_velocities
+    from .rewards import _wheel_fore_aft, wheel_ground_velocities
 
     asset: Articulation = env.scene[asset_cfg.name]
     sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
@@ -150,4 +150,5 @@ def skate_metrics(
         "ake90_saturation_pct": float(100.0 * sat_frac),
         "base_vx_mean": float(asset.data.root_lin_vel_b[:, 0].mean()),
         "base_height_mean": float(asset.data.root_pos_w[:, 2].mean()),
+        "fore_aft_abs_mean": float(_wheel_fore_aft(env, asset).abs().mean()),
     }
