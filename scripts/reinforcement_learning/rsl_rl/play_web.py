@@ -30,7 +30,6 @@ class PlayWebState:
         self.release_all = False
         self.web_cmd: dict[str, float] | None = None
         self.pose_cmd: str | None = None
-        self.train_cmd: str | None = None
 
     def publish(self, payload: dict[str, Any]) -> None:
         with self._lock:
@@ -85,16 +84,6 @@ class PlayWebState:
             self.pose_cmd = None
             return name
 
-    def request_train(self, name: str) -> None:
-        with self._lock:
-            self.train_cmd = str(name)
-
-    def consume_train(self) -> str | None:
-        with self._lock:
-            name = self.train_cmd
-            self.train_cmd = None
-            return name
-
 
 def _json_bytes(payload: dict[str, Any], status: int = 200) -> tuple[int, bytes]:
     raw = json.dumps(payload).encode("utf-8")
@@ -142,17 +131,6 @@ class PlayWebHandler(SimpleHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(raw)
             return
-        if parsed.path == "/api/train":
-            import train_jobs
-
-            status, raw = _json_bytes({"ok": True, **train_jobs.status()})
-            self.send_response(status)
-            self._cors()
-            self.send_header("Content-Type", "application/json")
-            self.send_header("Content-Length", str(len(raw)))
-            self.end_headers()
-            self.wfile.write(raw)
-            return
         super().do_GET()
 
     def do_POST(self) -> None:  # noqa: N802
@@ -189,18 +167,6 @@ class PlayWebHandler(SimpleHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(raw)
                 return
-        elif parsed.path == "/api/train":
-            import train_jobs
-
-            name = str(body.get("name") or "").strip().lower()
-            action = str(body.get("action") or "start").strip().lower()
-            if action == "status":
-                payload = {"ok": True, **train_jobs.status()}
-            elif action == "stop":
-                payload = train_jobs.stop(name or None)
-            else:
-                self.state.request_train(name)
-                payload = train_jobs.start(name)
         elif parsed.path == "/api/command":
             cmd = {}
             for key in ("vx", "vy", "yaw"):

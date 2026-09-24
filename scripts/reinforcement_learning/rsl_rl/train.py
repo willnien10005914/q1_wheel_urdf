@@ -198,7 +198,17 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     runner.add_git_repo_to_log(__file__)
     if agent_cfg.resume or agent_cfg.algorithm.class_name == "Distillation":
         print(f"[INFO]: Loading model checkpoint from: {resume_path}")
-        runner.load(resume_path)
+        reset_std = os.environ.get("RESET_NOISE_STD", "").strip()
+        runner.load(resume_path, load_optimizer=not bool(reset_std))
+        if reset_std:
+            std = float(reset_std)
+            policy = runner.alg.policy
+            with torch.no_grad():
+                if hasattr(policy, "std"):
+                    policy.std.fill_(std)
+                elif hasattr(policy, "log_std"):
+                    policy.log_std.fill_(torch.log(torch.tensor(std, device=policy.log_std.device)))
+            print(f"[INFO] Reset policy noise std to {std}; optimizer state was not loaded.")
 
     dump_yaml(os.path.join(log_dir, "params", "env.yaml"), env_cfg)
     dump_yaml(os.path.join(log_dir, "params", "agent.yaml"), agent_cfg)

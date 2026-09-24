@@ -754,6 +754,10 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
                 vel_term.is_standing_env[:] = False
             elif teleop is not None:
                 cmd = teleop.command(n_envs, dt)
+                if mode_ctrl.mode == "posture":
+                    cmd[:, 0].clamp_(-0.35, 0.80)
+                    cmd[:, 1] = 0.0
+                    cmd[:, 2].clamp_(-0.50, 0.50)
                 vel_term = env.unwrapped.command_manager.get_term("base_velocity")
                 vel_term.vel_command_b[:] = cmd
                 vel_term.is_standing_env[:] = cmd.norm(dim=-1) < 0.05

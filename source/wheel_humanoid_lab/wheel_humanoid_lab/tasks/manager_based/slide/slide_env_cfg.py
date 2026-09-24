@@ -1,17 +1,19 @@
-"""Q1 slide task: X2-style skating with MICRO-lift (not a one-wheel cruise).
+"""Q1 slide task: X2 push-skate. Left and right feet trade places, each one lifting briefly.
 
 Same plant / obs / action as skate PPO so we warm-start from ``checkpoints/q1_skate_ppo.pt``.
 
-The first lift run (`slide_8192envs_lift`) learned a persistent one-wheel glide:
-`single_support` and `one_wheel_glide` paid every step of single support, `double_support_when_moving`
-punished putting the wheel down, and `long_air` was too weak (cap 0.40 s). Result: 92 % single
-contact, peak air 0.44 s, `skating_air_time` ≈ 0.
+`slide_8192envs_microlift` never lifted. `grounded` (0.69 / 0.70) and `wheel_speed` paid for
+both wheels rolling, `stride_leg_split` saturated on a frozen hip difference, and
+`micro_unweight` stayed at ~0.01. Mean air time was 0.4 ms.
 
-This mix matches the original spec instead:
-* both wheels down is the default (`grounded` back on),
-* `micro_unweight` pays only while exactly one wheel is airborne for 50–220 ms,
-* `air_over_cap` is a hard wall after 220 ms (kills the parked-one-wheel habit),
-* `stride_alternation` is dense (scores the whole lift only if it is the other wheel).
+This mix:
+* no reward for both wheels planted or for a symmetric stance while a stride is commanded,
+* `double_support_when_moving` costs a planted pair during forward commands,
+* `rear_foot_unweight` pays only while the rearward foot is actively unloading (or briefly airborne),
+* `stride_swap` pays only after the other foot becomes the rear one (a frozen split scores 0),
+* `loaded_wheel_speed` matches vx on the wheel that is still down, so the lift is not a speed penalty,
+* `roll_shift` pays a small left/right lean inside the same 20–220 ms window,
+* `air_over_cap` still kills a parked one-wheel glide.
 """
 
 from __future__ import annotations
@@ -21,7 +23,6 @@ from isaaclab.managers import SceneEntityCfg
 from isaaclab.utils import configclass
 
 from wheel_humanoid_lab.tasks.manager_based.skate.skate_env_cfg import (
-    ACTION_RATE_KNOTS,
     MIN_STAND_Z,
     UPRIGHT_TILT,
     Q1SkateEnvCfg,
@@ -30,9 +31,10 @@ from wheel_humanoid_lab.tasks.manager_based.skate.skate_env_cfg import (
 import wheel_humanoid_lab.tasks.manager_based.skate.mdp as mdp
 
 _WHEELS_B = SceneEntityCfg("contact_forces", body_names=["l_wheel_link", "r_wheel_link"], preserve_order=True)
+_WHEELS_J = SceneEntityCfg("robot", joint_names=["l_wheel_joint", "r_wheel_joint"], preserve_order=True)
 
-# X2 micro-lift window: 2–6 cm, ≤150–250 ms. 50 ms is the noise floor, 220 ms is the wall.
-MICRO_AIR_MIN = 0.05
+# X2 micro-lift: a few centimetres, 20–220 ms. 20 ms is enough to count as a real unweight.
+MICRO_AIR_MIN = 0.02
 MICRO_AIR_MAX = 0.22
 
 SLIDE_CMD_VX = (0.3, 1.5)
@@ -60,8 +62,53 @@ class SlideRewardsCfg(RewardsCfg):
     )
     stride_leg_split = RewTerm(
         func=mdp.stride_leg_split,
-        weight=0.6,
+        weight=0.0,
         params={"command_name": "base_velocity", "std": 0.28},
+    )
+    rear_foot_unweight = RewTerm(
+        func=mdp.rear_foot_unweight,
+        weight=2.0,
+        params={
+            "sensor_cfg": _WHEELS_B,
+            "command_name": "base_velocity",
+            "min_split": 0.28,
+            "min_air": MICRO_AIR_MIN,
+            "max_air": MICRO_AIR_MAX,
+            "max_tilt": UPRIGHT_TILT,
+            "min_height": MIN_STAND_Z,
+        },
+    )
+    stride_swap = RewTerm(
+        func=mdp.stride_swap,
+        weight=2.0,
+        params={"command_name": "base_velocity", "min_split": 0.30, "swap_window": 0.9},
+    )
+    roll_shift = RewTerm(
+        func=mdp.roll_shift,
+        weight=0.5,
+        params={
+            "sensor_cfg": _WHEELS_B,
+            "command_name": "base_velocity",
+            "min_air": MICRO_AIR_MIN,
+            "max_air": MICRO_AIR_MAX,
+            "max_tilt": UPRIGHT_TILT,
+            "min_height": MIN_STAND_Z,
+        },
+    )
+    loaded_wheel_speed = RewTerm(
+        func=mdp.loaded_wheel_speed,
+        weight=0.8,
+        params={
+            "command_name": "base_velocity",
+            "std": 0.35,
+            "asset_cfg": _WHEELS_J,
+            "sensor_cfg": _WHEELS_B,
+        },
+    )
+    double_support_when_moving = RewTerm(
+        func=mdp.double_support_when_moving,
+        weight=-1.0,
+        params={"sensor_cfg": _WHEELS_B, "command_name": "base_velocity", "threshold": 5.0, "min_cmd": 0.25},
     )
     air_over_cap = RewTerm(
         func=mdp.air_over_cap,
@@ -91,14 +138,15 @@ class Q1SlideEnvCfg(Q1SkateEnvCfg):
         self.events.randomize_com.params["com_range"] = {"x": (-0.03, 0.03), "y": (-0.03, 0.03), "z": (-0.03, 0.03)}
 
         r = self.rewards
-        r.action_rate_l2.weight = ACTION_RATE_KNOTS[-1][1]
-        r.wheel_speed.weight = 1.2
+        # Skate's final action-rate weight (-0.6) freezes the legs. A stride has to move.
+        r.action_rate_l2.weight = -0.15
+        # Mean of both wheels made a one-foot lift look like a speed error. Score the loaded wheel.
+        r.wheel_speed.weight = 0.0
         r.base_vx_track.weight = 2.0
         r.heading_hold.weight = 0.8
-        r.leg_symmetry.weight = 0.3
-        # Default stance is still double support; micro-lift is a brief unweight on top of it.
-        r.grounded.weight = 0.7
-        r.skating_air_time.weight = 2.0
+        r.leg_symmetry.weight = 0.0
+        r.grounded.weight = 0.0
+        r.skating_air_time.weight = 1.5
         r.skating_air_time.params["min_air"] = MICRO_AIR_MIN
         r.skating_air_time.params["max_air"] = MICRO_AIR_MAX
         r.forward_lean.weight = 1.0

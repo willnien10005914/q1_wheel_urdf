@@ -341,6 +341,39 @@ def stationary_base(env: ManagerBasedRLEnv, std: float = 0.3, asset_cfg: SceneEn
     return torch.exp(-torch.sum(v**2, dim=1) / std**2)
 
 
+def posture_still(
+    env: ManagerBasedRLEnv,
+    posture_command_name: str,
+    velocity_command_name: str,
+    std: float = 0.3,
+    cmd_eps: float = 0.05,
+    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+) -> torch.Tensor:
+    """Stay put while standing, and while kneeling with no drive command. A kneel drive command gates this off."""
+    k = _posture_target(env, posture_command_name)
+    cmd = env.command_manager.get_command(velocity_command_name)
+    driving = ((cmd[:, 0].abs() > cmd_eps) | (cmd[:, 2].abs() > cmd_eps)).float()
+    gate = (1.0 - k) + k * (1.0 - driving)
+    return stationary_base(env, std, asset_cfg) * gate
+
+
+def kneel_drive(
+    env: ManagerBasedRLEnv,
+    posture_command_name: str,
+    velocity_command_name: str,
+    std_vx: float = 0.25,
+    std_yaw: float = 0.35,
+    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+) -> torch.Tensor:
+    """Track body vx and yaw only while the kneel posture is commanded."""
+    asset: Articulation = env.scene[asset_cfg.name]
+    k = _posture_target(env, posture_command_name)
+    cmd = env.command_manager.get_command(velocity_command_name)
+    vx_err = cmd[:, 0] - asset.data.root_lin_vel_b[:, 0]
+    yaw_err = cmd[:, 2] - asset.data.root_ang_vel_b[:, 2]
+    return torch.exp(-(vx_err**2) / std_vx**2) * torch.exp(-(yaw_err**2) / std_yaw**2) * k
+
+
 # ------------------------------------------------------------------------------------------------
 # slide / push-skate terms
 # ------------------------------------------------------------------------------------------------
@@ -499,3 +532,167 @@ class stride_alternation(ManagerTermBase):
         self.n_prev = n.long()
         cmd = env.command_manager.get_command(command_name)
         return alt.float() * (cmd[:, 0] > 0.2).float()
+
+
+def _hip_pitch_ids(env: ManagerBasedRLEnv, asset: Articulation) -> torch.Tensor:
+    key = "_q1_hip_pitch_lr"
+    cache = getattr(env, key, None)
+    if cache is None:
+        ids, _ = asset.find_joints(["l_hip_pitch_joint", "r_hip_pitch_joint"], preserve_order=True)
+        cache = torch.tensor(ids, device=env.device)
+        setattr(env, key, cache)
+    return cache
+
+
+def loaded_wheel_speed(
+    env: ManagerBasedRLEnv,
+    command_name: str,
+    std: float,
+    asset_cfg: SceneEntityCfg,
+    sensor_cfg: SceneEntityCfg,
+    wheel_radius: float = WHEEL_RADIUS,
+    threshold: float = 5.0,
+) -> torch.Tensor:
+    """Rim speed of the wheels that are on the ground must match vx_cmd.
+
+    An airborne wheel is ignored, so a micro-lift does not spoil the speed match.
+    ``asset_cfg`` joints and ``sensor_cfg`` bodies must be the same left-then-right order.
+    """
+    asset: Articulation = env.scene[asset_cfg.name]
+    sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
+    cmd = env.command_manager.get_command(command_name)
+    rim = wheel_radius * asset.data.joint_vel[:, asset_cfg.joint_ids]
+    loaded = (sensor.data.net_forces_w[:, sensor_cfg.body_ids].norm(dim=-1) > threshold).float()
+    n = loaded.sum(dim=1).clamp(min=1.0)
+    mean_rim = (rim * loaded).sum(dim=1) / n
+    err = mean_rim - cmd[:, 0]
+    return torch.exp(-(err**2) / std**2) * (loaded.sum(dim=1) > 0).float()
+
+
+class rear_foot_unweight(ManagerTermBase):
+    """X2 push: the foot that is farther back unweights, briefly.
+
+    Hip pitch about +Y swings the thigh backward as the angle increases, so the larger
+    pitch is the rear foot. A frozen weight shift scores nothing: the rear force has to
+    be falling, or that wheel has to be in the air for at most ``max_air`` seconds.
+    """
+
+    def __init__(self, cfg: RewardTermCfg, env: ManagerBasedRLEnv):
+        super().__init__(cfg, env)
+        n = env.num_envs
+        self.prev_rear = torch.full((n,), -1.0, device=env.device)
+
+    def reset(self, env_ids=None) -> None:
+        if env_ids is None:
+            self.prev_rear[:] = -1.0
+        else:
+            self.prev_rear[env_ids] = -1.0
+
+    def __call__(
+        self,
+        env: ManagerBasedRLEnv,
+        sensor_cfg: SceneEntityCfg,
+        command_name: str,
+        min_split: float = 0.28,
+        min_air: float = 0.02,
+        max_air: float = 0.22,
+        min_cmd: float = 0.25,
+        max_tilt: float = 0.45,
+        min_height: float = 0.65,
+        asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+    ) -> torch.Tensor:
+        asset: Articulation = env.scene[asset_cfg.name]
+        sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
+        ids = _hip_pitch_ids(env, asset)
+        split = asset.data.joint_pos[:, ids[0]] - asset.data.joint_pos[:, ids[1]]
+        left_rear = split > 0
+        f = sensor.data.net_forces_w[:, sensor_cfg.body_ids].norm(dim=-1)
+        air = sensor.data.current_air_time[:, sensor_cfg.body_ids]
+        f_rear = torch.where(left_rear, f[:, 0], f[:, 1])
+        f_front = torch.where(left_rear, f[:, 1], f[:, 0])
+        air_rear = torch.where(left_rear, air[:, 0], air[:, 1])
+        falling = (self.prev_rear >= 0) & (f_rear < self.prev_rear - 1.0)
+        in_air = (air_rear > min_air) & (air_rear <= max_air)
+        self.prev_rear = f_rear
+        shift = torch.tanh((f_front - f_rear) / 25.0).clamp(min=0.0)
+        cmd = env.command_manager.get_command(command_name)
+        gate = (split.abs() > min_split).float() * (cmd[:, 0] > min_cmd).float()
+        gate = gate * _upright_gate(env, asset, max_tilt, min_height)
+        return shift * (falling | in_air).float() * (air_rear <= max_air).float() * gate
+
+
+class stride_swap(ManagerTermBase):
+    """Pay only while the front/back stride is actually swapping feet.
+
+    ``l_hip_pitch - r_hip_pitch`` changes sign when the other foot becomes the rear one.
+    A static split (one leg parked forward) never swaps, so it scores 0.
+    """
+
+    def __init__(self, cfg: RewardTermCfg, env: ManagerBasedRLEnv):
+        super().__init__(cfg, env)
+        n = env.num_envs
+        dev = env.device
+        self.prev = torch.zeros(n, device=dev)
+        self.last_sign = torch.zeros(n, device=dev)
+        self.since = torch.full((n,), 10.0, device=dev)
+        self.have = torch.zeros(n, dtype=torch.bool, device=dev)
+
+    def reset(self, env_ids=None) -> None:
+        if env_ids is None:
+            self.prev[:] = 0
+            self.last_sign[:] = 0
+            self.since[:] = 10.0
+            self.have[:] = False
+        else:
+            self.prev[env_ids] = 0
+            self.last_sign[env_ids] = 0
+            self.since[env_ids] = 10.0
+            self.have[env_ids] = False
+
+    def __call__(
+        self,
+        env: ManagerBasedRLEnv,
+        command_name: str,
+        min_split: float = 0.30,
+        swap_window: float = 0.9,
+        min_cmd: float = 0.25,
+        asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+    ) -> torch.Tensor:
+        asset: Articulation = env.scene[asset_cfg.name]
+        ids = _hip_pitch_ids(env, asset)
+        d = asset.data.joint_pos[:, ids[0]] - asset.data.joint_pos[:, ids[1]]
+        sign = torch.where(d >= 0, torch.ones_like(d), -torch.ones_like(d))
+        strong = d.abs() > min_split
+        swapped = strong & self.have & (sign != self.last_sign) & (self.last_sign != 0)
+        self.since = torch.where(swapped, torch.zeros_like(self.since), self.since + env.step_dt)
+        self.last_sign = torch.where(strong, sign, self.last_sign)
+        self.have = self.have | strong
+        self.prev = d
+        depth = 1.0 - torch.exp(-d.abs() / 0.45)
+        cmd = env.command_manager.get_command(command_name)
+        recent = (self.since < swap_window).float()
+        return recent * depth * (cmd[:, 0] > min_cmd).float()
+
+
+def roll_shift(
+    env: ManagerBasedRLEnv,
+    sensor_cfg: SceneEntityCfg,
+    command_name: str,
+    lo: float = 0.02,
+    hi: float = 0.10,
+    min_air: float = 0.02,
+    max_air: float = 0.22,
+    min_cmd: float = 0.25,
+    max_tilt: float = 0.45,
+    min_height: float = 0.65,
+    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+) -> torch.Tensor:
+    """Small left/right lean while exactly one wheel is in the micro-lift window."""
+    asset: Articulation = env.scene[asset_cfg.name]
+    sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
+    roll = asset.data.projected_gravity_b[:, 1].abs()
+    band = ((roll > lo) & (roll < hi)).float()
+    air = sensor.data.current_air_time[:, sensor_cfg.body_ids]
+    one = ((air > min_air) & (air <= max_air)).sum(dim=1) == 1
+    cmd = env.command_manager.get_command(command_name)
+    return band * one.float() * (cmd[:, 0] > min_cmd).float() * _upright_gate(env, asset, max_tilt, min_height)

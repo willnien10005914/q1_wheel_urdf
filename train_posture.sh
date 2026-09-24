@@ -24,7 +24,9 @@ if [[ "${1:-}" == "gui" || "${1:-}" == "headless" ]]; then shift || true; fi
 
 NUM_ENVS="${NUM_ENVS:-4096}"
 MAX_ITERS="${MAX_ITERS:-4000}"
-RUN_NAME="${RUN_NAME:-posture_${NUM_ENVS}envs}"
+RUN_NAME="${RUN_NAME:-posture_${NUM_ENVS}envs_drive}"
+WARM_START="${WARM_START:-$ROOT/checkpoints/q1_posture_ppo.pt}"
+export RESET_NOISE_STD="${RESET_NOISE_STD:-0.35}"
 
 COMMON=(
   --task Isaac-Q1-Posture-v0
@@ -35,6 +37,9 @@ COMMON=(
 )
 if [[ "${RESUME:-}" == "1" || "${RESUME:-}" == "true" ]]; then
   COMMON+=(--resume --checkpoint "${CHECKPOINT:?set CHECKPOINT=path/to/model.pt}")
+elif [[ "$WARM_START" != "none" && -f "$WARM_START" ]]; then
+  echo "[train_posture] warm start from $WARM_START"
+  COMMON+=(--resume --checkpoint "$WARM_START")
 fi
 
 case "$MODE" in

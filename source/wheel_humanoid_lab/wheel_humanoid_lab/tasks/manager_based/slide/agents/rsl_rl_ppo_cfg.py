@@ -7,8 +7,8 @@ from wheel_humanoid_lab.tasks.manager_based.skate.agents.rsl_rl_ppo_cfg import Q
 
 @configclass
 class Q1SlidePPORunnerCfg(Q1SkatePPORunnerCfg):
-    """Same net as skate. Entropy stays near the skate value so std does not run away; the
-    50–220 ms air window is what forces the micro-lift, not extra noise."""
+    """Same net as skate. Noise is reopened after the warm start (see RESET_NOISE_STD) so the
+    stride can be explored; entropy stays high enough that std does not collapse back to a plant."""
 
     max_iterations = 12000
     experiment_name = "q1_slide_cubemars"
@@ -25,7 +25,7 @@ class Q1SlidePPORunnerCfg(Q1SkatePPORunnerCfg):
         value_loss_coef=1.0,
         use_clipped_value_loss=True,
         clip_param=0.2,
-        entropy_coef=0.005,
+        entropy_coef=0.008,
         num_learning_epochs=5,
         num_mini_batches=4,
         learning_rate=1.0e-3,

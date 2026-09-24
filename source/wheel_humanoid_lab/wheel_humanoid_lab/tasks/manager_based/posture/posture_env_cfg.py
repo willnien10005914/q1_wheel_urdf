@@ -94,7 +94,15 @@ class PostureRewardsCfg(RewardsCfg):
         func=mdp.posture_contacts, weight=1.0,
         params={"command_name": "posture", "wheel_cfg": _WHEELS_B, "roller_cfg": _ROLLERS_B, "threshold": 5.0},
     )
-    stationary_base = RewTerm(func=mdp.stationary_base, weight=0.5, params={"std": 0.3})
+    stationary_base = RewTerm(func=mdp.stationary_base, weight=0.0, params={"std": 0.3})
+    posture_still = RewTerm(
+        func=mdp.posture_still, weight=0.5,
+        params={"posture_command_name": "posture", "velocity_command_name": "base_velocity", "std": 0.3},
+    )
+    kneel_drive = RewTerm(
+        func=mdp.kneel_drive, weight=1.6,
+        params={"posture_command_name": "posture", "velocity_command_name": "base_velocity", "std_vx": 0.25, "std_yaw": 0.35},
+    )
 
 
 @configclass
@@ -123,9 +131,13 @@ class Q1PostureEnvCfg(Q1SkateEnvCfg):
         self.actions.joint_pos.scale = POSTURE_POS_ACTION_SCALE
         self.actions.joint_pos.clip = _position_action_clip(POSTURE_POS_ACTION_SCALE)
 
-        # no velocity command: hold still while changing posture
-        self.commands.base_velocity.rel_standing_envs = 1.0
-        self.commands.base_velocity.resampling_time_range = (1.0e9, 1.0e9)
+        # While kneeling, track a slow WASD command. Standing episodes still see the command in the
+        # observation, but posture_still / kneel_drive make only the kneel bit follow it.
+        self.commands.base_velocity.rel_standing_envs = 0.2
+        self.commands.base_velocity.resampling_time_range = (3.0, 6.0)
+        self.commands.base_velocity.ranges.lin_vel_x = (-0.35, 0.80)
+        self.commands.base_velocity.ranges.lin_vel_y = (0.0, 0.0)
+        self.commands.base_velocity.ranges.ang_vel_z = (-0.50, 0.50)
 
         # no skate curriculum; fixed weights below
         self.curriculum.stage = None

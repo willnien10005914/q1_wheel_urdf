@@ -221,8 +221,12 @@ class ModeController:
     # ---------------------------------------------------------------- per-step
     @property
     def blocking(self) -> bool:
-        """WASD / web velocity commands are ignored (posture transition in progress)."""
-        return self.mode == "posture"
+        """WASD is ignored while squatting down or standing up. A settled kneel accepts it."""
+        if self.mode != "posture":
+            return False
+        if self.posture_target != 1.0:
+            return True
+        return float(self.robot.data.root_pos_w[0, 2]) > 0.55
 
     @property
     def suppress_terminations(self) -> bool:

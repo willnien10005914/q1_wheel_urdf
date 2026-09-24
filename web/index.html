@@ -46,18 +46,13 @@
       <div class="side-head">
         <h2>Joint control</h2>
         <div class="preset-row pose-row">
-          <button id="pose-kneel" type="button">Kneel (4 wheels)</button>
-          <button id="pose-stand" type="button">Stand up</button>
+          <button id="pose-kneel" type="button" data-pose="kneel">Kneel (4 wheels)</button>
+          <button id="pose-stand" type="button" data-pose="stand">Stand up</button>
         </div>
         <div class="preset-row pose-row">
-          <button id="pose-slide" type="button">Slide (X2 skate)</button>
-          <button id="pose-skate" type="button">Balance skate</button>
+          <button id="pose-slide" type="button" data-pose="slide">Slide (X2 skate)</button>
+          <button id="pose-skate" type="button" data-pose="skate">Balance skate</button>
         </div>
-        <div class="preset-row pose-row">
-          <button id="train-posture" type="button">Train kneel/stand PPO</button>
-          <button id="train-slide" type="button">Train slide PPO</button>
-        </div>
-        <div id="train-status" class="cmd-readout">train: idle</div>
         <div class="preset-row">
           <button data-preset="zero">Zero</button>
           <button data-preset="tpose">T-pose</button>
