@@ -1,13 +1,13 @@
-"""Q1 slide: left and right wheels take turns being the front (前後輪流滑).
+"""Q1 slide: L/R front-back skating where the passing (rear) foot micro-lifts.
 
-`slide_8192envs_stride` learned to unweight one wheel (``micro_unweight`` 1.64) but
-``stride_swap`` stayed 0: the feet never traded front/back. Hip-pitch proxies were a no-op.
+`slide_8192envs_foreaft` learned a 21 cm split and swaps, but both wheels stayed planted
+(97 %) because a ground-slide swap scored the same as a lifted one. This mix:
 
-This mix scores **world-space** wheel positions along the heading:
-* ``foot_fore_aft_split``: 10–42 cm sagittal split (peak ~22 cm)
-* ``foot_fore_aft_swap``: + after the leading wheel changes, − if the same foot stays in front >1.1 s
-* ``feet_abreast``: cost for side-by-side feet while moving
-* lift is optional and weak so a one-wheel hover without a split cannot win
+* ``foot_fore_aft_swap`` only pays / resets stale if the new front foot was airborne
+  50–220 ms in the last 0.3 s
+* ``passing_foot_lift`` pays while the rearward wheel is catching up and in that window
+* ``grounded`` is weak so a 150 ms unweight is not a net loss
+* ``air_over_cap`` still kills a parked one-wheel glide
 """
 
 from __future__ import annotations
@@ -45,7 +45,29 @@ class SlideRewardsCfg(RewardsCfg):
     foot_fore_aft_swap = RewTerm(
         func=mdp.foot_fore_aft_swap,
         weight=2.5,
-        params={"sensor_cfg": _WHEELS_B, "command_name": "base_velocity", "min_split": 0.10, "swap_window": 0.55, "stale_s": 1.10},
+        params={
+            "sensor_cfg": _WHEELS_B,
+            "command_name": "base_velocity",
+            "min_split": 0.10,
+            "swap_window": 0.55,
+            "stale_s": 1.10,
+            "min_air": 0.05,
+            "max_air": MICRO_AIR_MAX,
+            "lift_grace": 0.30,
+        },
+    )
+    passing_foot_lift = RewTerm(
+        func=mdp.passing_foot_lift,
+        weight=2.0,
+        params={
+            "sensor_cfg": _WHEELS_B,
+            "command_name": "base_velocity",
+            "min_split": 0.08,
+            "min_air": 0.05,
+            "max_air": MICRO_AIR_MAX,
+            "max_tilt": UPRIGHT_TILT,
+            "min_height": MIN_STAND_Z,
+        },
     )
     feet_abreast = RewTerm(
         func=mdp.feet_abreast,
@@ -102,9 +124,9 @@ class Q1SlideEnvCfg(Q1SkateEnvCfg):
         r.base_vx_track.weight = 2.0
         r.heading_hold.weight = 1.0
         r.leg_symmetry.weight = 0.0
-        # Both wheels may stay down: the gait is front/back sliding, not a one-wheel hover.
-        r.grounded.weight = 0.4
-        r.skating_air_time.weight = 0.4
+        # Weak: a 150 ms rear-foot lift must not lose to per-step double support.
+        r.grounded.weight = 0.12
+        r.skating_air_time.weight = 0.3
         r.skating_air_time.params["min_air"] = MICRO_AIR_MIN
         r.skating_air_time.params["max_air"] = MICRO_AIR_MAX
         r.forward_lean.weight = 1.0

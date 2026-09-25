@@ -798,10 +798,10 @@ def feet_abreast(
 
 
 class foot_fore_aft_swap(ManagerTermBase):
-    """Dense bonus after the leading wheel changes, plus a stale cost if it never does.
+    """Dense bonus after the leading wheel changes — only if that pass was a micro-lift.
 
-    A frozen lunge (left always ahead) scores the split term but 0 here, then pays ``stale``
-    after ``stale_s`` without a sign flip. That is the missing L/R 前後輪流.
+    A ground-slide swap (foreaft run) no longer resets the stale timer or scores. The passing
+    foot (the new front) must have been in the [min_air, max_air] window within ``lift_grace``.
     """
 
     def __init__(self, cfg: RewardTermCfg, env: ManagerBasedRLEnv):
@@ -811,16 +811,19 @@ class foot_fore_aft_swap(ManagerTermBase):
         self.last_sign = torch.zeros(n, device=dev)
         self.have = torch.zeros(n, dtype=torch.bool, device=dev)
         self.since = torch.full((n,), 10.0, device=dev)
+        self.lift_age = torch.full((n, 2), 10.0, device=dev)
 
     def reset(self, env_ids=None) -> None:
         if env_ids is None:
             self.last_sign[:] = 0
             self.have[:] = False
             self.since[:] = 10.0
+            self.lift_age[:] = 10.0
         else:
             self.last_sign[env_ids] = 0
             self.have[env_ids] = False
             self.since[env_ids] = 10.0
+            self.lift_age[env_ids] = 10.0
 
     def __call__(
         self,
@@ -831,14 +834,24 @@ class foot_fore_aft_swap(ManagerTermBase):
         swap_window: float = 0.55,
         stale_s: float = 1.10,
         min_cmd: float = 0.25,
+        min_air: float = 0.05,
+        max_air: float = 0.22,
+        lift_grace: float = 0.30,
         asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
     ) -> torch.Tensor:
         asset: Articulation = env.scene[asset_cfg.name]
+        sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
+        air = sensor.data.current_air_time[:, sensor_cfg.body_ids]
+        in_win = (air > min_air) & (air <= max_air)
+        self.lift_age = torch.where(in_win, torch.zeros_like(self.lift_age), self.lift_age + env.step_dt)
         d = _wheel_fore_aft(env, asset)
         sign = torch.where(d >= 0, torch.ones_like(d), -torch.ones_like(d))
         strong = d.abs() > min_split
         swapped = strong & self.have & (sign != self.last_sign) & (self.last_sign != 0)
-        self.since = torch.where(swapped, torch.zeros_like(self.since), self.since + env.step_dt)
+        # New front foot is the one that just passed (left if sign>0).
+        pass_age = torch.where(sign > 0, self.lift_age[:, 0], self.lift_age[:, 1])
+        lifted_swap = swapped & (pass_age < lift_grace)
+        self.since = torch.where(lifted_swap, torch.zeros_like(self.since), self.since + env.step_dt)
         self.last_sign = torch.where(strong, sign, self.last_sign)
         self.have = self.have | strong
         cmd = env.command_manager.get_command(command_name)
@@ -846,5 +859,66 @@ class foot_fore_aft_swap(ManagerTermBase):
         recent = ((self.since < swap_window) & self.have).float()
         depth = torch.clamp(d.abs() / 0.22, 0.0, 1.0)
         stale = (self.since > stale_s).float() * self.have.float()
-        # +1 just after a swap, −1 if the same foot stays in front too long
         return (recent * depth - stale) * moving
+
+
+class passing_foot_lift(ManagerTermBase):
+    """Dense: the rearward wheel is catching up and is airborne 50–220 ms; the front wheel is loaded.
+
+    This is the X2 pass: the back foot unweights while it slides forward to become the new front.
+    Lifting the front wheel does not score (that was the one-wheel hover).
+    """
+
+    def __init__(self, cfg: RewardTermCfg, env: ManagerBasedRLEnv):
+        super().__init__(cfg, env)
+        self.prev_s = torch.zeros(env.num_envs, 2, device=env.device)
+        self.have_s = torch.zeros(env.num_envs, dtype=torch.bool, device=env.device)
+
+    def reset(self, env_ids=None) -> None:
+        if env_ids is None:
+            self.prev_s[:] = 0
+            self.have_s[:] = False
+        else:
+            self.prev_s[env_ids] = 0
+            self.have_s[env_ids] = False
+
+    def __call__(
+        self,
+        env: ManagerBasedRLEnv,
+        sensor_cfg: SceneEntityCfg,
+        command_name: str,
+        min_split: float = 0.08,
+        min_air: float = 0.05,
+        max_air: float = 0.22,
+        load_thr: float = 5.0,
+        min_cmd: float = 0.25,
+        max_tilt: float = 0.45,
+        min_height: float = 0.65,
+        asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+    ) -> torch.Tensor:
+        asset: Articulation = env.scene[asset_cfg.name]
+        sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
+        wids = _wheel_body_ids(env, asset)
+        pos_xy = asset.data.body_pos_w[:, wids, :2]
+        yaw = asset.data.heading_w
+        fwd = torch.stack([torch.cos(yaw), torch.sin(yaw)], dim=-1)
+        s = (pos_xy * fwd.unsqueeze(1)).sum(dim=-1)
+        ds = (s - self.prev_s) / max(float(env.step_dt), 1.0e-4)
+        ready = self.have_s
+        self.prev_s = s
+        self.have_s[:] = True
+        rear_is_left = s[:, 0] < s[:, 1]
+        ds_rear = torch.where(rear_is_left, ds[:, 0], ds[:, 1])
+        ds_front = torch.where(rear_is_left, ds[:, 1], ds[:, 0])
+        closing = ds_rear > ds_front + 0.05
+        air = sensor.data.current_air_time[:, sensor_cfg.body_ids]
+        f = sensor.data.net_forces_w[:, sensor_cfg.body_ids].norm(dim=-1)
+        air_rear = torch.where(rear_is_left, air[:, 0], air[:, 1])
+        f_front = torch.where(rear_is_left, f[:, 1], f[:, 0])
+        in_win = (air_rear > min_air) & (air_rear <= max_air)
+        front_down = f_front > load_thr
+        split = (s[:, 0] - s[:, 1]).abs() > min_split
+        cmd = env.command_manager.get_command(command_name)
+        return (
+            closing & in_win & front_down & split & ready
+        ).float() * (cmd[:, 0] > min_cmd).float() * _upright_gate(env, asset, max_tilt, min_height)

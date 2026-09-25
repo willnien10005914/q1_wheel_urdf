@@ -1,9 +1,8 @@
 #!/bin/bash
-# Fine-tune skate PPO into L/R front-back sliding (world-space wheel split + periodic swap).
-#   ./train_slide.sh                          # headless, 8192 envs, +12k iters from skate ckpt
+# Fine-tune the foreaft slide PPO so the passing (rear) foot micro-lifts on each swap.
+#   ./train_slide.sh                          # 8192 envs, +10k iters from q1_slide_ppo.pt
 #   NUM_ENVS=64 MAX_ITERS=5 ./train_slide.sh  # smoke test
 #   WARM_START=none ./train_slide.sh          # train from scratch
-# RESET_NOISE_STD reopens exploration. The finished slide policy had std ~0.12 and never lifted.
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 export PATH="$HOME/isaac/env_isaaclab/bin:$HOME/.local/bin:$PATH"
@@ -23,10 +22,10 @@ MODE="${1:-headless}"
 if [[ "${1:-}" == "gui" || "${1:-}" == "headless" ]]; then shift || true; fi
 
 NUM_ENVS="${NUM_ENVS:-8192}"
-MAX_ITERS="${MAX_ITERS:-12000}"
-RUN_NAME="${RUN_NAME:-slide_${NUM_ENVS}envs_foreaft}"
-WARM_START="${WARM_START:-$ROOT/checkpoints/q1_skate_ppo.pt}"
-export RESET_NOISE_STD="${RESET_NOISE_STD:-0.45}"
+MAX_ITERS="${MAX_ITERS:-10000}"
+RUN_NAME="${RUN_NAME:-slide_${NUM_ENVS}envs_passlift}"
+WARM_START="${WARM_START:-$ROOT/checkpoints/q1_slide_ppo.pt}"
+export RESET_NOISE_STD="${RESET_NOISE_STD:-0.35}"
 
 COMMON=(
   --task Isaac-Q1-Slide-v0
