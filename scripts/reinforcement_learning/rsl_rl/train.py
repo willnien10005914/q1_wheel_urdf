@@ -97,6 +97,8 @@ torch.backends.cudnn.benchmark = False
 
 def _stable_checkpoint_name(task: str) -> str:
     """Per-task stable checkpoint filename so tasks never clobber each other."""
+    if "Q1-Unbox" in task or "Q1-Getup" in task:
+        return "q1_unbox_ppo.pt"
     if "Q1-Posture" in task:
         return "q1_posture_ppo.pt"
     if "Q1-Slide" in task:

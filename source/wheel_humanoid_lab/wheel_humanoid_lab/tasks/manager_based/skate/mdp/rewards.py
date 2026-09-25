@@ -394,7 +394,139 @@ class getup_track(ManagerTermBase):
         pose = torch.exp(-torch.mean(dq**2, dim=1) / 0.45**2)
         z_t = self.heights[idx - 1] * (1.0 - a[:, 0]) + self.heights[idx] * a[:, 0]
         height = torch.exp(-((asset.data.root_pos_w[:, 2] - z_t) ** 2) / 0.08**2)
-        return 0.65 * pose + 0.35 * height
+        # Pose matching while still supine is how the first get-up run stalled at z=0.22.
+        # Only pay the pose term once the trunk has started to come off the floor.
+        lift = ((1.0 - asset.data.projected_gravity_b[:, 0]).clamp(0.0, 1.2) / 1.0).clamp(0.0, 1.0)
+        return (0.65 * pose + 0.35 * height) * (0.15 + 0.85 * lift)
+
+
+def _mean_joints(asset: Articulation, joint_ids) -> torch.Tensor:
+    return asset.data.joint_pos[:, joint_ids].mean(dim=1)
+
+
+def unbox_tuck(
+    env: ManagerBasedRLEnv,
+    hip_cfg: SceneEntityCfg,
+    knee_cfg: SceneEntityCfg,
+    hip_target: float = -1.15,
+    knee_target: float = 2.20,
+    std: float = 0.40,
+    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+) -> torch.Tensor:
+    """Heels toward the hips: hip flexion + knee flexion from the box-open supine pose."""
+    asset: Articulation = env.scene[asset_cfg.name]
+    hip = _mean_joints(asset, hip_cfg.joint_ids)
+    knee = _mean_joints(asset, knee_cfg.joint_ids)
+    return 0.5 * torch.exp(-((hip - hip_target) ** 2) / std**2) + 0.5 * torch.exp(-((knee - knee_target) ** 2) / std**2)
+
+
+def unbox_yoga_press(
+    env: ManagerBasedRLEnv,
+    shoulder_cfg: SceneEntityCfg,
+    shoulder_target: float = 2.20,
+    std_q: float = 0.45,
+    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+) -> torch.Tensor:
+    """Yoga sit-up: arms stay planted behind the torso while the trunk lifts off the floor.
+
+    ``projected_gravity_b[0]`` is ~1 while supine and falls toward 0 as the chest comes up.
+    """
+    asset: Articulation = env.scene[asset_cfg.name]
+    sh = _mean_joints(asset, shoulder_cfg.joint_ids)
+    arms = torch.exp(-((sh - shoulder_target) ** 2) / std_q**2)
+    gx = asset.data.projected_gravity_b[:, 0]
+    lift_g = ((1.0 - gx).clamp(0.0, 1.3) / 1.0).clamp(0.0, 1.0)
+    z = asset.data.root_pos_w[:, 2]
+    lift_z = ((z - 0.20) / 0.22).clamp(0.0, 1.0)
+    return 0.35 * arms + 0.40 * lift_g + 0.25 * lift_z
+
+
+def unbox_roller_plant(
+    env: ManagerBasedRLEnv,
+    roller_cfg: SceneEntityCfg,
+    threshold: float = 5.0,
+    min_lift: float = 0.20,
+    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+) -> torch.Tensor:
+    """Both knee rollers loaded, only after the trunk has started the sit-up."""
+    asset: Articulation = env.scene[asset_cfg.name]
+    sensor: ContactSensor = env.scene.sensors[roller_cfg.name]
+    f = sensor.data.net_forces_w[:, roller_cfg.body_ids].norm(dim=-1)
+    planted = (f > threshold).all(dim=1).float()
+    gx = asset.data.projected_gravity_b[:, 0]
+    z = asset.data.root_pos_w[:, 2]
+    started = ((1.0 - gx) > min_lift) | (z > 0.28)
+    return planted * started.float()
+
+
+def unbox_wheel_scoot(
+    env: ManagerBasedRLEnv,
+    wheel_cfg: SceneEntityCfg,
+    roller_cfg: SceneEntityCfg,
+    threshold: float = 5.0,
+    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+) -> torch.Tensor:
+    """Foot wheels spin forward to drag the hips over the planted knee rollers."""
+    asset: Articulation = env.scene[asset_cfg.name]
+    sensor: ContactSensor = env.scene.sensors[roller_cfg.name]
+    planted = (sensor.data.net_forces_w[:, roller_cfg.body_ids].norm(dim=-1) > threshold).all(dim=1).float()
+    omega = asset.data.joint_vel[:, wheel_cfg.joint_ids].mean(dim=1)
+    vx = asset.data.root_lin_vel_b[:, 0]
+    drive = torch.tanh((omega / 8.0).clamp(min=0.0))
+    pull = torch.tanh((vx / 0.25).clamp(min=0.0))
+    return planted * (0.6 * drive + 0.4 * pull)
+
+
+def unbox_waist_rise(
+    env: ManagerBasedRLEnv,
+    roller_cfg: SceneEntityCfg,
+    shoulder_cfg: SceneEntityCfg,
+    waist_cfg: SceneEntityCfg,
+    shoulder_target: float = 0.55,
+    waist_target: float = 0.30,
+    threshold: float = 5.0,
+    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+) -> torch.Tensor:
+    """Waist motors pull the trunk vertical; arms swing forward for balance. Gated on rollers."""
+    asset: Articulation = env.scene[asset_cfg.name]
+    sensor: ContactSensor = env.scene.sensors[roller_cfg.name]
+    planted = (sensor.data.net_forces_w[:, roller_cfg.body_ids].norm(dim=-1) > threshold).all(dim=1).float()
+    g = asset.data.projected_gravity_b
+    upright = torch.exp(-((g[:, 2] + 1.0) ** 2) / 0.35**2)
+    sh = _mean_joints(asset, shoulder_cfg.joint_ids)
+    arms_fwd = torch.exp(-((sh - shoulder_target) ** 2) / 0.50**2)
+    waist = _mean_joints(asset, waist_cfg.joint_ids)
+    waist_q = torch.exp(-((waist - waist_target) ** 2) / 0.35**2)
+    return planted * (0.50 * upright + 0.25 * arms_fwd + 0.25 * waist_q)
+
+
+def unbox_kneel_hold(
+    env: ManagerBasedRLEnv,
+    wheel_cfg: SceneEntityCfg,
+    roller_cfg: SceneEntityCfg,
+    hip_cfg: SceneEntityCfg,
+    knee_cfg: SceneEntityCfg,
+    kneel_z: float = 0.45,
+    hip_target: float = -1.02,
+    knee_target: float = 2.36,
+    threshold: float = 5.0,
+    std_z: float = 0.07,
+    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+) -> torch.Tensor:
+    """Stable four-wheel kneel: contacts + height + keyframe + still. Requires the trunk up."""
+    asset: Articulation = env.scene[asset_cfg.name]
+    sensor: ContactSensor = env.scene.sensors[wheel_cfg.name]
+    fw = sensor.data.net_forces_w[:, wheel_cfg.body_ids].norm(dim=-1)
+    fr = sensor.data.net_forces_w[:, roller_cfg.body_ids].norm(dim=-1)
+    four = ((fw > threshold).all(dim=1) & (fr > threshold).all(dim=1)).float()
+    g = asset.data.projected_gravity_b
+    up = ((1.0 - g[:, 0]) > 0.45) & ((g[:, 2] + 1.0).abs() < 0.55)
+    z = torch.exp(-((asset.data.root_pos_w[:, 2] - kneel_z) ** 2) / std_z**2)
+    hip = torch.exp(-((_mean_joints(asset, hip_cfg.joint_ids) - hip_target) ** 2) / 0.30**2)
+    knee = torch.exp(-((_mean_joints(asset, knee_cfg.joint_ids) - knee_target) ** 2) / 0.30**2)
+    still = torch.exp(-torch.sum(asset.data.root_lin_vel_b[:, :2] ** 2, dim=1) / 0.20**2)
+    still = still * torch.exp(-torch.sum(asset.data.root_ang_vel_b**2, dim=1) / 1.2**2)
+    return four * up.float() * (0.35 * z + 0.25 * hip + 0.25 * knee + 0.15 * still)
 
 
 def kneel_drive(

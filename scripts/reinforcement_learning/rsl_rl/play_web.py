@@ -155,11 +155,11 @@ class PlayWebHandler(SimpleHTTPRequestHandler):
             payload = {"ok": True}
         elif parsed.path == "/api/pose":
             name = str(body.get("name") or "").strip().lower()
-            if name in {"kneel", "stand", "slide", "skate"}:
+            if name in {"kneel", "stand", "slide", "skate", "lie", "getup", "unbox"}:
                 self.state.request_pose(name)
                 payload = {"ok": True, "pose": name}
             else:
-                status, raw = _json_bytes({"ok": False, "error": "name must be kneel, stand, slide or skate"}, 400)
+                status, raw = _json_bytes({"ok": False, "error": "name must be kneel, stand, slide, skate, lie, getup or unbox"}, 400)
                 self.send_response(status)
                 self._cors()
                 self.send_header("Content-Type", "application/json")

@@ -152,3 +152,35 @@ def skate_metrics(
         "base_height_mean": float(asset.data.root_pos_w[:, 2].mean()),
         "fore_aft_abs_mean": float(_wheel_fore_aft(env, asset).abs().mean()),
     }
+
+
+def unbox_metrics(
+    env: ManagerBasedRLEnv,
+    env_ids: Sequence[int],
+    hip_cfg: SceneEntityCfg,
+    knee_cfg: SceneEntityCfg,
+    shoulder_cfg: SceneEntityCfg,
+    wheel_joint_cfg: SceneEntityCfg,
+    wheel_body_cfg: SceneEntityCfg,
+    roller_cfg: SceneEntityCfg,
+    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+) -> dict[str, float]:
+    """Open-box sit-up metrics: tuck, trunk lift, roller plant, wheel drive, kneel hold."""
+    asset: Articulation = env.scene[asset_cfg.name]
+    sensor: ContactSensor = env.scene.sensors[roller_cfg.name]
+    g = asset.data.projected_gravity_b
+    rollers = sensor.data.net_forces_w[:, roller_cfg.body_ids].norm(dim=-1) > 5.0
+    wheels = sensor.data.net_forces_w[:, wheel_body_cfg.body_ids].norm(dim=-1) > 5.0
+    return {
+        "hip_pitch_mean": float(asset.data.joint_pos[:, hip_cfg.joint_ids].mean()),
+        "knee_mean": float(asset.data.joint_pos[:, knee_cfg.joint_ids].mean()),
+        "shoulder_pitch_mean": float(asset.data.joint_pos[:, shoulder_cfg.joint_ids].mean()),
+        "torso_gx": float(g[:, 0].mean()),
+        "torso_gz": float(g[:, 2].mean()),
+        "base_height_mean": float(asset.data.root_pos_w[:, 2].mean()),
+        "roller_both_frac": float(rollers.all(dim=1).float().mean()),
+        "wheel_both_frac": float(wheels.all(dim=1).float().mean()),
+        "four_contact_frac": float((rollers.all(dim=1) & wheels.all(dim=1)).float().mean()),
+        "wheel_omega_mean": float(asset.data.joint_vel[:, wheel_joint_cfg.joint_ids].mean()),
+        "base_vx_mean": float(asset.data.root_lin_vel_b[:, 0].mean()),
+    }

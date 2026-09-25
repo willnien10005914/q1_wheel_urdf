@@ -47,6 +47,38 @@ def reset_posture_pose(
     asset.write_root_velocity_to_sim(root[:, 7:], env_ids=pick)
 
 
+def reset_supine(
+    env: ManagerBasedEnv,
+    env_ids: torch.Tensor,
+    lie_pose: dict[str, float],
+    root_z: float = 0.22,
+    joint_noise: float = 0.04,
+    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+):
+    """Lay the robot on its back (face up). +90 deg pitch about Y points the chest at the sky.
+
+    The neck joint only yaws, so a later "head forward" has to come from waist pitch."""
+    import re
+
+    asset: Articulation = env.scene[asset_cfg.name]
+    if env_ids is None or len(env_ids) == 0:
+        return
+    q = asset.data.default_joint_pos[env_ids].clone()
+    for i, name in enumerate(asset.joint_names):
+        for pat, val in lie_pose.items():
+            if re.fullmatch(pat, name):
+                q[:, i] = float(val)
+    if joint_noise > 0.0:
+        q = q + joint_noise * torch.randn_like(q)
+    asset.write_joint_state_to_sim(q, torch.zeros_like(q), env_ids=env_ids)
+    root = asset.data.root_state_w[env_ids].clone()
+    root[:, 2] = root_z + env.scene.env_origins[env_ids, 2]
+    root[:, 3:7] = torch.tensor([0.70710678, 0.0, 0.70710678, 0.0], device=env.device)
+    root[:, 7:] = 0.0
+    asset.write_root_pose_to_sim(root[:, :7], env_ids=env_ids)
+    asset.write_root_velocity_to_sim(root[:, 7:], env_ids=env_ids)
+
+
 class randomize_com(ManagerTermBase):
     """CoM offset DR that never accumulates.
 

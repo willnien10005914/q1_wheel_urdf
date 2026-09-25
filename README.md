@@ -79,6 +79,25 @@ height, wheel rim speed, wheel normal force and air time. Control 50 Hz, PhysX 2
 `Q1_JOINT_ORDER` = waist yaw/roll/pitch, neck, L shoulder p/r/y, L elbow, L wrist, L gripper, R shoulder
 p/r/y, R elbow, R wrist, R gripper, L hip pitch/roll, L knee, R hip pitch/roll, R knee, L wheel, R wheel.
 
+## Trained PPOs
+
+| checkpoint | Gym task | action |
+|---|---|---|
+| `checkpoints/q1_skate_ppo.pt` | `Isaac-Q1-Skate-v0` | two-wheel stand, glide, lean, arms-back |
+| `checkpoints/q1_slide_ppo.pt` | `Isaac-Q1-Slide-v0` | L/R front-back skate + passing-foot micro-lift |
+| `checkpoints/q1_posture_ppo.pt` | `Isaac-Q1-Posture-v0` | kneel ↔ stand (the stand-up PPO) |
+| `checkpoints/q1_unbox_ppo.pt` | `Isaac-Q1-Unbox-v0` | box-open supine → yoga sit-up → stable kneel |
+| `checkpoints/q1_getup_ppo.pt` | (superseded) | first all-in-one get-up; stayed supine, do not use |
+| `checkpoints/skateboard_ppo.pt` | `Isaac-WheelHumanoid-Skateboard-v0` | legacy ideal-PD stand-skate |
+
+Open-box chain: lie face up → **unbox PPO** to a four-wheel kneel → **posture PPO** stands → skate/slide.
+
+```bash
+./train_unbox.sh                 # supine → kneel (writes q1_unbox_ppo.pt)
+# stand-up is already trained:
+# ./train_posture.sh             # kneel ↔ stand
+```
+
 ## Curriculum (`SKATE_STAGES`, PPO iterations)
 
 | stage | from iter | what changes |
