@@ -820,6 +820,69 @@ document.getElementById("ref-save")?.addEventListener("click", async () => {
   }
 });
 
+let canvasRecorder = null;
+let canvasChunks = [];
+async function recordCanvasVideo() {
+  const canvas = renderer.domElement;
+  if (!canvas || typeof MediaRecorder === "undefined") {
+    setRefStatus("MediaRecorder unavailable in this browser");
+    return;
+  }
+  if (canvasRecorder && canvasRecorder.state === "recording") {
+    canvasRecorder.stop();
+    return;
+  }
+  if (!refKnots.length) {
+    try {
+      await loadDefaultRef();
+    } catch (err) {
+      setRefStatus(String(err));
+      return;
+    }
+  }
+  canvasChunks = [];
+  const stream = canvas.captureStream(30);
+  const mime = MediaRecorder.isTypeSupported("video/webm;codecs=vp9")
+    ? "video/webm;codecs=vp9"
+    : "video/webm";
+  canvasRecorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 4_000_000 });
+  canvasRecorder.ondataavailable = (ev) => {
+    if (ev.data?.size) canvasChunks.push(ev.data);
+  };
+  canvasRecorder.onstop = () => {
+    const blob = new Blob(canvasChunks, { type: mime });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "q1_unbox_web_canvas.webm";
+    a.click();
+    URL.revokeObjectURL(a.href);
+    const btn = document.getElementById("ref-record");
+    if (btn) btn.textContent = "Record canvas";
+    setRefStatus(`canvas video ${(blob.size / 1024).toFixed(0)} KB downloaded`);
+    canvasRecorder = null;
+  };
+  canvasRecorder.start(200);
+  const btn = document.getElementById("ref-record");
+  if (btn) btn.textContent = "Stop record";
+  setRefStatus("recording canvas — playing keyframes…");
+  stopRefPlay();
+  showKnot(0, { animate: false });
+  let i = 0;
+  const tick = () => {
+    i += 1;
+    if (i >= refKnots.length) {
+      setTimeout(() => canvasRecorder && canvasRecorder.state === "recording" && canvasRecorder.stop(), 600);
+      return;
+    }
+    showKnot(i);
+    setTimeout(tick, 900);
+  };
+  setTimeout(tick, 900);
+}
+document.getElementById("ref-record")?.addEventListener("click", () => {
+  recordCanvasVideo().catch((err) => setRefStatus(String(err)));
+});
+
 function loadRobot() {
   if (location.protocol === "file:") {
     els.status.textContent = "Open this page from a local server, not as a file:// URL.";

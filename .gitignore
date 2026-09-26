@@ -25,3 +25,4 @@ tools/models/
 docs/reference/*_pose_overlay.mp4
 docs/reference/*_web_recording.json
 !docs/reference/a3_unbox_ref_web_recording.json
+docs/reference/review/*.mp4
