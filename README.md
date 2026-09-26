@@ -10,7 +10,7 @@ micro-lift), with a sim2real-oriented plant instead of ideal PD.
 config/q1_wheel_components.yaml   hardware sheet: motor SKUs, joint->motor map, IMU, CAN, wheel, mass target
 docs/motors.md                    CubeMars datasheet numbers, assumptions, mass budget, sim actuator model
 docs/spec/                        BI2 Wheel motor overview slide
-docs/reference/                   X2 skate clip (1:45-2:00) + MediaPipe joint-angle trace + Q1 keyframe
+docs/reference/                   X2 skate + A3 unbox MediaPipe traces / Q1 keyframes (see README_unbox.md)
 urdf/wheel_humanoid_structural.urdf   CAD geometry + uniform-density masses (hand edited)
 urdf/wheel_humanoid.urdf              GENERATED: tools/build_urdf.py (motors, 40 kg, imu_link, neck/wrist/gripper)
 source/wheel_humanoid_lab/wheel_humanoid_lab/
@@ -18,8 +18,11 @@ source/wheel_humanoid_lab/wheel_humanoid_lab/
   assets/q1_spec.py               24-D joint contract, command block widths, SKU helpers
   assets/wheel_humanoid.py        Q1_WHEEL_CUBEMARS_CFG (actuator groups by SKU), skate stance keyframe
   tasks/manager_based/skate/      Isaac-Q1-Skate-v0: obs/action contract, rewards, curriculum, DR
+  tasks/manager_based/unbox/      Isaac-Q1-Unbox-v0: supine → kneel (MediaPipe→web motor angles)
 tests/test_skate_contract.py      obs/action/actuator contract unit test (Isaac Sim, 4 envs)
-web/                              THREE.js joint UI (live motors from Isaac Sim play)
+web/                              THREE.js joint UI (live motors + unbox keyframe scrubber/recorder)
+tools/unbox_pose_extract.py       MediaPipe PoseLandmarker → Q1 trajectory / keyframes
+tools/apply_unbox_recording.py    web motor-angle JSON → UNBOX_KNOTS in unbox_env_cfg.py
 train_skate.sh / play_skateboard.sh / stop_isaac.sh   train, WASD play + web UI, kill leftover Kit
 run_isaac.sh                      generic Isaac Sim runner
 ```
@@ -35,6 +38,29 @@ NUM_ENVS=64 MAX_ITERS=5 ./train_skate.sh            # smoke test: reward names a
 ./stop_isaac.sh                                     # kill play/train/web and free GPU + ports
 ```
 
+## Unbox from A3 reference (MediaPipe → web motors → RL)
+
+Hand-tuned unbox rewards stalled (curriculum stuck at stage 3, kneel terms ≈ 0). The new loop
+copies [AgiBot A3 unboxing](https://youtube.com/shorts/qCQSAEAf3Js) into Q1 joint space, lets you
+correct motors on the URDF in the browser, then feeds those angles into `getup_track` / pose knots:
+
+```bash
+# extract (needs ~/projects/q1_wheel/.venv_media with mediapipe + yt-dlp)
+python tools/unbox_pose_extract.py \
+  --video docs/reference/a3_unbox_ref.mp4 \
+  --model tools/models/pose_landmarker_heavy.task \
+  --out docs/reference --overlay
+
+# scrub / edit / record motor angles
+python web/serve.py    # http://127.0.0.1:8765/web/ → Load A3 keyframes → Capture → Save for RL
+
+# push into Isaac unbox env, then train
+python tools/apply_unbox_recording.py \
+  --recording docs/reference/a3_unbox_ref_web_recording.json
+./train_unbox.sh
+```
+
+Details: [`docs/reference/README_unbox.md`](docs/reference/README_unbox.md).
 ## Play in Isaac Sim + web motor UI
 
 `./play_skateboard.sh` loads `checkpoints/q1_skate_ppo.pt` in Isaac Sim, runs the PPO at 50 Hz, and
@@ -78,6 +104,28 @@ height, wheel rim speed, wheel normal force and air time. Control 50 Hz, PhysX 2
 
 `Q1_JOINT_ORDER` = waist yaw/roll/pitch, neck, L shoulder p/r/y, L elbow, L wrist, L gripper, R shoulder
 p/r/y, R elbow, R wrist, R gripper, L hip pitch/roll, L knee, R hip pitch/roll, R knee, L wheel, R wheel.
+
+## Trained PPOs
+
+| checkpoint | Gym task | action |
+|---|---|---|
+| `checkpoints/q1_skate_ppo.pt` | `Isaac-Q1-Skate-v0` | two-wheel stand, glide, lean, arms-back |
+| `checkpoints/q1_slide_ppo.pt` | `Isaac-Q1-Slide-v0` | L/R front-back skate + passing-foot micro-lift |
+| `checkpoints/q1_posture_ppo.pt` | `Isaac-Q1-Posture-v0` | kneel ↔ stand (the stand-up PPO) |
+| `checkpoints/q1_unbox_ppo.pt` | `Isaac-Q1-Unbox-v0` | box-open supine → yoga sit-up → stable kneel |
+| `checkpoints/q1_getup_ppo.pt` | (superseded) | first all-in-one get-up; stayed supine, do not use |
+| `checkpoints/skateboard_ppo.pt` | `Isaac-WheelHumanoid-Skateboard-v0` | legacy ideal-PD stand-skate |
+
+Open-box chain: lie face up → **unbox PPO** to a four-wheel kneel → **posture PPO** stands → skate/slide.
+
+```bash
+# Preferred: MediaPipe A3 clip → web motor angles → RL (see docs/reference/README_unbox.md)
+python tools/apply_unbox_recording.py \
+  --recording docs/reference/a3_unbox_ref_web_recording.json
+./train_unbox.sh                 # supine → kneel (writes q1_unbox_ppo.pt)
+# stand-up is already trained:
+# ./train_posture.sh             # kneel ↔ stand
+```
 
 ## Curriculum (`SKATE_STAGES`, PPO iterations)
 

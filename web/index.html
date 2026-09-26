@@ -46,22 +46,47 @@
       <div class="side-head">
         <h2>Joint control</h2>
         <div class="preset-row pose-row">
-          <button id="pose-kneel" type="button">Kneel (4 wheels)</button>
-          <button id="pose-stand" type="button">Stand up</button>
+          <button id="pose-kneel" type="button" data-pose="kneel">Kneel (4 wheels)</button>
+          <button id="pose-stand" type="button" data-pose="stand">Stand up</button>
         </div>
         <div class="preset-row pose-row">
-          <button id="pose-slide" type="button">Slide (X2 skate)</button>
-          <button id="pose-skate" type="button">Balance skate</button>
+          <button id="pose-slide" type="button" data-pose="slide">Slide (X2 skate)</button>
+          <button id="pose-skate" type="button" data-pose="skate">Balance skate</button>
         </div>
         <div class="preset-row pose-row">
-          <button id="train-posture" type="button">Train kneel/stand PPO</button>
-          <button id="train-slide" type="button">Train slide PPO</button>
+          <button id="pose-lie" type="button" data-pose="lie">Lie face up</button>
+          <button id="pose-getup" type="button" data-pose="unbox">Unbox → kneel</button>
         </div>
-        <div id="train-status" class="cmd-readout">train: idle</div>
         <div class="preset-row">
           <button data-preset="zero">Zero</button>
           <button data-preset="tpose">T-pose</button>
           <button data-preset="reach">Reach</button>
+        </div>
+        <div class="ref-panel">
+          <h3>Unbox reference (MediaPipe → motors)</h3>
+          <p class="ref-hint">Load A3 keyframes, scrub / edit sliders, then record motor angles for RL.</p>
+          <div class="toolbar">
+            <button id="load-ref" type="button">Load A3 keyframes</button>
+            <label class="file-btn">Open JSON<input id="ref-file" type="file" accept="application/json,.json" hidden></label>
+          </div>
+          <div class="ref-controls" id="ref-controls" hidden>
+            <div class="ref-row">
+              <button id="ref-prev" type="button">◀</button>
+              <select id="ref-knot"></select>
+              <button id="ref-next" type="button">▶</button>
+              <button id="ref-play" type="button">Play</button>
+            </div>
+            <label class="ref-scrub">
+              Trajectory
+              <input id="ref-scrub" type="range" min="0" max="0" step="1" value="0">
+            </label>
+            <div class="toolbar">
+              <button id="ref-capture" type="button">Capture knot</button>
+              <button id="ref-download" type="button">Download recording</button>
+              <button id="ref-save" type="button">Save for RL</button>
+            </div>
+            <div id="ref-status" class="ref-status">No recording yet</div>
+          </div>
         </div>
         <div class="toolbar" style="margin-top:8px">
           <button id="reset">Zero all</button>

@@ -10,6 +10,8 @@ checkpoints/*
 !checkpoints/q1_skate_ppo.pt
 !checkpoints/q1_posture_ppo.pt
 !checkpoints/q1_slide_ppo.pt
+!checkpoints/q1_getup_ppo.pt
+!checkpoints/q1_unbox_ppo.pt
 !checkpoints/exported/
 !checkpoints/exported/policy.onnx
 !checkpoints/exported/policy.pt
@@ -19,3 +21,7 @@ checkpoints/videos/
 web/node_modules/
 .venv*/
 *.tmp
+tools/models/
+docs/reference/*_pose_overlay.mp4
+docs/reference/*_web_recording.json
+!docs/reference/a3_unbox_ref_web_recording.json

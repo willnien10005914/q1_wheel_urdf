@@ -1,12 +1,13 @@
-"""Q1 slide task: X2-style push-skating (stride: one wheel glides, the other lifts and pushes).
+"""Q1 slide: L/R front-back skating where the passing (rear) foot micro-lifts.
 
-Same plant, contract, action clip and network as the skate PPO, so training warm-starts from the
-skate checkpoint (``train_slide.sh``). Only the reward mix and command ranges change:
+`slide_8192envs_foreaft` learned a 21 cm split and swaps, but both wheels stayed planted
+(97 %) because a ground-slide swap scored the same as a lifted one. This mix:
 
-* ``grounded`` (double support) is switched off, ``skating_air_time`` / ``single_support`` /
-  ``stride_alternation`` pay for short alternating lifts,
-* wheel-speed tracking is reduced so propulsion can come from the legs, not only the hub motors,
-* random forward speed + yaw commands every 3-6 s (wander / circles).
+* ``foot_fore_aft_swap`` only pays / resets stale if the new front foot was airborne
+  50–220 ms in the last 0.3 s
+* ``passing_foot_lift`` pays while the rearward wheel is catching up and in that window
+* ``grounded`` is weak so a 150 ms unweight is not a net loss
+* ``air_over_cap`` still kills a parked one-wheel glide
 """
 
 from __future__ import annotations
@@ -16,7 +17,6 @@ from isaaclab.managers import SceneEntityCfg
 from isaaclab.utils import configclass
 
 from wheel_humanoid_lab.tasks.manager_based.skate.skate_env_cfg import (
-    ACTION_RATE_KNOTS,
     MIN_STAND_Z,
     UPRIGHT_TILT,
     Q1SkateEnvCfg,
@@ -25,20 +25,76 @@ from wheel_humanoid_lab.tasks.manager_based.skate.skate_env_cfg import (
 import wheel_humanoid_lab.tasks.manager_based.skate.mdp as mdp
 
 _WHEELS_B = SceneEntityCfg("contact_forces", body_names=["l_wheel_link", "r_wheel_link"], preserve_order=True)
+_WHEELS_J = SceneEntityCfg("robot", joint_names=["l_wheel_joint", "r_wheel_joint"], preserve_order=True)
+
+# X2 micro-lift: a few centimetres, 20–220 ms. 20 ms is enough to count as a real unweight.
+MICRO_AIR_MIN = 0.02
+MICRO_AIR_MAX = 0.22
 
 SLIDE_CMD_VX = (0.3, 1.5)
-SLIDE_CMD_YAW = (-0.6, 0.6)
+SLIDE_CMD_YAW = (-0.4, 0.4)
 
 
 @configclass
 class SlideRewardsCfg(RewardsCfg):
-    single_support = RewTerm(
-        func=mdp.single_support, weight=0.4,
-        params={"sensor_cfg": _WHEELS_B, "command_name": "base_velocity", "threshold": 5.0, "min_cmd": 0.2, "max_tilt": UPRIGHT_TILT, "min_height": MIN_STAND_Z},
+    foot_fore_aft_split = RewTerm(
+        func=mdp.foot_fore_aft_split,
+        weight=2.5,
+        params={"sensor_cfg": _WHEELS_B, "command_name": "base_velocity", "min_split": 0.10, "target": 0.22, "max_split": 0.42},
     )
-    stride_alternation = RewTerm(
-        func=mdp.stride_alternation, weight=1.0,
-        params={"sensor_cfg": _WHEELS_B, "command_name": "base_velocity", "min_air": 0.08},
+    foot_fore_aft_swap = RewTerm(
+        func=mdp.foot_fore_aft_swap,
+        weight=2.5,
+        params={
+            "sensor_cfg": _WHEELS_B,
+            "command_name": "base_velocity",
+            "min_split": 0.10,
+            "swap_window": 0.55,
+            "stale_s": 1.10,
+            "min_air": 0.05,
+            "max_air": MICRO_AIR_MAX,
+            "lift_grace": 0.30,
+        },
+    )
+    passing_foot_lift = RewTerm(
+        func=mdp.passing_foot_lift,
+        weight=2.0,
+        params={
+            "sensor_cfg": _WHEELS_B,
+            "command_name": "base_velocity",
+            "min_split": 0.08,
+            "min_air": 0.05,
+            "max_air": MICRO_AIR_MAX,
+            "max_tilt": UPRIGHT_TILT,
+            "min_height": MIN_STAND_Z,
+        },
+    )
+    feet_abreast = RewTerm(
+        func=mdp.feet_abreast,
+        weight=-1.8,
+        params={"sensor_cfg": _WHEELS_B, "command_name": "base_velocity", "max_split": 0.08, "min_cmd": 0.30},
+    )
+    micro_unweight = RewTerm(
+        func=mdp.micro_unweight,
+        weight=0.6,
+        params={
+            "sensor_cfg": _WHEELS_B,
+            "command_name": "base_velocity",
+            "min_air": MICRO_AIR_MIN,
+            "max_air": MICRO_AIR_MAX,
+            "max_tilt": UPRIGHT_TILT,
+            "min_height": MIN_STAND_Z,
+        },
+    )
+    loaded_wheel_speed = RewTerm(
+        func=mdp.loaded_wheel_speed,
+        weight=1.0,
+        params={"command_name": "base_velocity", "std": 0.35, "asset_cfg": _WHEELS_J, "sensor_cfg": _WHEELS_B},
+    )
+    air_over_cap = RewTerm(
+        func=mdp.air_over_cap,
+        weight=-5.0,
+        params={"sensor_cfg": _WHEELS_B, "cap": MICRO_AIR_MAX},
     )
 
 
@@ -49,8 +105,8 @@ class Q1SlideEnvCfg(Q1SkateEnvCfg):
     def __post_init__(self):
         super().__post_init__()
         self.episode_length_s = 20.0
+        self.sim.physx.gpu_max_rigid_patch_count = 20 * 2**15
 
-        # final skate stage settings, applied once (the stage curriculum would overwrite the weights)
         self.curriculum.stage = None
         self.curriculum.action_rate = None
         cmd = self.commands.base_velocity
@@ -59,26 +115,27 @@ class Q1SlideEnvCfg(Q1SkateEnvCfg):
         cmd.rel_standing_envs = 0.05
         cmd.resampling_time_range = (3.0, 6.0)
         self.events.reset_base.params["velocity_range"]["x"] = (0.0, 0.4)
-        self.events.push_robot.params["velocity_range"] = {"x": (-0.5, 0.5), "y": (-0.5, 0.5)}
+        self.events.push_robot.params["velocity_range"] = {"x": (-0.4, 0.4), "y": (-0.4, 0.4)}
         self.events.randomize_com.params["com_range"] = {"x": (-0.03, 0.03), "y": (-0.03, 0.03), "z": (-0.03, 0.03)}
 
         r = self.rewards
-        r.action_rate_l2.weight = ACTION_RATE_KNOTS[-1][1]
-        r.wheel_speed.weight = 0.8
+        r.action_rate_l2.weight = -0.15
+        r.wheel_speed.weight = 0.0
         r.base_vx_track.weight = 2.0
         r.heading_hold.weight = 1.0
-        r.leg_symmetry.weight = 0.2
-        r.grounded.weight = 0.0
-        r.skating_air_time.weight = 1.0
-        r.skating_air_time.params["min_air"] = 0.08
-        r.skating_air_time.params["max_air"] = 0.45
+        r.leg_symmetry.weight = 0.0
+        # Weak: a 150 ms rear-foot lift must not lose to per-step double support.
+        r.grounded.weight = 0.12
+        r.skating_air_time.weight = 0.3
+        r.skating_air_time.params["min_air"] = MICRO_AIR_MIN
+        r.skating_air_time.params["max_air"] = MICRO_AIR_MAX
         r.forward_lean.weight = 1.0
         r.arms_back.weight = 0.8
         r.base_height.weight = -0.3
-        r.long_air.weight = -3.0
-        r.long_air.params["cap"] = 0.5
-        r.flying.weight = -2.0
-        r.wheel_slip.weight = -0.1
+        r.long_air.weight = -4.0
+        r.long_air.params["cap"] = MICRO_AIR_MAX
+        r.flying.weight = -3.0
+        r.wheel_slip.weight = -0.15
 
 
 @configclass

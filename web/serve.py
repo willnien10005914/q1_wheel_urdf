@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
 """Serve the joint-control web UI from the URDF package root.
 
-Also exposes POST/GET /api/train so kneel/stand and slide PPO jobs can be started
-without Isaac Sim play occupying the GPU.
+Also accepts POST /api/recording to write MediaPipe→web motor-angle recordings under
+docs/reference/ for ``tools/apply_unbox_recording.py``.
 """
 from __future__ import annotations
 
 import argparse
 import json
 import os
-import sys
+import re
+import socketserver
 import webbrowser
-from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from http.server import SimpleHTTPRequestHandler
 from urllib.parse import urlparse
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(ROOT, "scripts", "reinforcement_learning", "rsl_rl"))
-import train_jobs  # noqa: E402
+REF_DIR = os.path.join(ROOT, "docs", "reference")
 
 
 class Handler(SimpleHTTPRequestHandler):
@@ -32,57 +32,54 @@ class Handler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=ROOT, **kwargs)
 
-    def _cors(self) -> None:
+    def end_headers(self):
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
-        self.send_header("Cache-Control", "no-store")
+        super().end_headers()
 
-    def _json(self, payload: dict, status: int = 200) -> None:
-        raw = json.dumps(payload).encode("utf-8")
-        self.send_response(status)
-        self._cors()
-        self.send_header("Content-Type", "application/json")
-        self.send_header("Content-Length", str(len(raw)))
-        self.end_headers()
-        self.wfile.write(raw)
-
-    def do_OPTIONS(self) -> None:  # noqa: N802
+    def do_OPTIONS(self):
         self.send_response(204)
-        self._cors()
         self.end_headers()
 
-    def do_GET(self) -> None:  # noqa: N802
-        parsed = urlparse(self.path)
-        if parsed.path == "/api/train":
-            self._json({"ok": True, **train_jobs.status()})
-            return
-        if parsed.path == "/api/state":
-            self._json({"ok": False, "train": train_jobs.status(), "joints": {}, "cmd": {}})
-            return
-        super().do_GET()
-
-    def do_POST(self) -> None:  # noqa: N802
-        parsed = urlparse(self.path)
-        length = int(self.headers.get("Content-Length") or 0)
-        raw_in = self.rfile.read(length) if length else b"{}"
+    def do_POST(self):
+        path = urlparse(self.path).path
+        length = int(self.headers.get("Content-Length", "0"))
+        raw = self.rfile.read(length) if length else b"{}"
         try:
-            body = json.loads(raw_in.decode("utf-8") or "{}")
+            body = json.loads(raw.decode("utf-8") or "{}")
         except json.JSONDecodeError:
-            body = {}
-        if not isinstance(body, dict):
-            body = {}
-        if parsed.path != "/api/train":
-            self._json({"ok": False, "error": "unknown endpoint"}, 404)
+            self.send_error(400, "invalid json")
             return
-        name = str(body.get("name") or "").strip().lower()
-        action = str(body.get("action") or "start").strip().lower()
-        if action == "status":
-            self._json({"ok": True, **train_jobs.status()})
-        elif action == "stop":
-            self._json(train_jobs.stop(name or None))
-        else:
-            self._json(train_jobs.start(name))
+        if path == "/api/recording":
+            self._save_recording(body)
+            return
+        self.send_error(404, "unknown api")
+
+    def _save_recording(self, body: dict) -> None:
+        name = body.get("filename") or "unbox_web_recording.json"
+        name = os.path.basename(name)
+        if not re.fullmatch(r"[A-Za-z0-9._-]+\.json", name):
+            self.send_error(400, "bad filename")
+            return
+        os.makedirs(REF_DIR, exist_ok=True)
+        out = os.path.join(REF_DIR, name)
+        payload = body.get("recording")
+        if not isinstance(payload, dict):
+            self.send_error(400, "recording must be an object")
+            return
+        with open(out, "w", encoding="utf-8") as f:
+            json.dump(payload, f, indent=2)
+            f.write("\n")
+        data = json.dumps({"ok": True, "path": f"docs/reference/{name}"}).encode()
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+    def log_message(self, fmt, *args):
+        print("[%s] %s" % (self.log_date_time_string(), fmt % args), flush=True)
 
 
 def main() -> None:
@@ -91,17 +88,18 @@ def main() -> None:
     parser.add_argument("--no-browser", action="store_true")
     args = parser.parse_args()
 
-    ThreadingHTTPServer.allow_reuse_address = True
+    socketserver.TCPServer.allow_reuse_address = True
     url = f"http://127.0.0.1:{args.port}/web/"
-    httpd = ThreadingHTTPServer(("127.0.0.1", args.port), Handler)
-    print(f"Serving {ROOT}", flush=True)
-    print(f"Open {url}", flush=True)
-    if not args.no_browser:
-        webbrowser.open(url)
-    try:
-        httpd.serve_forever()
-    except KeyboardInterrupt:
-        print("\nStopped.")
+    with socketserver.TCPServer(("127.0.0.1", args.port), Handler) as httpd:
+        print(f"Serving {ROOT}", flush=True)
+        print(f"Open {url}", flush=True)
+        print(f"POST /api/recording → {REF_DIR}", flush=True)
+        if not args.no_browser:
+            webbrowser.open(url)
+        try:
+            httpd.serve_forever()
+        except KeyboardInterrupt:
+            print("\nStopped.")
 
 
 if __name__ == "__main__":
