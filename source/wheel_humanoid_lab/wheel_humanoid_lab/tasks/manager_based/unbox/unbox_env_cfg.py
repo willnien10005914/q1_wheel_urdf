@@ -32,7 +32,7 @@ LIE_POSE = {
     ".*_hip_pitch_joint": -0.4,
     ".*_hip_roll_joint": 0.0,
     ".*_knee_joint": 0.4,
-    ".*_knee_roller_joint": 0.444444 * 0.4,
+    ".*_knee_roller_joint": 0.1777776,
     "waist_pitch_joint": 0.0,
     ".*_shoulder_pitch_joint": 2.2,
     "l_shoulder_roll_joint": 0.3,
@@ -40,35 +40,45 @@ LIE_POSE = {
     ".*_elbow_joint": -1.6,
 }
 TUCK_POSE = {
-    **LIE_POSE,
     ".*_hip_pitch_joint": -1.15,
-    ".*_knee_joint": 2.20,
-    ".*_knee_roller_joint": 0.444444 * 2.20,
+    ".*_hip_roll_joint": 0.0,
+    ".*_knee_joint": 2.2,
+    ".*_knee_roller_joint": 0.9777768000000001,
+    "waist_pitch_joint": 0.0,
+    ".*_shoulder_pitch_joint": 2.2,
+    "l_shoulder_roll_joint": 0.3,
+    "r_shoulder_roll_joint": -0.3,
+    ".*_elbow_joint": -1.6,
 }
 YOGA_POSE = {
-    **TUCK_POSE,
-    "waist_pitch_joint": 0.70,
+    ".*_hip_pitch_joint": -0.3254,
+    ".*_hip_roll_joint": 0.0,
+    ".*_knee_joint": 1.3427,
+    ".*_knee_roller_joint": 0.5968,
+    "waist_pitch_joint": 0.5,
     ".*_shoulder_pitch_joint": 2.2,
+    "l_shoulder_roll_joint": 0.2,
+    "r_shoulder_roll_joint": -0.2,
     ".*_elbow_joint": -1.4,
 }
 KNEEL_POSE = {
-    ".*_hip_pitch_joint": KNEEL_HIP_PITCH,
+    ".*_hip_pitch_joint": -1.02,
     ".*_hip_roll_joint": 0.0,
-    ".*_knee_joint": KNEEL_KNEE,
-    ".*_knee_roller_joint": 0.444444 * KNEEL_KNEE,
-    "waist_pitch_joint": KNEEL_WAIST_PITCH,
+    ".*_knee_joint": 2.36,
+    ".*_knee_roller_joint": 1.04888784,
+    "waist_pitch_joint": 0.3,
     ".*_shoulder_pitch_joint": 0.55,
-    "l_shoulder_roll_joint": 0.20,
-    "r_shoulder_roll_joint": -0.20,
-    ".*_elbow_joint": -0.50,
+    "l_shoulder_roll_joint": 0.2,
+    "r_shoulder_roll_joint": -0.2,
+    ".*_elbow_joint": -0.5,
 }
 
 # Timed keyframes only go as far as the kneel. Stand is a different PPO.
 UNBOX_KNOTS = [
-    (0.00, LIE_POSE, 0.20),
-    (0.18, TUCK_POSE, 0.24),
-    (0.42, YOGA_POSE, 0.34),
-    (0.70, KNEEL_POSE, KNEEL_PELVIS_Z),
+    (0.00, LIE_POSE, 0.22),
+    (0.25, TUCK_POSE, 0.28),
+    (0.50, YOGA_POSE, 0.34),
+    (0.75, YOGA_POSE, 0.39),
     (1.00, KNEEL_POSE, KNEEL_PELVIS_Z),
 ]
 
@@ -126,7 +136,7 @@ _ROLLERS_B = SceneEntityCfg("contact_forces", body_names=["l_knee_roller_link", 
 
 @configclass
 class UnboxRewardsCfg(RewardsCfg):
-    getup_track = RewTerm(func=mdp.getup_track, weight=0.8, params={"knots": UNBOX_KNOTS, "phase_s": 6.0})
+    getup_track = RewTerm(func=mdp.getup_track, weight=1.6, params={"knots": UNBOX_KNOTS, "phase_s": 6.0})
     unbox_tuck = RewTerm(
         func=mdp.unbox_tuck,
         weight=1.8,

@@ -105,6 +105,84 @@ html, body {
   margin-bottom: 8px;
 }
 
+.ref-panel {
+  margin-top: 12px;
+  padding: 10px 0 4px;
+  border-top: 1px solid var(--line);
+}
+
+.ref-panel h3 {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.ref-hint {
+  margin: 0 0 8px;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.file-btn {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--line);
+  background: rgba(20, 26, 36, 0.86);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 7px 11px;
+  font: 12px var(--font);
+  cursor: pointer;
+}
+
+.file-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.ref-controls {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ref-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.ref-row select {
+  flex: 1;
+  min-width: 0;
+  background: #0d121a;
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px 8px;
+  font: 12px var(--font);
+}
+
+.ref-scrub {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.ref-scrub input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.ref-status {
+  font: 11px var(--mono);
+  color: var(--accent-2);
+}
+
 .pose-row button {
   font-weight: 650;
 }

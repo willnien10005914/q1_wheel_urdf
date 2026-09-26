@@ -1,0 +1,125 @@
+{
+  "source_recording": "a3_unbox_ref_web_recording.json",
+  "source_url": "https://youtube.com/shorts/qCQSAEAf3Js",
+  "LIE_POSE": {
+    ".*_hip_pitch_joint": -0.4,
+    ".*_hip_roll_joint": 0.0,
+    ".*_knee_joint": 0.4,
+    ".*_knee_roller_joint": 0.1777776,
+    "waist_pitch_joint": 0.0,
+    ".*_shoulder_pitch_joint": 2.2,
+    "l_shoulder_roll_joint": 0.3,
+    "r_shoulder_roll_joint": -0.3,
+    ".*_elbow_joint": -1.6
+  },
+  "TUCK_POSE": {
+    ".*_hip_pitch_joint": -1.15,
+    ".*_hip_roll_joint": 0.0,
+    ".*_knee_joint": 2.2,
+    ".*_knee_roller_joint": 0.9777768000000001,
+    "waist_pitch_joint": 0.0,
+    ".*_shoulder_pitch_joint": 2.2,
+    "l_shoulder_roll_joint": 0.3,
+    "r_shoulder_roll_joint": -0.3,
+    ".*_elbow_joint": -1.6
+  },
+  "YOGA_POSE": {
+    ".*_hip_pitch_joint": -0.3254,
+    ".*_hip_roll_joint": 0.0,
+    ".*_knee_joint": 1.3427,
+    ".*_knee_roller_joint": 0.5968,
+    "waist_pitch_joint": 0.5,
+    ".*_shoulder_pitch_joint": 2.2,
+    "l_shoulder_roll_joint": 0.2,
+    "r_shoulder_roll_joint": -0.2,
+    ".*_elbow_joint": -1.4
+  },
+  "KNEEL_POSE": {
+    ".*_hip_pitch_joint": -1.02,
+    ".*_hip_roll_joint": 0.0,
+    ".*_knee_joint": 2.36,
+    ".*_knee_roller_joint": 1.04888784,
+    "waist_pitch_joint": 0.3,
+    ".*_shoulder_pitch_joint": 0.55,
+    "l_shoulder_roll_joint": 0.2,
+    "r_shoulder_roll_joint": -0.2,
+    ".*_elbow_joint": -0.5
+  },
+  "UNBOX_KNOTS": [
+    [
+      0.0,
+      {
+        ".*_hip_pitch_joint": -0.4,
+        ".*_hip_roll_joint": 0.0,
+        ".*_knee_joint": 0.4,
+        ".*_knee_roller_joint": 0.1777776,
+        "waist_pitch_joint": 0.0,
+        ".*_shoulder_pitch_joint": 2.2,
+        "l_shoulder_roll_joint": 0.3,
+        "r_shoulder_roll_joint": -0.3,
+        ".*_elbow_joint": -1.6
+      },
+      0.22
+    ],
+    [
+      0.25,
+      {
+        ".*_hip_pitch_joint": -1.15,
+        ".*_hip_roll_joint": 0.0,
+        ".*_knee_joint": 2.2,
+        ".*_knee_roller_joint": 0.9777768000000001,
+        "waist_pitch_joint": 0.0,
+        ".*_shoulder_pitch_joint": 2.2,
+        "l_shoulder_roll_joint": 0.3,
+        "r_shoulder_roll_joint": -0.3,
+        ".*_elbow_joint": -1.6
+      },
+      0.278
+    ],
+    [
+      0.5,
+      {
+        ".*_hip_pitch_joint": -0.3254,
+        ".*_hip_roll_joint": 0.0,
+        ".*_knee_joint": 1.3427,
+        ".*_knee_roller_joint": 0.5968,
+        "waist_pitch_joint": 0.5,
+        ".*_shoulder_pitch_joint": 2.2,
+        "l_shoulder_roll_joint": 0.2,
+        "r_shoulder_roll_joint": -0.2,
+        ".*_elbow_joint": -1.4
+      },
+      0.335
+    ],
+    [
+      0.75,
+      {
+        ".*_hip_pitch_joint": -1.5306,
+        ".*_hip_roll_joint": 0.0,
+        ".*_knee_joint": 1.7311,
+        ".*_knee_roller_joint": 0.7694,
+        "waist_pitch_joint": 0.3601,
+        ".*_shoulder_pitch_joint": 2.2,
+        "l_shoulder_roll_joint": 0.2,
+        "r_shoulder_roll_joint": -0.2,
+        ".*_elbow_joint": -1.4
+      },
+      0.393
+    ],
+    [
+      1.0,
+      {
+        ".*_hip_pitch_joint": -1.02,
+        ".*_hip_roll_joint": 0.0,
+        ".*_knee_joint": 2.36,
+        ".*_knee_roller_joint": 1.04888784,
+        "waist_pitch_joint": 0.3,
+        ".*_shoulder_pitch_joint": 0.55,
+        "l_shoulder_roll_joint": 0.2,
+        "r_shoulder_roll_joint": -0.2,
+        ".*_elbow_joint": -0.5
+      },
+      0.45
+    ]
+  ]
+}
