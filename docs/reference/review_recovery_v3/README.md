@@ -1,73 +1,70 @@
 # Q1 physical recovery v3 — Cursor handoff
 
-Both-mode short-run acceptance passed; **full-budget PPO is running**. These are simulation results, not an approved hardware demonstration. Video recording/upload remains assigned to Cursor after the full run finishes.
+**Full-budget PPO finished** (4096 envs × 20000 iters). These are simulation results, not an approved hardware demonstration.
 
-## Full-budget training (launched)
+## Full-budget training
 
 | Field | Value |
 |---|---|
 | Command | `NUM_ENVS=4096 MAX_ITERS=20000 RUN_NAME=v3_both_stand_full_4096 ./train_recovery_v3.sh headless` |
-| Gate | `logs/recovery_v3_gate.json` (`allow_full_budget: true`, schema 3) |
 | Log | `logs/train_recovery_v3_full.log` |
-| PID file | `logs/train_recovery_v3_full.pid` |
 | Run dir | `logs/rsl_rl/q1_recovery_contact_v3/2026-09-29_00-24-17_v3_both_stand_full_4096` |
-| Hardware | RTX 5080 Laptop 16 GB (~5.8 GB used at 4096 envs; ~3 s/iter; ETA ~17 h) |
-| Seed | 42 (fresh run; does not resume the 100-iter short checkpoint) |
+| Final checkpoint | `.../model_19999.pt` (also `checkpoints/q1_recovery_contact_v3_ppo.pt`) |
+| Wall time | ~19.3 h (`Training time: 69693.41 seconds`) |
+| Seed | 42 (fresh; did not resume the 100-iter short checkpoint) |
 
-Short-run evidence that opened the gate remains below. Do not mix cumulative training curriculum rates with the independent deterministic evaluation.
+Cumulative training rates at the last iteration (include early kneel-only curriculum; **do not** treat as final policy success):
 
-## Latest deterministic PPO evaluation
+| Floor start | upright kneel | kneel→stand |
+|---|---:|---:|
+| Supine | 94.0% | 85.4% |
+| Prone | 98.0% | 93.4% |
 
-| Floor start | Four-wheel assisted kneel | Upright kneel, arms unloaded | Kneel then stand ≥1 s |
+## Independent deterministic PPO evaluation (post-train)
+
+3 seeds × 32 envs (`mode=both`, 16 supine + 16 prone each): seeds **4107 / 5107 / 6107**.
+
+| Floor start | Four-wheel assisted kneel | Upright kneel | Kneel then stand ≥1 s |
 |---|---:|---:|---:|
-| Supine / 仰躺 | 16/16 | 15/16 | 15/16 |
-| Prone / 趴姿 | 16/16 | 16/16 | 16/16 |
+| Supine / 仰躺（正躺） | 48/48 | 48/48 | **47/48** |
+| Prone / 趴姿（反躺） | 48/48 | 48/48 | **9/48** |
 
-Evaluation: `logs/recovery_v3_both_stand_ppo_evaluation/evaluation.json` (seed 4107). Checkpoint: `/home/testpc-3/projects/q1_wheel/wheel_humanoid_urdf/logs/rsl_rl/q1_recovery_contact_v3/2026-09-29_00-04-54_v3_both_stand_short/model_99.pt`.
-Training log: `logs/train_recovery_v3_both_stand.log`. Training rates count completed episodes cumulatively, including the initial kneel-only curriculum; use the independent evaluation for the final policy's success rate.
+Per-seed detail:
 
-The controller is **residual PPO plus contact-gated motor priors and wheel balance feedback**. A successful zero-action motor-prior rollout is not proof that PPO learned recovery unaided. Old `.pt` files require their own controller snapshot: source and priors are frozen in each new run's `controller_snapshot/` and `controller_manifest.json`.
-
-## What changed
-
-* Real PhysX/CubeMars motor control, with root/joint state writes only at reset. Stage changes require measured sustained support.
-* Capture the successful kneel command before interpolation pushes it past the stable posture. Separate four-wheel assisted kneel from torso-upright, unloaded-arm kneel.
-* Supine first unloads arms through a separate leg adjustment, then raises the torso. Before standing it sits back to move the pelvis toward the foot wheels; wheel balance feedback starts with leg extension.
-* Shift mass before extending the legs. Standing wheel control uses pitch, pitch rate and forward velocity feedback, with PPO residuals. Combined wheel target is limited to ±25 rad/s; current/torque/back-EMF plant limits remain active. The earlier recovery-only ±8 rad/s target limit remains the residual bound.
-* Full-budget gate requires both assisted and upright kneel in both modes, training and deterministic evaluation, validated standing priors enabled in both modes, and matching current source hashes. Old gate schema cannot authorize a new run.
-* Evaluations report first-episode validity, actual joint angles, joint targets, wheel velocity targets, torso orientation, contacts, torque/current, saturation and hold times. A reset cannot combine partial successes into recovery evidence.
-
-Assisted kneel: all four wheel/roller vertical forces >5 N, pelvis height 0.32–0.65 m, pelvis upright >0.7, speed <0.6 m/s for 0.4 s. Upright kneel adds torso upright >0.85 and each arm force <30 N for 0.5 s. Standing requires wheel support, pelvis height >0.72 m, pelvis and torso upright >0.9, arm forces <30 N and speed <0.5 m/s for 1 s after kneeling. Contacts are EMA-filtered at 50 Hz.
-
-## Web review and recording
-
-Latest exported Web trace: `logs/recovery_v3_both_stand_ppo_review/evaluation.json`; controller: `ppo`. This is actual physical telemetry, interpolated for display. Stage labels describe the observed phase, not acceptance by themselves. Initial FK proposals (`?version=3` without `physics=1`) remain geometry-only and are not the reviewed physical motion.
-
-Forward port 8765 in Cursor Remote and open:
-`http://localhost:8765/web/getup_review.html?version=3&physics=1`
-
-If needed, start `python3 web/serve.py --port 8765 --no-browser` from the repo root.
-
-Cursor can record each mode separately with the current model and controller:
-
-```bash
-cd ~/projects/q1_wheel/wheel_humanoid_urdf
-bash evaluate_recovery_v3.sh --checkpoint /home/testpc-3/projects/q1_wheel/wheel_humanoid_urdf/logs/rsl_rl/q1_recovery_contact_v3/2026-09-29_00-04-54_v3_both_stand_short/model_99.pt --mode supine --seed 4107 --video --out docs/reference/review_recovery_v3/supine_latest --steps 1499
-bash evaluate_recovery_v3.sh --checkpoint /home/testpc-3/projects/q1_wheel/wheel_humanoid_urdf/logs/rsl_rl/q1_recovery_contact_v3/2026-09-29_00-04-54_v3_both_stand_short/model_99.pt --mode prone --seed 4107 --video --out docs/reference/review_recovery_v3/prone_latest --steps 1499
+```
+seed=4107 supine: kneel 16/16 upright 16/16 stand 16/16 unbroken 16/16
+seed=4107 prone: kneel 16/16 upright 16/16 stand 5/16 unbroken 16/16
+seed=5107 supine: kneel 16/16 upright 16/16 stand 16/16 unbroken 16/16
+seed=5107 prone: kneel 16/16 upright 16/16 stand 2/16 unbroken 16/16
+seed=6107 supine: kneel 16/16 upright 16/16 stand 15/16 unbroken 16/16
+seed=6107 prone: kneel 16/16 upright 16/16 stand 2/16 unbroken 16/16
+---AGGREGATE---
+supine: kneel 48/48 upright 48/48 stand 47/48
+prone: kneel 48/48 upright 48/48 stand 9/48
 ```
 
-Outputs are `recovery_eval_supine.mp4` / `recovery_eval_prone.mp4` plus separate `evaluation.json`. Use `--hold-kneel` to inspect the kneeling phase alone. Omit `--checkpoint` to inspect the motor prior without PPO. One robot per video; multi-env spacing is 5 m. No video was recorded/uploaded by Codex.
+Artifacts: `logs/recovery_v3_full_ppo_evaluation/` and `INDEX.json` in this folder.
 
-## Evidence and limits
+**Reading:** supine stand is strong; prone still reaches upright kneel reliably but often fails the stand transfer under independent seeds. Training cumulative prone-stand (~93%) overstates the final policy's deterministic prone-stand rate — keep these metrics separate. Short-run gate had prone stand 16/16 on `model_99.pt`; full-budget `model_19999.pt` regressed prone stand.
 
-* `docs/reference/getup_candidates_v3/motor_priors.json`: motor priors, staged transfer and balance parameters; still candidates pending user review.
-* `motor_prior_knots.csv`: desired stage targets; `physics_stage_contacts.csv`: measured transition contacts.
-* `physics_joint_trajectory.csv`: actual sampled URDF joint angles, position targets and wheel velocity targets (radians/rad/s), without visualization interpolation. These are review candidates, not user-approved ground truth.
-* `logs/recovery_v3_stand_velocity_validation.json`: repeated prone floor-to-stand candidate trials.
-* `logs/recovery_v3_upright_preposition_validation.json`: repeated supine two-phase upright-kneel trials.
-* `logs/recovery_v3_stand_sit_back_validation.json`: repeated supine floor-to-stand trials.
-* `logs/recovery_v3_both_stand_validation/evaluation.json`: integrated zero-action motor-prior control, 16/16 floor→kneel→stand in each mode (seed 3107).
-* `logs/recovery_v3_gate.json`: current acceptance decision.
-* `ROOT_CAUSE.md`: v2 failures and v3 changes.
+## Isaac Sim review videos
 
-Run `python tools/recovery_v3/test_contact_gates.py` in the Isaac environment for contact/balance regressions. Full training has not been launched. Self-collisions and continuous thermal derating remain limitations of the inherited plant; these results do not establish hardware safety or robustness to randomized mass/COM.
+| Mode | Seed | Local mp4 | gofile | Stood? |
+|---|---:|---|---|---|
+| Supine / 正躺 | 4107 | `supine_full/recovery_eval_supine.mp4` | https://gofile.io/d/u4JTNiel | yes (~21 s hold) |
+| Prone / 反躺（典型失败） | 4107 | `prone_full/recovery_eval_prone.mp4` | https://gofile.io/d/dkrVZrC8 | no (upright kneel only) |
+| Prone / 反躺（成功示范） | 4119 | `prone_full_success/recovery_eval_prone.mp4` | https://gofile.io/d/8WW49xzs | yes (~22 s hold) |
+
+```bash
+CKPT=logs/rsl_rl/q1_recovery_contact_v3/2026-09-29_00-24-17_v3_both_stand_full_4096/model_19999.pt
+bash evaluate_recovery_v3.sh --checkpoint "$CKPT" --mode both --num_envs 32 --seed 4107 --out logs/recovery_v3_full_ppo_evaluation/seed_4107 --steps 1499
+bash evaluate_recovery_v3.sh --checkpoint "$CKPT" --mode supine --seed 4107 --video --out docs/reference/review_recovery_v3/supine_full --steps 1499
+bash evaluate_recovery_v3.sh --checkpoint "$CKPT" --mode prone --seed 4107 --video --out docs/reference/review_recovery_v3/prone_full --steps 1499
+bash evaluate_recovery_v3.sh --checkpoint "$CKPT" --mode prone --seed 4119 --video --out docs/reference/review_recovery_v3/prone_full_success --steps 1499
+```
+
+Controller remains **residual PPO + contact-gated motor priors + wheel balance feedback**. Match each `.pt` to its run `controller_snapshot/` / `controller_manifest.json`.
+
+## Short-run gate evidence (provenance only)
+
+Short checkpoint `.../2026-09-29_00-04-54_v3_both_stand_short/model_99.pt` previously evaluated seed 4107 as supine stand 15/16, prone stand 16/16. That gate authorized the full budget; it is not the full-run policy result above.
