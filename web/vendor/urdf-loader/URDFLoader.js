@@ -1,5 +1,5 @@
-import * as THREE from 'three';
-import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
+import * as THREE from '../three/three.module.js';
+import { STLLoader } from '../three/examples/jsm/loaders/STLLoader.js';
 import { URDFRobot, URDFJoint, URDFLink, URDFCollider, URDFVisual, URDFMimicJoint } from './URDFClasses.js';
 
 // Collada disabled for web preview (STL only)

@@ -38,6 +38,15 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_header("Cache-Control", "no-store")
         super().end_headers()
 
+    def do_GET(self):
+        path = urlparse(self.path).path
+        if path in {"/web", "/web/index.html"}:
+            self.send_response(302)
+            self.send_header("Location", "/web/")
+            self.end_headers()
+            return
+        super().do_GET()
+
     def do_OPTIONS(self):
         self.send_response(204)
         self.end_headers()

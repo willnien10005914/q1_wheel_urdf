@@ -122,6 +122,13 @@ class PlayWebHandler(SimpleHTTPRequestHandler):
 
     def do_GET(self) -> None:  # noqa: N802
         parsed = urlparse(self.path)
+        # Keep relative module URLs resolving under /web/.
+        if parsed.path in {"/web", "/web/index.html"}:
+            self.send_response(302)
+            self._cors()
+            self.send_header("Location", "/web/")
+            self.end_headers()
+            return
         if parsed.path == "/api/state":
             status, raw = _json_bytes(self.state.snapshot_copy())
             self.send_response(status)

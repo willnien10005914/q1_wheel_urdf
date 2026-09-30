@@ -1,6 +1,6 @@
-import * as THREE from "three";
-import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import URDFLoader from "urdf-loader";
+import * as THREE from "./vendor/three/three.module.js";
+import { OrbitControls } from "./vendor/three/examples/jsm/controls/OrbitControls.js";
+import URDFLoader from "./vendor/urdf-loader/URDFLoader.js";
 
 const URDF_URL = new URL("../urdf/wheel_humanoid_web.urdf", import.meta.url).href;
 const WHEEL_OFFSET = 0.8867;

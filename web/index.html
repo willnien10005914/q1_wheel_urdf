@@ -5,16 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Wheel Humanoid joint control</title>
   <link rel="stylesheet" href="./style.css">
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "./vendor/three/three.module.js",
-      "three/addons/": "./vendor/three/examples/jsm/",
-      "three/examples/jsm/": "./vendor/three/examples/jsm/",
-      "urdf-loader": "./vendor/urdf-loader/URDFLoader.js"
-    }
-  }
-  </script>
+  <base href="/web/">
 </head>
 <body>
   <div id="app">
@@ -114,7 +105,7 @@
     import("./app.js").catch((err) => {
       const status = document.getElementById("load-status");
       const error = document.getElementById("error");
-      const detail = err && err.message ? err.message : String(err);
+      const detail = (err && (err.stack || err.message)) ? (err.stack || err.message) : String(err);
       if (status) status.textContent = "Failed to load web modules";
       if (error) {
         error.style.display = "block";
