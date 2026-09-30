@@ -100,6 +100,8 @@ class RecoveryV3PlayBridge:
         self.device = device
         self.checkpoint = checkpoint
         self.policy: ActorCritic | None = None
+        self.mixed_policy: ActorCritic | None = None
+        self.mixed_checkpoint: str | None = None
         self.policies: dict[int, ActorCritic] = {}
         self.checkpoints: dict[int, str] = {}
         self.available = False
@@ -113,24 +115,34 @@ class RecoveryV3PlayBridge:
                     print(f"[INFO] Loaded recovery split PPO mode={mode}: {path}")
                 except Exception as exc:  # noqa: BLE001
                     print(f"[WARN] recovery split load failed ({path}): {exc}")
+        mixed = os.path.join(project_root, "checkpoints", "q1_recovery_contact_v3_ppo.pt")
+        # Prefer explicit mixed ckpt; avoid treating a split file passed as RECOVERY_CHECKPOINT
+        # as a universal fallback (would run the wrong orientation's policy).
+        mixed_candidate = None
         if checkpoint and os.path.isfile(checkpoint):
+            base = os.path.basename(checkpoint)
+            if "supine" not in base and "prone" not in base:
+                mixed_candidate = checkpoint
+        if mixed_candidate is None and os.path.isfile(mixed):
+            mixed_candidate = mixed
+        if mixed_candidate:
             try:
-                self.policy = load_recovery_actor(checkpoint, device)
-                self.available = True
-            except Exception as exc:  # noqa: BLE001 — play must still boot without recovery
-                print(f"[WARN] recovery PPO load failed ({checkpoint}): {exc}")
-                self.policy = None
-                self.available = False
-        if self.policies:
-            self.available = True
-            if self.policy is None:
-                self.policy = next(iter(self.policies.values()))
-                self.checkpoint = next(iter(self.checkpoints.values()))
+                self.mixed_policy = load_recovery_actor(mixed_candidate, device)
+                self.mixed_checkpoint = mixed_candidate
+                print(f"[INFO] Loaded recovery mixed PPO fallback: {mixed_candidate}")
+            except Exception as exc:  # noqa: BLE001
+                print(f"[WARN] recovery mixed load failed ({mixed_candidate}): {exc}")
+        self.available = bool(self.policies) or self.mixed_policy is not None
+        self.policy = self.mixed_policy or (next(iter(self.policies.values())) if self.policies else None)
+        self.checkpoint = self.mixed_checkpoint or (
+            next(iter(self.checkpoints.values())) if self.checkpoints else checkpoint
+        )
         self.lie_mode = 0  # 0=supine, 1=prone
         self.running = False
         self.lying = False
         self.processed_override: torch.Tensor | None = None
         self.processed_wheel: torch.Tensor | None = None
+        self._lie_hold_q: torch.Tensor | None = None  # frozen floor pose while waiting for Recovery PPO
         self._pos_ids: torch.Tensor | None = None
         self._wheel_ids: torch.Tensor | None = None
         self._arm_action_ids: list[int] | None = None
@@ -151,9 +163,10 @@ class RecoveryV3PlayBridge:
         self._hip_roll_action_ids = [i for i, n in enumerate(names) if "hip_roll" in n]
 
     def _active_policy(self) -> ActorCritic | None:
+        """Use orientation-specific split PPO; only fall back to mixed, never the other mode."""
         if self.lie_mode in self.policies:
             return self.policies[self.lie_mode]
-        return self.policy
+        return self.mixed_policy
 
     def place_lie(self, mode: int) -> str:
         """Teleport into supine (0) or prone (1) and hold the floor pose (no PPO yet)."""
@@ -168,23 +181,29 @@ class RecoveryV3PlayBridge:
         s.cap = 4
         s.stand_allowed[:] = s.stand_enabled
         self._ensure_ids()
-        self.processed_override = s.command[:, self._pos_ids].clone()
+        # Freeze the trajectory frame-0 pose. Calling s.update() while waiting would
+        # blend motor priors toward stage-0 arm-plant (shoulder_pitch→~2.1) and raise arms.
+        self._lie_hold_q = s.command[:, self._pos_ids].clone()
+        self.processed_override = self._lie_hold_q.clone()
+        self.processed_wheel = torch.zeros(self.env.num_envs, 2, device=self.device)
         label = "supine" if mode == 0 else "prone"
-        return f"Lie {label}: robot on the floor. Press Recovery PPO to get up."
+        ready = "ready" if self._active_policy() is not None else "MISSING ckpt"
+        return f"Lie {label} ({ready}): hold floor pose. Press Recovery PPO to get up."
 
     def start_recovery(self) -> str:
         policy = self._active_policy()
-        if not self.available or policy is None:
-            return (
-                "Recovery PPO: checkpoint missing "
-                "(checkpoints/q1_recovery_v3_{supine|prone}_ppo.pt or q1_recovery_contact_v3_ppo.pt)."
-            )
+        label = "supine" if self.lie_mode == 0 else "prone"
+        if policy is None:
+            need = "q1_recovery_v3_supine_ppo.pt" if self.lie_mode == 0 else "q1_recovery_v3_prone_ppo.pt"
+            return f"Recovery PPO ({label}): checkpoint missing ({need} or mixed q1_recovery_contact_v3_ppo.pt)."
         if not self.lying:
             # Default to last selected orientation (or supine).
             self.place_lie(self.lie_mode)
         self.policy = policy
         if self.lie_mode in self.checkpoints:
             self.checkpoint = self.checkpoints[self.lie_mode]
+        elif self.mixed_checkpoint:
+            self.checkpoint = self.mixed_checkpoint
         ids = torch.arange(self.env.num_envs, device=self.device)
         # Re-seat so stage timers and contacts start clean from the chosen orientation.
         recovery_mdp.reset(self.env, ids, mode=self.lie_mode)
@@ -194,15 +213,16 @@ class RecoveryV3PlayBridge:
         self._ensure_ids()
         self.running = True
         self.lying = True
+        self._lie_hold_q = None
         self.processed_override = s.command[:, self._pos_ids].clone()
         self.processed_wheel = torch.zeros(self.env.num_envs, 2, device=self.device)
-        label = "supine" if self.lie_mode == 0 else "prone"
         ckpt = os.path.basename(self.checkpoint) if self.checkpoint else "?"
         return f"Recovery PPO ({label} / {ckpt}): contact-gated getup → stand."
 
     def stop(self) -> None:
         self.running = False
         self.lying = False
+        self._lie_hold_q = None
         self.processed_override = None
         self.processed_wheel = None
 
@@ -253,8 +273,12 @@ class RecoveryV3PlayBridge:
         self._ensure_ids()
         s = self._state()
         if self.lying and not self.running:
-            s.update()
-            self.processed_override = s.command[:, self._pos_ids].clone()
+            # Hold frozen floor pose only — do not advance recovery stage/motor priors.
+            hold = self._lie_hold_q
+            if hold is None:
+                hold = self._state().command[:, self._pos_ids].clone()
+                self._lie_hold_q = hold
+            self.processed_override = hold.clone()
             self.processed_wheel = torch.zeros(n, 2, device=self.device)
             return zeros
         if not self.running or self._active_policy() is None:

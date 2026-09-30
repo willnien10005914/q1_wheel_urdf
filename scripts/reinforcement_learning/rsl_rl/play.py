@@ -683,7 +683,18 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     else:
         print("[INFO] No q1_unbox_ppo.pt yet — Unbox stays on the floor. Train with ./train_unbox.sh")
     if mode_ctrl.has_recovery_policy:
-        print(f"[INFO] Recovery v3 PPO (web 正躺/趴躺): {recovery_ckpt}")
+        rec = mode_ctrl.recovery
+        splits = getattr(rec, "checkpoints", {}) or {}
+        print(
+            "[INFO] Recovery v3 PPO — "
+            f"supine={'yes' if 0 in splits else 'no'}, "
+            f"prone={'yes' if 1 in splits else 'no'}, "
+            f"mixed={'yes' if getattr(rec, 'mixed_checkpoint', None) else 'no'}"
+        )
+        for mode, path in splits.items():
+            print(f"[INFO]   mode={mode}: {path}")
+        if getattr(rec, "mixed_checkpoint", None):
+            print(f"[INFO]   mixed fallback: {rec.mixed_checkpoint}")
     else:
         print("[INFO] No recovery v3 checkpoint — web Recovery PPO disabled.")
 
@@ -920,6 +931,14 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
                         "slide": mode_ctrl.has_slide_policy,
                         "unbox": mode_ctrl.has_unbox_policy,
                         "recovery": mode_ctrl.has_recovery_policy,
+                        "recovery_supine": bool(
+                            mode_ctrl.recovery
+                            and 0 in getattr(mode_ctrl.recovery, "checkpoints", {})
+                        ),
+                        "recovery_prone": bool(
+                            mode_ctrl.recovery
+                            and 1 in getattr(mode_ctrl.recovery, "checkpoints", {})
+                        ),
                     },
                 }
                 _publish_web_state(env, web_state, cmd, pose_label, extra)

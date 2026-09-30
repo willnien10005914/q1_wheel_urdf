@@ -337,7 +337,11 @@ function applyIsaacState(state) {
   }
   if (els.pose) {
     const policies = state.policies || {};
-    const rec = policies.recovery ? " · recovery ready" : "";
+    const parts = [];
+    if (policies.recovery_supine) parts.push("supine PPO");
+    if (policies.recovery_prone) parts.push("prone PPO");
+    if (!parts.length && policies.recovery) parts.push("recovery mixed");
+    const rec = parts.length ? ` · ${parts.join(" + ")}` : "";
     els.pose.textContent = `mode ${state.pose || "skate"}${rec}`;
   }
   document.querySelectorAll("[data-pose]").forEach((btn) => {
