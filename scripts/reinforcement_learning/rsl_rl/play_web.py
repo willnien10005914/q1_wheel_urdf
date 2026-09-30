@@ -109,11 +109,17 @@ class PlayWebHandler(SimpleHTTPRequestHandler):
             return
         super().log_message(fmt, *args)
 
+    def end_headers(self) -> None:
+        # Prevent sticky module cache of old bare-"three" imports.
+        self.send_header("Cache-Control", "no-store, max-age=0")
+        self.send_header("Access-Control-Allow-Origin", "*")
+        super().end_headers()
+
     def _cors(self) -> None:
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
-        self.send_header("Cache-Control", "no-store")
+        self.send_header("Cache-Control", "no-store, max-age=0")
 
     def do_OPTIONS(self) -> None:  # noqa: N802
         self.send_response(204)

@@ -102,7 +102,8 @@
     </aside>
   </div>
   <script type="module">
-    import("./app.js").catch((err) => {
+    // Single bundled module (no bare "three" imports / import maps).
+    import("./app.bundle.js?v=20260930b").catch((err) => {
       const status = document.getElementById("load-status");
       const error = document.getElementById("error");
       const detail = (err && (err.stack || err.message)) ? (err.stack || err.message) : String(err);
