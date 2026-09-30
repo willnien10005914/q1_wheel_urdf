@@ -57,6 +57,7 @@ class State:
   self.support_ids=self.sensor.find_bodies(['l_wheel_link','r_wheel_link','l_knee_roller_link','r_knee_roller_link'],preserve_order=True)[0]
   self.roller_body_ids=self.robot.find_bodies(['l_knee_roller_link','r_knee_roller_link'],preserve_order=True)[0]
   self.arm_joint_ids=self.robot.find_joints(['.*_shoulder_.*_joint','.*_elbow_joint'])[0]
+  self.hip_roll_ids=self.robot.find_joints(['l_hip_roll_joint','r_hip_roll_joint'],preserve_order=True)[0]
   self.filtered_force=torch.zeros_like(self.sensor.data.net_forces_w[:,:,2])
   self.hand_body_ids=self.robot.find_bodies(self.hand_names,preserve_order=True)[0]
   self.elapsed=torch.zeros(n,device=self.device);self.hold=self.elapsed.clone();self.kneel_hold=self.elapsed.clone();self.stand_hold=self.elapsed.clone()
@@ -185,12 +186,18 @@ class ContactPositionAction(JointPositionAction):
    ids=self._joint_ids.tolist() if torch.is_tensor(self._joint_ids) else list(self._joint_ids)
    names=[self._asset.joint_names[int(i)] for i in ids]
    self._arm_action_ids=[i for i,n in enumerate(names) if ('shoulder' in n or 'elbow' in n)]
+   self._hip_roll_action_ids=[i for i,n in enumerate(names) if 'hip_roll' in n]
   if self._arm_action_ids:
    idx=torch.tensor(self._arm_action_ids,device=processed.device,dtype=torch.long)
    prior=s.command[:,self._joint_ids][:,idx]
    blend=torch.where(calm,.85,.0)[:,None]
    arm=processed[:,idx]
    processed=processed.clone();processed[:,idx]=blend*prior+(1-blend)*arm
+  # Keep feet from pigeon-toeing (內八): motor priors hold hip_roll at 0; damp PPO residuals.
+  if self._hip_roll_action_ids:
+   idx=torch.tensor(self._hip_roll_action_ids,device=processed.device,dtype=torch.long)
+   prior=s.command[:,self._joint_ids][:,idx]
+   processed=processed.clone();processed[:,idx]=.75*prior+.25*processed[:,idx]
   self._processed_actions=processed
 @configclass
 class ContactPositionActionCfg(JointPositionActionCfg):
@@ -244,6 +251,16 @@ def reward(env,kind):
  if kind=='motor':return torch.exp(-((s.robot.data.joint_pos[:,s.pos_ids]-s.command[:,s.pos_ids])/.6).square().mean(-1))
  if kind=='unsupported_supine':return sup*early*(~s.support.all(-1)).float()*(s.height-.18).clamp(min=0)*((1.8-s.shoulder.min(-1).values).clamp(min=0)+(~s.arms.any(-1)).float())
  if kind=='airborne_prone':return prone*s.face_down.float()*s.wheel_clearance.mean(-1)
+ if kind=='foot_apart':
+  # Soft stand-in for missing L↔R self-collision: reward wheel center separation.
+  # Nominal standing gap ≈ 0.30 m; stacking during kneel→stand drops well below that.
+  centers=s.robot.data.body_pos_w[:,s.wheel_ids,:2]
+  sep=(centers[:,0]-centers[:,1]).norm(dim=-1)
+  return ((sep-.18)/.12).clamp(0,1)
+ if kind=='hip_square':
+  # Penalize adduct / 內八: L hip_roll < 0 and R hip_roll > 0 (URDF +X conventions).
+  rolls=s.robot.data.joint_pos[:,s.hip_roll_ids]
+  return (-rolls[:,0]).clamp(min=0)+rolls[:,1].clamp(min=0)
  raise ValueError(kind)
 def timeout(env):return env.episode_length_buf*env.step_dt>=env.cfg.episode_length_s
 def escaped(env):
@@ -254,7 +271,10 @@ def diagnostics(env,env_ids):
  for mode in range(2):
   ids=env_ids[(s.mode[env_ids]==mode)&(env.episode_length_buf[env_ids]>0)]
   s.totals[mode,0]+=len(ids);s.totals[mode,1]+=s.planted[ids].sum();s.totals[mode,2]+=s.knelt[ids].sum();s.totals[mode,3]+=s.upright_knelt[ids].sum();s.totals[mode,4]+=s.stood[ids].sum()
- if (s.totals[:,2]>=3).all():s.cap=4
+ # Unlock stand once every *active* mode has ≥3 kneels. Single-mode runs (only
+ # supine or only prone) must not wait forever for the unused mode's tally.
+ seen=s.totals[:,0]>0
+ if seen.any() and (s.totals[seen,2]>=3).all():s.cap=4
  result={'stage_cap':s.cap}
  for m,name in enumerate(['supine','prone']):
   result[name+'_episodes']=s.totals[m,0].item()

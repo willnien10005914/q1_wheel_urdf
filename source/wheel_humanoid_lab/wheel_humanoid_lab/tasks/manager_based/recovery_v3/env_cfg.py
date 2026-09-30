@@ -31,6 +31,9 @@ class Rewards:
  motor_prior=Rew(func=mdp.reward,weight=.2,params={'kind':'motor'})
  unsupported_supine=Rew(func=mdp.reward,weight=-5.,params={'kind':'unsupported_supine'})
  airborne_prone=Rew(func=mdp.reward,weight=-4.,params={'kind':'airborne_prone'})
+ # Soft L↔R foot spacing (self-collision is globally off) + anti-pigeon-toe.
+ foot_apart=Rew(func=mdp.reward,weight=2.,params={'kind':'foot_apart'})
+ hip_square=Rew(func=mdp.reward,weight=-3.,params={'kind':'hip_square'})
  action_rate=Rew(func=loco.action_rate_l2,weight=-.02)
  action_size=Rew(func=loco.action_l2,weight=-.01)
  torque=Rew(func=loco.joint_torques_l2,weight=-1.e-5)
@@ -57,5 +60,38 @@ class Q1RecoveryV3EnvCfg(Q1RecoveryEnvCfg):
   self.events.body_mass=None;self.events.randomize_com=None
 @configclass
 class Q1RecoveryV3PlayCfg(Q1RecoveryV3EnvCfg):
+ def __post_init__(self):
+  super().__post_init__();self.scene.num_envs=1;self.observations.policy.enable_corruption=False
+
+@configclass
+class Q1RecoveryV3SupineEnvCfg(Q1RecoveryV3EnvCfg):
+ """Independent PPO for 正躺 → kneel → stand only."""
+ def __post_init__(self):
+  super().__post_init__()
+  self.events.reset_reference.params={'mode':0}
+  # Smooth-arms mixed run stuck at kneel for supine; push stand harder relative to kneel.
+  self.rewards.stand.weight=14.
+  self.rewards.kneel.weight=6.
+  self.rewards.stage_progress.weight=12.
+  self.episode_length_s=45.
+
+@configclass
+class Q1RecoveryV3SupinePlayCfg(Q1RecoveryV3SupineEnvCfg):
+ def __post_init__(self):
+  super().__post_init__();self.scene.num_envs=1;self.observations.policy.enable_corruption=False
+
+@configclass
+class Q1RecoveryV3ProneEnvCfg(Q1RecoveryV3EnvCfg):
+ """Independent PPO for 趴躺 → kneel → stand only."""
+ def __post_init__(self):
+  super().__post_init__()
+  self.events.reset_reference.params={'mode':1}
+  # Prone already stands well; keep stand pressure and emphasize clean foot spacing.
+  self.rewards.stand.weight=12.
+  self.rewards.foot_apart.weight=3.
+  self.episode_length_s=40.
+
+@configclass
+class Q1RecoveryV3PronePlayCfg(Q1RecoveryV3ProneEnvCfg):
  def __post_init__(self):
   super().__post_init__();self.scene.num_envs=1;self.observations.policy.enable_corruption=False

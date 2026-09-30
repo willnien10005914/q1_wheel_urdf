@@ -1,8 +1,12 @@
 #!/bin/bash
-# Train physical candidate motor priors with residual PPO; full-budget acceptance is gated.
-# This new task has its own observation/action contract and checkpoint.
+# Mixed supine+prone recovery PPO (legacy). Prefer the split scripts:
+#   ./train_recovery_v3_supine.sh   # 正躺-only independent PPO
+#   ./train_recovery_v3_prone.sh    # 趴躺-only independent PPO
+# See docs/reference/review_recovery_v3/SPLIT_MODE_TRAINING.md
+#
 #   ./train_recovery_v3.sh
 #   NUM_ENVS=64 MAX_ITERS=3 ./train_recovery_v3.sh
+#   RECOVERY_MODE=supine NUM_ENVS=256 MAX_ITERS=100 ./train_recovery_v3.sh
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 export PATH="$HOME/isaac/env_isaaclab/bin:$HOME/.local/bin:$PATH"

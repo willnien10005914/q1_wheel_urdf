@@ -68,3 +68,7 @@ Controller remains **residual PPO + contact-gated motor priors + wheel balance f
 ## Short-run gate evidence (provenance only)
 
 Short checkpoint `.../2026-09-29_00-04-54_v3_both_stand_short/model_99.pt` previously evaluated seed 4107 as supine stand 15/16, prone stand 16/16. That gate authorized the full budget; it is not the full-run policy result above.
+
+## Next: split-mode PPOs
+
+See [SPLIT_MODE_TRAINING.md](./SPLIT_MODE_TRAINING.md) — independent supine / prone recovery training (6144 envs × 12k iters).

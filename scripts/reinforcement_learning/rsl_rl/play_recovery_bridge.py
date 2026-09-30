@@ -25,16 +25,24 @@ RECOVERY_CRITIC_OBS = 128
 RECOVERY_ACTIONS = 24
 
 
-def _default_checkpoint(project_root: str) -> str:
-    preferred = os.path.join(project_root, "checkpoints", "q1_recovery_contact_v3_ppo.pt")
-    if os.path.isfile(preferred):
-        return preferred
-    # Fall back to the smooth-arms full run if the convenience symlink is missing.
-    run = os.path.join(
+def _default_checkpoint(project_root: str, mode: int | None = None) -> str:
+    """Prefer mode-specific split PPO, then mixed v3, then the last full run."""
+    names = []
+    if mode == 0:
+        names.append("q1_recovery_v3_supine_ppo.pt")
+    elif mode == 1:
+        names.append("q1_recovery_v3_prone_ppo.pt")
+    else:
+        names.extend(["q1_recovery_v3_supine_ppo.pt", "q1_recovery_v3_prone_ppo.pt"])
+    names.append("q1_recovery_contact_v3_ppo.pt")
+    for name in names:
+        path = os.path.join(project_root, "checkpoints", name)
+        if os.path.isfile(path):
+            return path
+    return os.path.join(
         project_root,
         "logs/rsl_rl/q1_recovery_contact_v3/2026-09-29_20-43-53_v3_smooth_arms_full_4096/model_19999.pt",
     )
-    return run
 
 
 def load_recovery_actor(checkpoint: str, device: str) -> ActorCritic:
@@ -92,7 +100,19 @@ class RecoveryV3PlayBridge:
         self.device = device
         self.checkpoint = checkpoint
         self.policy: ActorCritic | None = None
+        self.policies: dict[int, ActorCritic] = {}
+        self.checkpoints: dict[int, str] = {}
         self.available = False
+        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+        for mode, name in ((0, "q1_recovery_v3_supine_ppo.pt"), (1, "q1_recovery_v3_prone_ppo.pt")):
+            path = os.path.join(project_root, "checkpoints", name)
+            if os.path.isfile(path):
+                try:
+                    self.policies[mode] = load_recovery_actor(path, device)
+                    self.checkpoints[mode] = path
+                    print(f"[INFO] Loaded recovery split PPO mode={mode}: {path}")
+                except Exception as exc:  # noqa: BLE001
+                    print(f"[WARN] recovery split load failed ({path}): {exc}")
         if checkpoint and os.path.isfile(checkpoint):
             try:
                 self.policy = load_recovery_actor(checkpoint, device)
@@ -101,6 +121,11 @@ class RecoveryV3PlayBridge:
                 print(f"[WARN] recovery PPO load failed ({checkpoint}): {exc}")
                 self.policy = None
                 self.available = False
+        if self.policies:
+            self.available = True
+            if self.policy is None:
+                self.policy = next(iter(self.policies.values()))
+                self.checkpoint = next(iter(self.checkpoints.values()))
         self.lie_mode = 0  # 0=supine, 1=prone
         self.running = False
         self.lying = False
@@ -109,6 +134,7 @@ class RecoveryV3PlayBridge:
         self._pos_ids: torch.Tensor | None = None
         self._wheel_ids: torch.Tensor | None = None
         self._arm_action_ids: list[int] | None = None
+        self._hip_roll_action_ids: list[int] | None = None
 
     def _state(self):
         return recovery_mdp.state(self.env)
@@ -122,6 +148,12 @@ class RecoveryV3PlayBridge:
         self._wheel_ids = torch.as_tensor(wheel, device=self.device, dtype=torch.long)
         names = [self.env.scene["robot"].joint_names[int(i)] for i in self._pos_ids.tolist()]
         self._arm_action_ids = [i for i, n in enumerate(names) if ("shoulder" in n or "elbow" in n)]
+        self._hip_roll_action_ids = [i for i, n in enumerate(names) if "hip_roll" in n]
+
+    def _active_policy(self) -> ActorCritic | None:
+        if self.lie_mode in self.policies:
+            return self.policies[self.lie_mode]
+        return self.policy
 
     def place_lie(self, mode: int) -> str:
         """Teleport into supine (0) or prone (1) and hold the floor pose (no PPO yet)."""
@@ -141,11 +173,18 @@ class RecoveryV3PlayBridge:
         return f"Lie {label}: robot on the floor. Press Recovery PPO to get up."
 
     def start_recovery(self) -> str:
-        if not self.available or self.policy is None:
-            return "Recovery PPO: checkpoint missing (checkpoints/q1_recovery_contact_v3_ppo.pt)."
+        policy = self._active_policy()
+        if not self.available or policy is None:
+            return (
+                "Recovery PPO: checkpoint missing "
+                "(checkpoints/q1_recovery_v3_{supine|prone}_ppo.pt or q1_recovery_contact_v3_ppo.pt)."
+            )
         if not self.lying:
             # Default to last selected orientation (or supine).
             self.place_lie(self.lie_mode)
+        self.policy = policy
+        if self.lie_mode in self.checkpoints:
+            self.checkpoint = self.checkpoints[self.lie_mode]
         ids = torch.arange(self.env.num_envs, device=self.device)
         # Re-seat so stage timers and contacts start clean from the chosen orientation.
         recovery_mdp.reset(self.env, ids, mode=self.lie_mode)
@@ -158,7 +197,8 @@ class RecoveryV3PlayBridge:
         self.processed_override = s.command[:, self._pos_ids].clone()
         self.processed_wheel = torch.zeros(self.env.num_envs, 2, device=self.device)
         label = "supine" if self.lie_mode == 0 else "prone"
-        return f"Recovery PPO ({label}): contact-gated getup → stand."
+        ckpt = os.path.basename(self.checkpoint) if self.checkpoint else "?"
+        return f"Recovery PPO ({label} / {ckpt}): contact-gated getup → stand."
 
     def stop(self) -> None:
         self.running = False
@@ -185,6 +225,11 @@ class RecoveryV3PlayBridge:
             arm = processed[:, idx]
             processed = processed.clone()
             processed[:, idx] = blend * prior + (1.0 - blend) * arm
+        if getattr(self, "_hip_roll_action_ids", None):
+            idx = torch.tensor(self._hip_roll_action_ids, device=self.device, dtype=torch.long)
+            prior = s.command[:, self._pos_ids][:, idx]
+            processed = processed.clone()
+            processed[:, idx] = 0.75 * prior + 0.25 * processed[:, idx]
         return processed
 
     def _process_wheel(self, actions: torch.Tensor) -> torch.Tensor:
@@ -212,16 +257,17 @@ class RecoveryV3PlayBridge:
             self.processed_override = s.command[:, self._pos_ids].clone()
             self.processed_wheel = torch.zeros(n, 2, device=self.device)
             return zeros
-        if not self.running or self.policy is None:
+        if not self.running or self._active_policy() is None:
             self.processed_override = None
             self.processed_wheel = None
             return zeros
 
+        policy = self._active_policy()
         policy_obs = _policy_tensor(skate_obs)
         rec_obs = self._recovery_obs(policy_obs)
         td = TensorDict({"policy": rec_obs}, batch_size=[n], device=self.device)
         with torch.inference_mode():
-            actions = self.policy.act_inference(td)
+            actions = policy.act_inference(td)
         self.processed_override = self._process_position(actions)
         self.processed_wheel = self._process_wheel(actions)
         return actions
