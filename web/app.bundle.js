@@ -22213,6 +22213,8 @@ var URDF_URL = new URL("../urdf/wheel_humanoid_web.urdf", import.meta.url).href;
 var WHEEL_OFFSET = 0.8867;
 var RAD2DEG2 = 180 / Math.PI;
 var DEG2RAD2 = Math.PI / 180;
+var ZUP_TO_YUP = new Quaternion().setFromEuler(new Euler(-Math.PI / 2, 0, 0));
+var _isaacQuat = new Quaternion();
 var GROUPS = [
   {
     id: "waist",
@@ -22483,6 +22485,17 @@ async function releaseAll() {
   } catch {
   }
 }
+function applyIsaacRoot(base) {
+  if (!robot || !base) return;
+  const { qw, qx, qy, qz, z } = base;
+  if ([qw, qx, qy, qz].every((v) => Number.isFinite(v))) {
+    _isaacQuat.set(qx, qy, qz, qw);
+    robot.quaternion.copy(ZUP_TO_YUP).multiply(_isaacQuat);
+  }
+  if (Number.isFinite(z)) {
+    robot.position.set(0, z, 0);
+  }
+}
 function applyIsaacState(state) {
   lastIsaac = state;
   if (els.cmd && state.cmd) {
@@ -22498,6 +22511,7 @@ function applyIsaacState(state) {
     const active = state.pose === pose || pose === "skate" && state.pose === "skate" || pose === "supine" && state.pose === "supine" || pose === "prone" && state.pose === "prone" || pose === "recovery" && state.pose === "recovery";
     btn.classList.toggle("active-pose", active);
   });
+  applyIsaacRoot(state.base);
   const joints = state.joints || {};
   const liveOverrides = new Set(Object.keys(state.overrides || {}));
   Object.keys(joints).forEach((name) => {
@@ -23048,8 +23062,8 @@ function loadRobot() {
     (model) => {
       clearTimeout(loadWatchdog);
       robot = model;
-      robot.rotation.x = -Math.PI / 2;
-      robot.position.y = WHEEL_OFFSET;
+      robot.quaternion.copy(ZUP_TO_YUP);
+      robot.position.set(0, WHEEL_OFFSET, 0);
       robot.traverse((obj) => {
         if (obj.isMesh) {
           obj.castShadow = true;

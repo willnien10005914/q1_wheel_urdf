@@ -348,7 +348,9 @@ class ModeController:
             return torch.zeros(self.env.unwrapped.num_envs, 24, device=self.device)
         if self.mode in {"unbox", "getup"}:
             self._unbox_t += dt
-            policy_obs = obs["policy"] if isinstance(obs, dict) else obs
+            policy_obs = obs["policy"] if not torch.is_tensor(obs) else obs
+            if not torch.is_tensor(policy_obs):
+                policy_obs = obs["policy"]
             policy_obs[:, GETUP_PHASE_INDEX] = min(self._unbox_t / 6.0, 1.0)
             actions = pol.policy(obs)
             a_pos = actions[:, : len(self.pos_joint_names)]
@@ -357,7 +359,9 @@ class ModeController:
             self.processed_wheel = None
             return actions
         if self.mode == "posture":
-            policy_obs = obs["policy"] if isinstance(obs, dict) else obs
+            policy_obs = obs["policy"] if not torch.is_tensor(obs) else obs
+            if not torch.is_tensor(policy_obs):
+                policy_obs = obs["policy"]
             policy_obs[:, POSTURE_OBS_INDEX] = self.posture_target
             actions = pol.policy(obs)
             a_pos = actions[:, : len(self.pos_joint_names)]

@@ -496,7 +496,9 @@ def _publish_web_state(
     pos = robot.data.joint_pos[0].detach().cpu()
     vel = robot.data.joint_vel[0].detach().cpu()
     tau = robot.data.applied_torque[0].detach().cpu() if robot.data.applied_torque is not None else torch.zeros_like(pos)
-    root = robot.data.root_pos_w[0].detach().cpu()
+    origin = unwrapped.scene.env_origins[0].detach().cpu()
+    root = robot.data.root_pos_w[0].detach().cpu() - origin
+    quat = robot.data.root_quat_w[0].detach().cpu()  # wxyz
     body_v = robot.data.root_lin_vel_b[0].detach().cpu()
     heading = float(robot.data.heading_w[0].item())
     cmd0 = cmd[0].detach().cpu()
@@ -539,6 +541,10 @@ def _publish_web_state(
                 "x": float(root[0]),
                 "y": float(root[1]),
                 "z": float(root[2]),
+                "qw": float(quat[0]),
+                "qx": float(quat[1]),
+                "qy": float(quat[2]),
+                "qz": float(quat[3]),
                 "heading": heading,
                 "vx": float(body_v[0]),
                 "vy": float(body_v[1]),

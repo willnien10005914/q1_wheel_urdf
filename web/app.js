@@ -6,6 +6,9 @@ const URDF_URL = new URL("../urdf/wheel_humanoid_web.urdf", import.meta.url).hre
 const WHEEL_OFFSET = 0.8867;
 const RAD2DEG = 180 / Math.PI;
 const DEG2RAD = Math.PI / 180;
+/** URDF/Isaac Z-up → Three.js Y-up (same as robot.rotation.x = -π/2). */
+const ZUP_TO_YUP = new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI / 2, 0, 0));
+const _isaacQuat = new THREE.Quaternion();
 
 const GROUPS = [
   {
@@ -312,6 +315,19 @@ async function releaseAll() {
   }
 }
 
+function applyIsaacRoot(base) {
+  if (!robot || !base) return;
+  const { qw, qx, qy, qz, z } = base;
+  if ([qw, qx, qy, qz].every((v) => Number.isFinite(v))) {
+    _isaacQuat.set(qx, qy, qz, qw);
+    robot.quaternion.copy(ZUP_TO_YUP).multiply(_isaacQuat);
+  }
+  // Keep the viewer centered in XY; map Isaac Z-up height onto Three Y.
+  if (Number.isFinite(z)) {
+    robot.position.set(0, z, 0);
+  }
+}
+
 function applyIsaacState(state) {
   lastIsaac = state;
   if (els.cmd && state.cmd) {
@@ -334,6 +350,7 @@ function applyIsaacState(state) {
       (pose === "recovery" && state.pose === "recovery");
     btn.classList.toggle("active-pose", active);
   });
+  applyIsaacRoot(state.base);
   const joints = state.joints || {};
   const liveOverrides = new Set(Object.keys(state.overrides || {}));
   Object.keys(joints).forEach((name) => {
@@ -933,8 +950,8 @@ function loadRobot() {
     (model) => {
       clearTimeout(loadWatchdog);
       robot = model;
-      robot.rotation.x = -Math.PI / 2;
-      robot.position.y = WHEEL_OFFSET;
+      robot.quaternion.copy(ZUP_TO_YUP);
+      robot.position.set(0, WHEEL_OFFSET, 0);
       robot.traverse((obj) => {
         if (obj.isMesh) {
           obj.castShadow = true;

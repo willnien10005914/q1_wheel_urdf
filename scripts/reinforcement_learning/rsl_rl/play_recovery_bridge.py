@@ -66,6 +66,22 @@ def load_recovery_actor(checkpoint: str, device: str) -> ActorCritic:
     return ac
 
 
+def _policy_tensor(obs: Any) -> torch.Tensor:
+    """RslRlVecEnvWrapper.get_observations() returns a TensorDict, not a plain tensor.
+
+    TensorDict.shape is the *batch* shape (e.g. (1,)), so callers must index ["policy"].
+    """
+    if torch.is_tensor(obs):
+        return obs
+    try:
+        policy = obs["policy"]
+    except Exception as exc:  # noqa: BLE001
+        raise TypeError(f"expected TensorDict/dict with 'policy' or a Tensor, got {type(obs)}") from exc
+    if not torch.is_tensor(policy):
+        raise TypeError(f"obs['policy'] is {type(policy)}, expected Tensor")
+    return policy
+
+
 class RecoveryV3PlayBridge:
     """Lie supine/prone, then run recovery PPO until stand, then hand back to skate/slide."""
 
@@ -179,8 +195,10 @@ class RecoveryV3PlayBridge:
 
     def _recovery_obs(self, skate_policy_obs: torch.Tensor) -> torch.Tensor:
         cmd = recovery_mdp.observation(self.env)
-        if skate_policy_obs.shape[-1] < SKATE_COMMAND_DIM:
+        if skate_policy_obs.ndim != 2 or skate_policy_obs.shape[-1] < SKATE_COMMAND_DIM:
             raise RuntimeError(f"skate policy obs too short: {tuple(skate_policy_obs.shape)}")
+        if cmd.shape[0] != skate_policy_obs.shape[0]:
+            raise RuntimeError(f"recovery cmd batch {tuple(cmd.shape)} != policy {tuple(skate_policy_obs.shape)}")
         return torch.cat((skate_policy_obs[:, :-SKATE_COMMAND_DIM], cmd), dim=-1)
 
     def act(self, skate_obs: Any) -> torch.Tensor:
@@ -199,7 +217,7 @@ class RecoveryV3PlayBridge:
             self.processed_wheel = None
             return zeros
 
-        policy_obs = skate_obs["policy"] if isinstance(skate_obs, dict) else skate_obs
+        policy_obs = _policy_tensor(skate_obs)
         rec_obs = self._recovery_obs(policy_obs)
         td = TensorDict({"policy": rec_obs}, batch_size=[n], device=self.device)
         with torch.inference_mode():
