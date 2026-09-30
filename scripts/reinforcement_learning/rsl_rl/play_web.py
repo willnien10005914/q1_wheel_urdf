@@ -226,11 +226,23 @@ def start_play_web(port: int = 8766, open_browser: bool = True) -> PlayWebState:
 
     BoundHandler.state = state
     ThreadingHTTPServer.allow_reuse_address = True
-    httpd = ThreadingHTTPServer(("127.0.0.1", port), BoundHandler)
+    # Bind before printing so a refresh does not race an unbound port.
+    try:
+        httpd = ThreadingHTTPServer(("127.0.0.1", port), BoundHandler)
+    except OSError as exc:
+        print(f"[ERROR] Web UI could not bind 127.0.0.1:{port}: {exc}")
+        print("[ERROR] Free the port (./stop_isaac.sh) or pass --web-port N")
+        raise
+    # Sanity: URDF + meshes must be reachable from this process cwd/root.
+    urdf = os.path.join(ROOT, "urdf", "wheel_humanoid.urdf")
+    mesh = os.path.join(ROOT, "meshes", "visual", "hip.stl")
+    if not os.path.isfile(urdf) or not os.path.isfile(mesh):
+        print(f"[ERROR] Web root missing robot assets under {ROOT}")
+        print(f"[ERROR] expected {urdf} and {mesh}")
     thread = threading.Thread(target=httpd.serve_forever, name="q1-play-web", daemon=True)
     thread.start()
     url = f"http://127.0.0.1:{port}/web/"
-    print(f"[INFO] Web motor UI: {url}")
+    print(f"[INFO] Web motor UI: {url}  (root={ROOT})")
     if open_browser:
         try:
             webbrowser.open(url)

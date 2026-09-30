@@ -10,9 +10,8 @@ import argparse
 import json
 import os
 import re
-import socketserver
 import webbrowser
-from http.server import SimpleHTTPRequestHandler
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -36,6 +35,7 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("Cache-Control", "no-store")
         super().end_headers()
 
     def do_OPTIONS(self):
@@ -88,9 +88,9 @@ def main() -> None:
     parser.add_argument("--no-browser", action="store_true")
     args = parser.parse_args()
 
-    socketserver.TCPServer.allow_reuse_address = True
+    ThreadingHTTPServer.allow_reuse_address = True
     url = f"http://127.0.0.1:{args.port}/web/"
-    with socketserver.TCPServer(("127.0.0.1", args.port), Handler) as httpd:
+    with ThreadingHTTPServer(("127.0.0.1", args.port), Handler) as httpd:
         print(f"Serving {ROOT}", flush=True)
         print(f"Open {url}", flush=True)
         print(f"POST /api/recording → {REF_DIR}", flush=True)

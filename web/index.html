@@ -8,10 +8,10 @@
   <script type="importmap">
   {
     "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
-      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
-      "three/examples/jsm/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
-      "urdf-loader": "https://cdn.jsdelivr.net/npm/urdf-loader@0.12.4/src/URDFLoader.js"
+      "three": "./vendor/three/three.module.js",
+      "three/addons/": "./vendor/three/examples/jsm/",
+      "three/examples/jsm/": "./vendor/three/examples/jsm/",
+      "urdf-loader": "./vendor/urdf-loader/URDFLoader.js"
     }
   }
   </script>
@@ -35,7 +35,7 @@
       <div id="loader">
         <div class="loader-card">
           <h3>Loading robot</h3>
-          <p id="load-status">Reading URDF and STL…</p>
+          <p id="load-status">Loading JavaScript modules…</p>
           <div class="bar"><span id="load-bar"></span></div>
           <div id="error"></div>
         </div>
@@ -110,6 +110,16 @@
       </div>
     </aside>
   </div>
-  <script type="module" src="./app.js"></script>
+  <script type="module">
+    import("./app.js").catch((err) => {
+      const status = document.getElementById("load-status");
+      const error = document.getElementById("error");
+      if (status) status.textContent = "Failed to load app.js / vendor modules";
+      if (error) {
+        error.style.display = "block";
+        error.textContent = String(err && err.message ? err.message : err);
+      }
+    });
+  </script>
 </body>
 </html>

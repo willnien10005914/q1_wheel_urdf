@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import URDFLoader from "urdf-loader";
 
-const URDF_URL = new URL("../urdf/wheel_humanoid.urdf", import.meta.url).href;
+const URDF_URL = new URL("../urdf/wheel_humanoid_web.urdf", import.meta.url).href;
 const WHEEL_OFFSET = 0.8867;
 const RAD2DEG = 180 / Math.PI;
 const DEG2RAD = Math.PI / 180;
@@ -899,15 +899,31 @@ function loadRobot() {
   if (location.protocol === "file:") {
     els.status.textContent = "Open this page from a local server, not as a file:// URL.";
     els.error.style.display = "block";
-    els.error.textContent = "Run python web/serve.py then open http://127.0.0.1:8765/web/";
+    els.error.textContent = "Run ./play_skateboard.sh (port 8766) or python web/serve.py then open http://127.0.0.1:8766/web/";
     return;
   }
 
+  els.status.textContent = `Fetching URDF… ${URDF_URL}`;
+  const loadWatchdog = setTimeout(() => {
+    if (!robot) {
+      els.error.style.display = "block";
+      els.error.textContent =
+        "Still loading after 45s. Check DevTools Network for failed /urdf or /meshes requests, and that Isaac play web is on this port.";
+    }
+  }, 45000);
+
   const manager = new THREE.LoadingManager();
+  manager.onStart = () => {
+    els.status.textContent = "Loading meshes…";
+  };
   manager.onProgress = (_url, loaded, total) => {
     const pct = total ? Math.round((loaded / total) * 100) : 0;
     els.bar.style.width = `${pct}%`;
-    els.status.textContent = `Loading meshes ${loaded} / ${total}`;
+    els.status.textContent = `Loading meshes ${loaded} / ${total} (${pct}%)`;
+  };
+  manager.onError = (url) => {
+    els.error.style.display = "block";
+    els.error.textContent = `Failed to load: ${url}`;
   };
 
   const loader = new URDFLoader(manager);
@@ -915,6 +931,7 @@ function loadRobot() {
   loader.load(
     URDF_URL,
     (model) => {
+      clearTimeout(loadWatchdog);
       robot = model;
       robot.rotation.x = -Math.PI / 2;
       robot.position.y = WHEEL_OFFSET;
@@ -940,6 +957,7 @@ function loadRobot() {
     },
     null,
     (err) => {
+      clearTimeout(loadWatchdog);
       els.error.style.display = "block";
       els.error.textContent = String(err);
       els.status.textContent = "Load failed";
