@@ -1,8 +1,9 @@
 import * as THREE from 'three';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
+import { URDFRobot, URDFJoint, URDFLink, URDFCollider, URDFVisual, URDFMimicJoint } from './URDFClasses.js';
+
 // Collada disabled for web preview (STL only)
 const ColladaLoader = null;
-import { URDFRobot, URDFJoint, URDFLink, URDFCollider, URDFVisual, URDFMimicJoint } from './URDFClasses.js';
 
 /*
 Reference coordinate frames for THREE.js and ROS.

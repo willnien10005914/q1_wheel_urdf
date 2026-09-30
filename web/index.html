@@ -114,11 +114,13 @@
     import("./app.js").catch((err) => {
       const status = document.getElementById("load-status");
       const error = document.getElementById("error");
-      if (status) status.textContent = "Failed to load app.js / vendor modules";
+      const detail = err && err.message ? err.message : String(err);
+      if (status) status.textContent = "Failed to load web modules";
       if (error) {
         error.style.display = "block";
-        error.textContent = String(err && err.message ? err.message : err);
+        error.textContent = detail;
       }
+      console.error("web module load failed", err);
     });
   </script>
 </body>
