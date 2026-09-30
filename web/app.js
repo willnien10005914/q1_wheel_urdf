@@ -320,8 +320,20 @@ function applyIsaacState(state) {
     } m`;
   }
   if (els.pose) {
-    els.pose.textContent = `mode ${state.pose || "skate"}`;
+    const policies = state.policies || {};
+    const rec = policies.recovery ? " · recovery ready" : "";
+    els.pose.textContent = `mode ${state.pose || "skate"}${rec}`;
   }
+  document.querySelectorAll("[data-pose]").forEach((btn) => {
+    const pose = btn.dataset.pose;
+    const active =
+      state.pose === pose ||
+      (pose === "skate" && state.pose === "skate") ||
+      (pose === "supine" && state.pose === "supine") ||
+      (pose === "prone" && state.pose === "prone") ||
+      (pose === "recovery" && state.pose === "recovery");
+    btn.classList.toggle("active-pose", active);
+  });
   const joints = state.joints || {};
   const liveOverrides = new Set(Object.keys(state.overrides || {}));
   Object.keys(joints).forEach((name) => {

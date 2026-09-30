@@ -50,13 +50,17 @@
           <button id="pose-stand" type="button" data-pose="stand">Stand up</button>
         </div>
         <div class="preset-row pose-row">
-          <button id="pose-slide" type="button" data-pose="slide">Slide (X2 skate)</button>
-          <button id="pose-skate" type="button" data-pose="skate">Balance skate</button>
+          <button id="pose-slide" type="button" data-pose="slide">Slide mode</button>
+          <button id="pose-skate" type="button" data-pose="skate">Walk / skate</button>
         </div>
         <div class="preset-row pose-row">
-          <button id="pose-lie" type="button" data-pose="lie">Lie face up</button>
-          <button id="pose-getup" type="button" data-pose="unbox">Unbox → kneel</button>
+          <button id="pose-supine" type="button" data-pose="supine">正躺 supine</button>
+          <button id="pose-prone" type="button" data-pose="prone">趴躺 prone</button>
         </div>
+        <div class="preset-row pose-row">
+          <button id="pose-recovery" type="button" data-pose="recovery" class="primary-pose">Recovery PPO 起身</button>
+        </div>
+        <p class="pose-hint">先選正躺或趴躺讓機器人躺好，再按 Recovery PPO 起身；起身後可切 Walk / Slide 用鍵盤 WASD。</p>
         <div class="preset-row">
           <button data-preset="zero">Zero</button>
           <button data-preset="tpose">T-pose</button>
