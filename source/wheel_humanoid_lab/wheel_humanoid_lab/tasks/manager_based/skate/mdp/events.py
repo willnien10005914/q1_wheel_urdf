@@ -55,7 +55,7 @@ def reset_supine(
     joint_noise: float = 0.04,
     asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
 ):
-    """Lay the robot on its back (face up). +90 deg pitch about Y points the chest at the sky.
+    """Lay the robot on its back (face up). -90 deg pitch about Y maps body +X (chest/front) to world +Z.
 
     The neck joint only yaws, so a later "head forward" has to come from waist pitch."""
     import re
@@ -73,7 +73,7 @@ def reset_supine(
     asset.write_joint_state_to_sim(q, torch.zeros_like(q), env_ids=env_ids)
     root = asset.data.root_state_w[env_ids].clone()
     root[:, 2] = root_z + env.scene.env_origins[env_ids, 2]
-    root[:, 3:7] = torch.tensor([0.70710678, 0.0, 0.70710678, 0.0], device=env.device)
+    root[:, 3:7] = torch.tensor([0.70710678, 0.0, -0.70710678, 0.0], device=env.device)
     root[:, 7:] = 0.0
     asset.write_root_pose_to_sim(root[:, :7], env_ids=env_ids)
     asset.write_root_velocity_to_sim(root[:, 7:], env_ids=env_ids)

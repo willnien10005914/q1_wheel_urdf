@@ -1,0 +1,25 @@
+[project]
+name = "q1-wheel-urdf"
+version = "0.1.0"
+description = "Q1 / BI2 wheeled humanoid URDF, web joint UI, and Isaac Lab PPO tasks"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "BSD-3-Clause"
+dependencies = [
+  "psutil>=5.9",
+]
+
+[project.optional-dependencies]
+# Standalone web UI + MediaPipe unbox pipeline (no Isaac Sim).
+tools = [
+  "numpy>=1.24",
+  "opencv-python-headless>=4.8",
+  "mediapipe>=0.10.14",
+]
+# Meta package marker; real Isaac deps come from ~/isaac/env_isaaclab.
+isaac-meta = [
+  "psutil>=5.9",
+]
+
+[tool.uv]
+package = false

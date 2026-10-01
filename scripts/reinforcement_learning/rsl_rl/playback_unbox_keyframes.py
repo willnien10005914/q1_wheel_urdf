@@ -124,7 +124,7 @@ def main(env_cfg: ManagerBasedRLEnvCfg, agent_cfg):
     root = robot.data.root_state_w[env_ids].clone()
     root[:, 2] = zs[0] + env.unwrapped.scene.env_origins[env_ids, 2]
     # Face up (same as reset_supine).
-    root[:, 3:7] = torch.tensor([0.70710678, 0.0, 0.70710678, 0.0], device=device)
+    root[:, 3:7] = torch.tensor([0.70710678, 0.0, -0.70710678, 0.0], device=device)
     root[:, 7:] = 0.0
     robot.write_root_pose_to_sim(root[:, :7], env_ids=env_ids)
     robot.write_root_velocity_to_sim(root[:, 7:], env_ids=env_ids)
@@ -137,9 +137,9 @@ def main(env_cfg: ManagerBasedRLEnvCfg, agent_cfg):
         root[:, 2] = z + env.unwrapped.scene.env_origins[env_ids, 2]
         # slerp-ish between face-up and identity
         u = max(0.0, min(1.0, upright_blend))
-        # face-up: wxyz ≈ (0.707, 0, 0.707, 0); upright: (1,0,0,0)
+        # face-up: wxyz ≈ (0.707, 0, -0.707, 0); upright: (1,0,0,0)
         w = 0.70710678 * (1.0 - u) + 1.0 * u
-        y = 0.70710678 * (1.0 - u)
+        y = -0.70710678 * (1.0 - u)
         nrm = math.sqrt(w * w + y * y) + 1e-9
         root[:, 3:7] = torch.tensor([w / nrm, 0.0, y / nrm, 0.0], device=device)
         root[:, 7:] = 0.0
