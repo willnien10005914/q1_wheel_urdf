@@ -1,0 +1,42 @@
+{
+  "checkpoint": "logs/rsl_rl/q1_recovery_contact_v3/2026-09-29_00-24-17_v3_both_stand_full_4096/model_19999.pt",
+  "training_log": "logs/train_recovery_v3_full.log",
+  "evaluation_summary": "logs/recovery_v3_full_ppo_evaluation/summary.txt",
+  "independent_eval": {
+    "seeds": [
+      4107,
+      5107,
+      6107
+    ],
+    "num_envs_per_seed": 32,
+    "aggregate": {
+      "supine": {
+        "kneel": "48/48",
+        "upright_kneel": "48/48",
+        "kneel_then_stand": "47/48"
+      },
+      "prone": {
+        "kneel": "48/48",
+        "upright_kneel": "48/48",
+        "kneel_then_stand": "9/48"
+      }
+    }
+  },
+  "videos": {
+    "supine_seed_4107": {
+      "local": "docs/reference/review_recovery_v3/supine_full/recovery_eval_supine.mp4",
+      "gofile": "https://gofile.io/d/u4JTNiel",
+      "stood": true
+    },
+    "prone_seed_4107_failed_stand": {
+      "local": "docs/reference/review_recovery_v3/prone_full/recovery_eval_prone.mp4",
+      "gofile": "https://gofile.io/d/dkrVZrC8",
+      "stood": false
+    },
+    "prone_seed_4119_success": {
+      "local": "docs/reference/review_recovery_v3/prone_full_success/recovery_eval_prone.mp4",
+      "gofile": "https://gofile.io/d/8WW49xzs",
+      "stood": true
+    }
+  }
+}

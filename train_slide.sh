@@ -1,9 +1,7 @@
 #!/bin/bash
-# Fine-tune the skate PPO into the slide / push-skate policy (alternating leg lifts, random wander).
-# Warm-starts from checkpoints/q1_skate_ppo.pt so balance is kept; only the stride rewards are new.
-#   ./train_slide.sh                          # headless, 4096 envs, +3k iters (~2 h)
-#   NUM_ENVS=64 MAX_ITERS=3 ./train_slide.sh  # smoke test
-#   WARM_START=logs/rsl_rl/q1_skate_cubemars/<run>/model_19999.pt ./train_slide.sh
+# Fine-tune the foreaft slide PPO so the passing (rear) foot micro-lifts on each swap.
+#   ./train_slide.sh                          # 8192 envs, +10k iters from q1_slide_ppo.pt
+#   NUM_ENVS=64 MAX_ITERS=5 ./train_slide.sh  # smoke test
 #   WARM_START=none ./train_slide.sh          # train from scratch
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -23,10 +21,11 @@ python -m pip install -e source/wheel_humanoid_lab -q
 MODE="${1:-headless}"
 if [[ "${1:-}" == "gui" || "${1:-}" == "headless" ]]; then shift || true; fi
 
-NUM_ENVS="${NUM_ENVS:-4096}"
-MAX_ITERS="${MAX_ITERS:-3000}"
-RUN_NAME="${RUN_NAME:-slide_${NUM_ENVS}envs}"
-WARM_START="${WARM_START:-$ROOT/checkpoints/q1_skate_ppo.pt}"
+NUM_ENVS="${NUM_ENVS:-8192}"
+MAX_ITERS="${MAX_ITERS:-10000}"
+RUN_NAME="${RUN_NAME:-slide_${NUM_ENVS}envs_passlift}"
+WARM_START="${WARM_START:-$ROOT/checkpoints/q1_slide_ppo.pt}"
+export RESET_NOISE_STD="${RESET_NOISE_STD:-0.35}"
 
 COMMON=(
   --task Isaac-Q1-Slide-v0

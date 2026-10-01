@@ -1,11 +1,14 @@
-import * as THREE from "three";
-import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import URDFLoader from "urdf-loader";
+import * as THREE from "./vendor/three/three.module.js";
+import { OrbitControls } from "./vendor/three/examples/jsm/controls/OrbitControls.js";
+import URDFLoader from "./vendor/urdf-loader/URDFLoader.js";
 
-const URDF_URL = new URL("../urdf/wheel_humanoid.urdf", import.meta.url).href;
+const URDF_URL = new URL("../urdf/wheel_humanoid_web.urdf", import.meta.url).href;
 const WHEEL_OFFSET = 0.8867;
 const RAD2DEG = 180 / Math.PI;
 const DEG2RAD = Math.PI / 180;
+/** URDF/Isaac Z-up → Three.js Y-up (same as robot.rotation.x = -π/2). */
+const ZUP_TO_YUP = new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI / 2, 0, 0));
+const _isaacQuat = new THREE.Quaternion();
 
 const GROUPS = [
   {
@@ -147,7 +150,11 @@ const els = {
   isaac: document.getElementById("isaac-status"),
   cmd: document.getElementById("cmd-readout"),
   pose: document.getElementById("pose-readout"),
-  train: document.getElementById("train-status"),
+  refControls: document.getElementById("ref-controls"),
+  refKnot: document.getElementById("ref-knot"),
+  refScrub: document.getElementById("ref-scrub"),
+  refStatus: document.getElementById("ref-status"),
+  refPlay: document.getElementById("ref-play"),
 };
 
 const sliderEls = {};
@@ -308,6 +315,19 @@ async function releaseAll() {
   }
 }
 
+function applyIsaacRoot(base) {
+  if (!robot || !base) return;
+  const { qw, qx, qy, qz, z } = base;
+  if ([qw, qx, qy, qz].every((v) => Number.isFinite(v))) {
+    _isaacQuat.set(qx, qy, qz, qw);
+    robot.quaternion.copy(ZUP_TO_YUP).multiply(_isaacQuat);
+  }
+  // Keep the viewer centered in XY; map Isaac Z-up height onto Three Y.
+  if (Number.isFinite(z)) {
+    robot.position.set(0, z, 0);
+  }
+}
+
 function applyIsaacState(state) {
   lastIsaac = state;
   if (els.cmd && state.cmd) {
@@ -316,16 +336,25 @@ function applyIsaacState(state) {
     } m`;
   }
   if (els.pose) {
-    const pol = state.policies || {};
-    const bits = [
-      pol.posture ? "kneel-ppo" : "kneel-scripted",
-      pol.slide ? "slide-ppo" : "slide-pending",
-    ];
-    els.pose.textContent = `pose ${state.pose || "ppo"} · ${bits.join(" · ")}`;
+    const policies = state.policies || {};
+    const parts = [];
+    if (policies.recovery_supine) parts.push("supine PPO");
+    if (policies.recovery_prone) parts.push("prone PPO");
+    if (!parts.length && policies.recovery) parts.push("recovery mixed");
+    const rec = parts.length ? ` · ${parts.join(" + ")}` : "";
+    els.pose.textContent = `mode ${state.pose || "skate"}${rec}`;
   }
-  if (els.train && state.train) {
-    els.train.textContent = fmtTrain(state.train);
-  }
+  document.querySelectorAll("[data-pose]").forEach((btn) => {
+    const pose = btn.dataset.pose;
+    const active =
+      state.pose === pose ||
+      (pose === "skate" && state.pose === "skate") ||
+      (pose === "supine" && state.pose === "supine") ||
+      (pose === "prone" && state.pose === "prone") ||
+      (pose === "recovery" && state.pose === "recovery");
+    btn.classList.toggle("active-pose", active);
+  });
+  applyIsaacRoot(state.base);
   const joints = state.joints || {};
   const liveOverrides = new Set(Object.keys(state.overrides || {}));
   Object.keys(joints).forEach((name) => {
@@ -579,54 +608,9 @@ async function requestPose(name) {
   }
 }
 
-document.getElementById("pose-kneel").addEventListener("click", () => requestPose("kneel"));
-document.getElementById("pose-stand").addEventListener("click", () => requestPose("stand"));
-document.getElementById("pose-slide").addEventListener("click", () => requestPose("slide"));
-document.getElementById("pose-skate").addEventListener("click", () => requestPose("skate"));
-
-function fmtTrain(payload) {
-  const jobs = payload.jobs || payload;
-  const parts = [];
-  ["posture", "slide"].forEach((name) => {
-    const j = jobs[name];
-    if (!j) return;
-    if (j.running) parts.push(`${name} training`);
-    else if (j.checkpoint) parts.push(`${name} ready`);
-    else parts.push(`${name} none`);
-  });
-  return `train: ${parts.join(" · ") || "idle"}`;
-}
-
-async function requestTrain(name) {
-  try {
-    const res = await postJson("/api/train", { name });
-    if (els.train) {
-      els.train.textContent = res.ok
-        ? `train: started ${res.label || name} (pid ${res.pid})`
-        : `train: ${res.error || "failed"}`;
-    }
-    if (!res.ok) window.alert(res.error || "Could not start training");
-  } catch (err) {
-    if (els.train) els.train.textContent = "train: API offline";
-    window.alert("Train API is not running. Use ./train_slide.sh or ./train_posture.sh");
-  }
-}
-
-document.getElementById("train-posture").addEventListener("click", () => requestTrain("posture"));
-document.getElementById("train-slide").addEventListener("click", () => requestTrain("slide"));
-
-async function pollTrain() {
-  try {
-    const res = await fetch(`${API}/api/train`, { cache: "no-store" });
-    if (!res.ok) return;
-    const payload = await res.json();
-    if (els.train) els.train.textContent = fmtTrain(payload);
-  } catch {
-    /* ignore */
-  }
-}
-setInterval(pollTrain, 4000);
-pollTrain();
+document.querySelectorAll("[data-pose]").forEach((btn) => {
+  btn.addEventListener("click", () => requestPose(btn.dataset.pose));
+});
 document.getElementById("copy").addEventListener("click", async () => {
   refreshJson();
   await navigator.clipboard.writeText(els.json.value);
@@ -639,19 +623,328 @@ document.querySelectorAll("[data-preset]").forEach((btn) => {
   btn.addEventListener("click", () => applyPose(PRESETS[btn.dataset.preset] || {}));
 });
 
+// ---- Unbox MediaPipe reference + motor-angle recorder -----------------------------------------
+const DEFAULT_KEYFRAMES = "../docs/reference/a3_unbox_ref_q1_keyframes.json";
+const DEFAULT_TRAJECTORY = "../docs/reference/a3_unbox_ref_q1_trajectory.json";
+
+let refDoc = null;
+let refTraj = [];
+let refKnots = [];
+let refRecording = [];
+let refPlayTimer = null;
+let refIdx = 0;
+
+function setRefStatus(msg) {
+  if (els.refStatus) els.refStatus.textContent = msg;
+}
+
+function applyJointsDict(joints, duration = 0.35) {
+  if (!joints) return;
+  applyPose(joints, duration);
+}
+
+function rebuildKnotSelect() {
+  if (!els.refKnot) return;
+  els.refKnot.innerHTML = "";
+  refKnots.forEach((k, i) => {
+    const opt = document.createElement("option");
+    opt.value = String(i);
+    opt.textContent = `${k.label || `k${i}`} · t=${Number(k.t_s || 0).toFixed(2)}s · ${k.source || "edit"}`;
+    els.refKnot.appendChild(opt);
+  });
+}
+
+function showKnot(i, { animate = true } = {}) {
+  if (!refKnots.length) return;
+  refIdx = Math.max(0, Math.min(refKnots.length - 1, i));
+  if (els.refKnot) els.refKnot.value = String(refIdx);
+  const k = refKnots[refIdx];
+  applyJointsDict(k.joints, animate ? 0.4 : 0.05);
+  setRefStatus(`knot ${refIdx + 1}/${refKnots.length}: ${k.label || "k"} (${k.source || "edit"})`);
+}
+
+function showTrajFrame(i) {
+  if (!refTraj.length) return;
+  const idx = Math.max(0, Math.min(refTraj.length - 1, i));
+  if (els.refScrub) els.refScrub.value = String(idx);
+  const fr = refTraj[idx];
+  applying = true;
+  Object.entries(fr.joints || {}).forEach(([name, value]) => {
+    setJoint(name, value, { mirrored: true });
+  });
+  applying = false;
+  refreshJson();
+  setRefStatus(`traj frame ${fr.frame} · t=${Number(fr.t_s).toFixed(2)}s · phase=${Number(fr.phase).toFixed(2)}`);
+}
+
+function ingestKeyframes(doc) {
+  refDoc = doc;
+  refKnots = (doc.keyframes || []).map((k) => ({
+    ...k,
+    joints: { ...(k.joints || {}) },
+  }));
+  refRecording = refKnots.map((k) => ({
+    phase: k.phase,
+    label: k.label,
+    pelvis_z: k.pelvis_z,
+    joints: { ...k.joints },
+    pose_regex: k.pose_regex,
+    source: k.source || "loaded",
+    t_s: k.t_s,
+    frame: k.frame,
+  }));
+  if (els.refControls) els.refControls.hidden = false;
+  rebuildKnotSelect();
+  showKnot(0);
+  setRefStatus(`loaded ${refKnots.length} keyframes from ${doc.source || "json"}`);
+}
+
+async function loadDefaultRef() {
+  const res = await fetch(new URL(DEFAULT_KEYFRAMES, import.meta.url).href, { cache: "no-store" });
+  if (!res.ok) throw new Error(`keyframes ${res.status}`);
+  const doc = await res.json();
+  ingestKeyframes(doc);
+  try {
+    const tr = await fetch(new URL(DEFAULT_TRAJECTORY, import.meta.url).href, { cache: "no-store" });
+    if (tr.ok) {
+      const tdoc = await tr.json();
+      refTraj = tdoc.trajectory || [];
+      if (els.refScrub) {
+        els.refScrub.max = String(Math.max(0, refTraj.length - 1));
+        els.refScrub.value = "0";
+      }
+      setRefStatus(`keyframes + ${refTraj.length} traj frames ready`);
+    }
+  } catch {
+    /* trajectory optional */
+  }
+}
+
+function captureCurrentKnot() {
+  if (!refKnots.length) return;
+  const snap = snapshot();
+  const k = refKnots[refIdx];
+  k.joints = snap;
+  k.source = "web_edit";
+  refRecording[refIdx] = {
+    phase: k.phase ?? refIdx / Math.max(refKnots.length - 1, 1),
+    label: k.label || `k${refIdx}`,
+    pelvis_z: k.pelvis_z ?? 0.22 + 0.23 * (k.phase ?? 0),
+    joints: snap,
+    source: "web_edit",
+    t_s: k.t_s,
+    frame: k.frame,
+  };
+  rebuildKnotSelect();
+  els.refKnot.value = String(refIdx);
+  setRefStatus(`captured ${refRecording[refIdx].label} (${Object.keys(snap).length} joints)`);
+}
+
+function buildRecordingDoc() {
+  const keyframes = refRecording.length
+    ? refRecording
+    : refKnots.map((k, i) => ({
+        phase: k.phase ?? i / Math.max(refKnots.length - 1, 1),
+        label: k.label || `k${i}`,
+        pelvis_z: k.pelvis_z,
+        joints: k.joints,
+        source: k.source || "web_edit",
+      }));
+  return {
+    source: refDoc?.source || "web_recording",
+    source_url: refDoc?.source_url || "",
+    recorded_at: new Date().toISOString(),
+    keyframes,
+    isaac_knots: keyframes.map((k) => {
+      const joints = k.joints || {};
+      const hip = 0.5 * (num(joints.l_hip_pitch_joint) + num(joints.r_hip_pitch_joint));
+      const knee = 0.5 * (num(joints.l_knee_joint) + num(joints.r_knee_joint));
+      const sh = 0.5 * (num(joints.l_shoulder_pitch_joint) + num(joints.r_shoulder_pitch_joint));
+      const el = 0.5 * (num(joints.l_elbow_joint) + num(joints.r_elbow_joint));
+      const pose = {
+        ".*_hip_pitch_joint": Number(hip.toFixed(4)),
+        ".*_hip_roll_joint": 0.0,
+        ".*_knee_joint": Number(knee.toFixed(4)),
+        ".*_knee_roller_joint": Number((knee * 0.444444).toFixed(4)),
+        waist_pitch_joint: Number(num(joints.waist_pitch_joint).toFixed(4)),
+        ".*_shoulder_pitch_joint": Number(sh.toFixed(4)),
+        l_shoulder_roll_joint: Number(num(joints.l_shoulder_roll_joint, 0.2).toFixed(4)),
+        r_shoulder_roll_joint: Number(num(joints.r_shoulder_roll_joint, -0.2).toFixed(4)),
+        ".*_elbow_joint": Number(el.toFixed(4)),
+      };
+      return [k.phase, pose, k.pelvis_z ?? 0.3];
+    }),
+  };
+}
+
+function downloadRecording() {
+  const doc = buildRecordingDoc();
+  const blob = new Blob([JSON.stringify(doc, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "a3_unbox_ref_web_recording.json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+  setRefStatus("downloaded a3_unbox_ref_web_recording.json");
+}
+
+async function saveRecordingForRl() {
+  const doc = buildRecordingDoc();
+  const res = await fetch("/api/recording", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ filename: "a3_unbox_ref_web_recording.json", recording: doc }),
+  });
+  if (!res.ok) throw new Error(`save ${res.status}`);
+  const out = await res.json();
+  setRefStatus(`saved ${out.path} — run tools/apply_unbox_recording.py`);
+}
+
+function stopRefPlay() {
+  if (refPlayTimer) {
+    clearInterval(refPlayTimer);
+    refPlayTimer = null;
+  }
+  if (els.refPlay) els.refPlay.textContent = "Play";
+}
+
+function toggleRefPlay() {
+  if (refPlayTimer) {
+    stopRefPlay();
+    return;
+  }
+  if (!refKnots.length) return;
+  els.refPlay.textContent = "Stop";
+  refPlayTimer = setInterval(() => {
+    const next = (refIdx + 1) % refKnots.length;
+    showKnot(next);
+    if (next === 0) stopRefPlay();
+  }, 900);
+}
+
+document.getElementById("load-ref")?.addEventListener("click", async () => {
+  try {
+    await loadDefaultRef();
+  } catch (err) {
+    setRefStatus(String(err));
+  }
+});
+document.getElementById("ref-file")?.addEventListener("change", async (ev) => {
+  const file = ev.target.files?.[0];
+  if (!file) return;
+  try {
+    ingestKeyframes(JSON.parse(await file.text()));
+  } catch (err) {
+    setRefStatus(String(err));
+  }
+});
+document.getElementById("ref-prev")?.addEventListener("click", () => showKnot(refIdx - 1));
+document.getElementById("ref-next")?.addEventListener("click", () => showKnot(refIdx + 1));
+els.refKnot?.addEventListener("change", () => showKnot(Number(els.refKnot.value)));
+els.refScrub?.addEventListener("input", () => showTrajFrame(Number(els.refScrub.value)));
+els.refPlay?.addEventListener("click", () => toggleRefPlay());
+document.getElementById("ref-capture")?.addEventListener("click", () => captureCurrentKnot());
+document.getElementById("ref-download")?.addEventListener("click", () => downloadRecording());
+document.getElementById("ref-save")?.addEventListener("click", async () => {
+  try {
+    await saveRecordingForRl();
+  } catch (err) {
+    setRefStatus(String(err));
+  }
+});
+
+let canvasRecorder = null;
+let canvasChunks = [];
+async function recordCanvasVideo() {
+  const canvas = renderer.domElement;
+  if (!canvas || typeof MediaRecorder === "undefined") {
+    setRefStatus("MediaRecorder unavailable in this browser");
+    return;
+  }
+  if (canvasRecorder && canvasRecorder.state === "recording") {
+    canvasRecorder.stop();
+    return;
+  }
+  if (!refKnots.length) {
+    try {
+      await loadDefaultRef();
+    } catch (err) {
+      setRefStatus(String(err));
+      return;
+    }
+  }
+  canvasChunks = [];
+  const stream = canvas.captureStream(30);
+  const mime = MediaRecorder.isTypeSupported("video/webm;codecs=vp9")
+    ? "video/webm;codecs=vp9"
+    : "video/webm";
+  canvasRecorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 4_000_000 });
+  canvasRecorder.ondataavailable = (ev) => {
+    if (ev.data?.size) canvasChunks.push(ev.data);
+  };
+  canvasRecorder.onstop = () => {
+    const blob = new Blob(canvasChunks, { type: mime });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "q1_unbox_web_canvas.webm";
+    a.click();
+    URL.revokeObjectURL(a.href);
+    const btn = document.getElementById("ref-record");
+    if (btn) btn.textContent = "Record canvas";
+    setRefStatus(`canvas video ${(blob.size / 1024).toFixed(0)} KB downloaded`);
+    canvasRecorder = null;
+  };
+  canvasRecorder.start(200);
+  const btn = document.getElementById("ref-record");
+  if (btn) btn.textContent = "Stop record";
+  setRefStatus("recording canvas — playing keyframes…");
+  stopRefPlay();
+  showKnot(0, { animate: false });
+  let i = 0;
+  const tick = () => {
+    i += 1;
+    if (i >= refKnots.length) {
+      setTimeout(() => canvasRecorder && canvasRecorder.state === "recording" && canvasRecorder.stop(), 600);
+      return;
+    }
+    showKnot(i);
+    setTimeout(tick, 900);
+  };
+  setTimeout(tick, 900);
+}
+document.getElementById("ref-record")?.addEventListener("click", () => {
+  recordCanvasVideo().catch((err) => setRefStatus(String(err)));
+});
+
 function loadRobot() {
   if (location.protocol === "file:") {
     els.status.textContent = "Open this page from a local server, not as a file:// URL.";
     els.error.style.display = "block";
-    els.error.textContent = "Run python web/serve.py then open http://127.0.0.1:8765/web/";
+    els.error.textContent = "Run ./play_skateboard.sh (port 8766) or python web/serve.py then open http://127.0.0.1:8766/web/";
     return;
   }
 
+  els.status.textContent = `Fetching URDF… ${URDF_URL}`;
+  const loadWatchdog = setTimeout(() => {
+    if (!robot) {
+      els.error.style.display = "block";
+      els.error.textContent =
+        "Still loading after 45s. Check DevTools Network for failed /urdf or /meshes requests, and that Isaac play web is on this port.";
+    }
+  }, 45000);
+
   const manager = new THREE.LoadingManager();
+  manager.onStart = () => {
+    els.status.textContent = "Loading meshes…";
+  };
   manager.onProgress = (_url, loaded, total) => {
     const pct = total ? Math.round((loaded / total) * 100) : 0;
     els.bar.style.width = `${pct}%`;
-    els.status.textContent = `Loading meshes ${loaded} / ${total}`;
+    els.status.textContent = `Loading meshes ${loaded} / ${total} (${pct}%)`;
+  };
+  manager.onError = (url) => {
+    els.error.style.display = "block";
+    els.error.textContent = `Failed to load: ${url}`;
   };
 
   const loader = new URDFLoader(manager);
@@ -659,9 +952,10 @@ function loadRobot() {
   loader.load(
     URDF_URL,
     (model) => {
+      clearTimeout(loadWatchdog);
       robot = model;
-      robot.rotation.x = -Math.PI / 2;
-      robot.position.y = WHEEL_OFFSET;
+      robot.quaternion.copy(ZUP_TO_YUP);
+      robot.position.set(0, WHEEL_OFFSET, 0);
       robot.traverse((obj) => {
         if (obj.isMesh) {
           obj.castShadow = true;
@@ -684,6 +978,7 @@ function loadRobot() {
     },
     null,
     (err) => {
+      clearTimeout(loadWatchdog);
       els.error.style.display = "block";
       els.error.textContent = String(err);
       els.status.textContent = "Load failed";

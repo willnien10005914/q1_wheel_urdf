@@ -1,0 +1,38 @@
+{
+  "run": "2026-09-29_20-43-53_v3_smooth_arms_full_4096",
+  "checkpoint": "logs/rsl_rl/q1_recovery_contact_v3/2026-09-29_20-43-53_v3_smooth_arms_full_4096/model_19999.pt",
+  "num_envs": 4096,
+  "max_iterations": 20000,
+  "training_time_s": 67525.96,
+  "independent_eval": {
+    "seeds": [
+      4107,
+      5107,
+      6107
+    ],
+    "aggregate": {
+      "supine": {
+        "kneel": "43/48",
+        "upright_kneel": "2/48",
+        "kneel_then_stand": "2/48"
+      },
+      "prone": {
+        "kneel": "48/48",
+        "upright_kneel": "48/48",
+        "kneel_then_stand": "48/48"
+      }
+    }
+  },
+  "videos": {
+    "supine_seed_5107": {
+      "gofile": "https://gofile.io/d/mGDNYrWk",
+      "stood": false,
+      "note": "typical current supine: kneel only, max_stage 2"
+    },
+    "prone_seed_4119": {
+      "gofile": "https://gofile.io/d/XbTdcTCE",
+      "stood": true,
+      "stand_hold_s": 21.68
+    }
+  }
+}

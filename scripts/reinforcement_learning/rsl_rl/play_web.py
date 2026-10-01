@@ -30,7 +30,6 @@ class PlayWebState:
         self.release_all = False
         self.web_cmd: dict[str, float] | None = None
         self.pose_cmd: str | None = None
-        self.train_cmd: str | None = None
 
     def publish(self, payload: dict[str, Any]) -> None:
         with self._lock:
@@ -85,16 +84,6 @@ class PlayWebState:
             self.pose_cmd = None
             return name
 
-    def request_train(self, name: str) -> None:
-        with self._lock:
-            self.train_cmd = str(name)
-
-    def consume_train(self) -> str | None:
-        with self._lock:
-            name = self.train_cmd
-            self.train_cmd = None
-            return name
-
 
 def _json_bytes(payload: dict[str, Any], status: int = 200) -> tuple[int, bytes]:
     raw = json.dumps(payload).encode("utf-8")
@@ -120,11 +109,17 @@ class PlayWebHandler(SimpleHTTPRequestHandler):
             return
         super().log_message(fmt, *args)
 
+    def end_headers(self) -> None:
+        # Prevent sticky module cache of old bare-"three" imports.
+        self.send_header("Cache-Control", "no-store, max-age=0")
+        self.send_header("Access-Control-Allow-Origin", "*")
+        super().end_headers()
+
     def _cors(self) -> None:
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
-        self.send_header("Cache-Control", "no-store")
+        self.send_header("Cache-Control", "no-store, max-age=0")
 
     def do_OPTIONS(self) -> None:  # noqa: N802
         self.send_response(204)
@@ -133,19 +128,15 @@ class PlayWebHandler(SimpleHTTPRequestHandler):
 
     def do_GET(self) -> None:  # noqa: N802
         parsed = urlparse(self.path)
+        # Keep relative module URLs resolving under /web/.
+        if parsed.path in {"/web", "/web/index.html"}:
+            self.send_response(302)
+            self._cors()
+            self.send_header("Location", "/web/")
+            self.end_headers()
+            return
         if parsed.path == "/api/state":
             status, raw = _json_bytes(self.state.snapshot_copy())
-            self.send_response(status)
-            self._cors()
-            self.send_header("Content-Type", "application/json")
-            self.send_header("Content-Length", str(len(raw)))
-            self.end_headers()
-            self.wfile.write(raw)
-            return
-        if parsed.path == "/api/train":
-            import train_jobs
-
-            status, raw = _json_bytes({"ok": True, **train_jobs.status()})
             self.send_response(status)
             self._cors()
             self.send_header("Content-Type", "application/json")
@@ -177,11 +168,32 @@ class PlayWebHandler(SimpleHTTPRequestHandler):
             payload = {"ok": True}
         elif parsed.path == "/api/pose":
             name = str(body.get("name") or "").strip().lower()
-            if name in {"kneel", "stand", "slide", "skate"}:
+            allowed = {
+                "kneel",
+                "stand",
+                "slide",
+                "skate",
+                "lie",
+                "getup",
+                "unbox",
+                "supine",
+                "prone",
+                "lie_supine",
+                "lie_prone",
+                "recovery",
+                "recovery_ppo",
+            }
+            if name in allowed:
                 self.state.request_pose(name)
                 payload = {"ok": True, "pose": name}
             else:
-                status, raw = _json_bytes({"ok": False, "error": "name must be kneel, stand, slide or skate"}, 400)
+                status, raw = _json_bytes(
+                    {
+                        "ok": False,
+                        "error": "name must be kneel, stand, slide, skate, supine, prone, recovery, lie, getup or unbox",
+                    },
+                    400,
+                )
                 self.send_response(status)
                 self._cors()
                 self.send_header("Content-Type", "application/json")
@@ -189,18 +201,6 @@ class PlayWebHandler(SimpleHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(raw)
                 return
-        elif parsed.path == "/api/train":
-            import train_jobs
-
-            name = str(body.get("name") or "").strip().lower()
-            action = str(body.get("action") or "start").strip().lower()
-            if action == "status":
-                payload = {"ok": True, **train_jobs.status()}
-            elif action == "stop":
-                payload = train_jobs.stop(name or None)
-            else:
-                self.state.request_train(name)
-                payload = train_jobs.start(name)
         elif parsed.path == "/api/command":
             cmd = {}
             for key in ("vx", "vy", "yaw"):
@@ -239,11 +239,23 @@ def start_play_web(port: int = 8766, open_browser: bool = True) -> PlayWebState:
 
     BoundHandler.state = state
     ThreadingHTTPServer.allow_reuse_address = True
-    httpd = ThreadingHTTPServer(("127.0.0.1", port), BoundHandler)
+    # Bind before printing so a refresh does not race an unbound port.
+    try:
+        httpd = ThreadingHTTPServer(("127.0.0.1", port), BoundHandler)
+    except OSError as exc:
+        print(f"[ERROR] Web UI could not bind 127.0.0.1:{port}: {exc}")
+        print("[ERROR] Free the port (./stop_isaac.sh) or pass --web-port N")
+        raise
+    # Sanity: URDF + meshes must be reachable from this process cwd/root.
+    urdf = os.path.join(ROOT, "urdf", "wheel_humanoid.urdf")
+    mesh = os.path.join(ROOT, "meshes", "visual", "hip.stl")
+    if not os.path.isfile(urdf) or not os.path.isfile(mesh):
+        print(f"[ERROR] Web root missing robot assets under {ROOT}")
+        print(f"[ERROR] expected {urdf} and {mesh}")
     thread = threading.Thread(target=httpd.serve_forever, name="q1-play-web", daemon=True)
     thread.start()
     url = f"http://127.0.0.1:{port}/web/"
-    print(f"[INFO] Web motor UI: {url}")
+    print(f"[INFO] Web motor UI: {url}  (root={ROOT})")
     if open_browser:
         try:
             webbrowser.open(url)

@@ -176,6 +176,21 @@ def skate_command(
 
 # Index of body[0] inside the 92-D actor observation (used by play.py to inject the posture target).
 POSTURE_OBS_INDEX = 3 + 3 + 24 + 24 + 24 + CMD_TWIST_DIM + CMD_HEAD_DIM
+# body[1]: get-up phase in [0, 1]. Skate and posture leave it at 0.
+GETUP_PHASE_INDEX = POSTURE_OBS_INDEX + 1
+
+
+def getup_command(
+    env: ManagerBasedRLEnv,
+    command_name: str = "base_velocity",
+    arm_style: float = 1.0,
+    phase_s: float = 8.0,
+) -> torch.Tensor:
+    """Skate command block with body[1] = episode phase so the MLP can see the get-up schedule."""
+    cmd = skate_command(env, command_name=command_name, arm_style=arm_style)
+    phase = (env.episode_length_buf.to(cmd.dtype) * env.step_dt / phase_s).clamp(0.0, 1.0)
+    cmd[:, CMD_TWIST_DIM + CMD_HEAD_DIM + 1] = phase
+    return cmd
 
 
 def wheel_rim_speed(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg, wheel_radius: float = WHEEL_RADIUS) -> torch.Tensor:

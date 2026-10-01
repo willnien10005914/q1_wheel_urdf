@@ -89,6 +89,7 @@ simulation_app = app_launcher.app
 
 import math
 import os
+import re
 import threading
 import time
 import weakref
@@ -115,6 +116,8 @@ from isaaclab_tasks.utils.hydra import hydra_task_config
 
 import wheel_humanoid_lab.tasks  # noqa: F401
 from play_modes import LoadedPolicy, ModeController
+from play_recovery_bridge import RecoveryV3PlayBridge, _default_checkpoint
+from wheel_humanoid_lab.tasks.manager_based.unbox.unbox_env_cfg import LIE_POSE
 from play_web import start_play_web
 
 
@@ -294,14 +297,18 @@ class WasdSkateTeleop:
     Training never commanded lateral velocity (vy = 0). Strafe (world-Y / body-Y) is out of
     distribution and tips the robot. A/D therefore yaw in place; W/S roll along the heading
     with a slow reverse limit.
+
+    Responsiveness is dominated by the command slew (tau), not render FPS: each physics step
+    already samples keys. Older tau_x≈0.35–0.70 s made W/S feel delayed; keep short attack
+    times so the commanded vx tracks the key closely.
     """
 
     def __init__(
         self,
         device: str,
         vx_fwd: float = 1.2,
-        vx_rev: float = 0.35,
-        yaw: float = 0.40,
+        vx_rev: float = 0.55,
+        yaw: float = 0.45,
     ):
         import carb
         import omni
@@ -315,6 +322,7 @@ class WasdSkateTeleop:
         self.kneel_requested = False
         self.stand_requested = False
         self.slide_toggle_requested = False
+        self.lie_requested = False
         self._cmd = torch.zeros(3, device=device)
         self._carb = carb
         self._appwindow = omni.appwindow.get_default_app_window()
@@ -341,6 +349,8 @@ class WasdSkateTeleop:
                 self.kneel_requested = True
             elif name in {"U"}:
                 self.stand_requested = True
+            elif name in {"G"}:
+                self.lie_requested = True
             elif name in {"P"}:
                 self.slide_toggle_requested = True
             elif name in {"L", "SPACE", "X"}:
@@ -372,13 +382,21 @@ class WasdSkateTeleop:
 
     def command(self, n_envs: int, dt: float) -> torch.Tensor:
         tx, ty, tz = self.target()
-        reversing = tx < 0.0 or float(self._cmd[0]) < 0.0
-        tau_x = 0.70 if reversing else 0.35
-        alpha_x = 1.0 - math.exp(-dt / tau_x)
-        alpha_z = 1.0 - math.exp(-dt / 0.45)
+        # Fast attack toward the key target; slightly slower release so stops aren't jerky.
+        accelerating = abs(tx) >= abs(float(self._cmd[0])) - 1e-3
+        tau_x = 0.08 if accelerating else 0.14
+        if tx < 0.0 or float(self._cmd[0]) < 0.0:
+            tau_x = 0.10 if accelerating else 0.16
+        alpha_x = 1.0 - math.exp(-dt / max(tau_x, 1e-3))
+        alpha_z = 1.0 - math.exp(-dt / 0.10)
         self._cmd[0] += (tx - self._cmd[0]) * alpha_x
         self._cmd[1] = ty
         self._cmd[2] += (tz - self._cmd[2]) * alpha_z
+        # Snap near the target so small residual lag doesn't feel like deadband.
+        if abs(tx - float(self._cmd[0])) < 0.02:
+            self._cmd[0] = tx
+        if abs(tz - float(self._cmd[2])) < 0.02:
+            self._cmd[2] = tz
         return self._cmd.unsqueeze(0).expand(n_envs, -1).clone()
 
     def zero(self) -> None:
@@ -419,6 +437,7 @@ def _install_override_hook(
     orig_process = mgr.process_action
     orig_apply = mgr.apply_action
     pos_term = mgr.get_term("joint_pos")
+    wheel_term = mgr.get_term("wheel_vel") if "wheel_vel" in mgr.active_terms else None
 
     def _overrides() -> dict[str, float]:
         overrides: dict[str, float] = {}
@@ -431,6 +450,8 @@ def _install_override_hook(
     def _apply_all(include_web: bool) -> None:
         if mode_ctrl is not None and mode_ctrl.processed_override is not None:
             pos_term._processed_actions[:] = mode_ctrl.processed_override
+        if mode_ctrl is not None and getattr(mode_ctrl, "processed_wheel", None) is not None and wheel_term is not None:
+            wheel_term._processed_actions[:] = mode_ctrl.processed_wheel
         if include_web:
             _write_processed_overrides(mgr, _overrides())
         elif pose_ctrl is not None and pose_ctrl.latest:
@@ -475,7 +496,9 @@ def _publish_web_state(
     pos = robot.data.joint_pos[0].detach().cpu()
     vel = robot.data.joint_vel[0].detach().cpu()
     tau = robot.data.applied_torque[0].detach().cpu() if robot.data.applied_torque is not None else torch.zeros_like(pos)
-    root = robot.data.root_pos_w[0].detach().cpu()
+    origin = unwrapped.scene.env_origins[0].detach().cpu()
+    root = robot.data.root_pos_w[0].detach().cpu() - origin
+    quat = robot.data.root_quat_w[0].detach().cpu()  # wxyz
     body_v = robot.data.root_lin_vel_b[0].detach().cpu()
     heading = float(robot.data.heading_w[0].item())
     cmd0 = cmd[0].detach().cpu()
@@ -518,6 +541,10 @@ def _publish_web_state(
                 "x": float(root[0]),
                 "y": float(root[1]),
                 "z": float(root[2]),
+                "qw": float(quat[0]),
+                "qx": float(quat[1]),
+                "qy": float(quat[2]),
+                "qz": float(quat[3]),
                 "heading": heading,
                 "vx": float(body_v[0]),
                 "vy": float(body_v[1]),
@@ -611,29 +638,37 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
         teleop = WasdSkateTeleop(device=str(env.unwrapped.device))
         print(
             "\nWASD skate teleop (body frame, matches PPO training)\n"
-            "  W     : roll forward (vx ≈ 1.2 m/s, ramped)\n"
-            "  S     : slow reverse (vx ≈ -0.35 m/s; policy barely trained reverse)\n"
+            "  W     : roll forward (vx ≈ 1.2 m/s, snappy ramp)\n"
+            "  S     : reverse (vx ≈ -0.55 m/s)\n"
             "  A/D   : yaw left / right  (NOT strafe — vy is always 0)\n"
             "  Q/E   : extra yaw\n"
             "  SPACE/X/L : stop  (Space no longer pauses Isaac Sim)\n"
             "  K         : kneel (posture PPO if trained, else scripted)\n"
             "  U         : stand up, then skate PPO balances\n"
             "  P         : toggle slide (X2 push-skate, random wander; WASD overrides)\n"
+            "  G         : lie supine (web: 正躺/趴躺 + Recovery PPO for getup)\n"
             "  R/Home    : respawn at origin\n"
         )
 
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
     posture_ckpt = args_cli.posture_checkpoint or os.path.join(project_root, "checkpoints", "q1_posture_ppo.pt")
     slide_ckpt = args_cli.slide_checkpoint or os.path.join(project_root, "checkpoints", "q1_slide_ppo.pt")
+    unbox_ckpt = os.path.join(project_root, "checkpoints", "q1_unbox_ppo.pt")
+    if not os.path.isfile(unbox_ckpt):
+        unbox_ckpt = os.path.join(project_root, "checkpoints", "q1_getup_ppo.pt")
+    recovery_ckpt = os.environ.get("RECOVERY_CHECKPOINT") or _default_checkpoint(project_root)
     device = env.unwrapped.device
+    recovery_bridge = RecoveryV3PlayBridge(env, recovery_ckpt, str(device))
     mode_ctrl = ModeController(
         env,
         {
             "skate": LoadedPolicy.wrap(env, agent_cfg, resume_path, str(device), runner, policy, policy_nn),
             "posture": LoadedPolicy(env, agent_cfg, posture_ckpt, str(device)),
             "slide": LoadedPolicy(env, agent_cfg, slide_ckpt, str(device)),
+            "unbox": LoadedPolicy(env, agent_cfg, unbox_ckpt, str(device)),
         },
         str(device),
+        recovery=recovery_bridge,
     )
     if mode_ctrl.has_posture_policy:
         print(f"[INFO] Kneel/stand posture PPO: {posture_ckpt}")
@@ -643,6 +678,25 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
         print(f"[INFO] Slide / X2-skate PPO: {slide_ckpt}")
     else:
         print("[INFO] No q1_slide_ppo.pt yet — P wanders with the skate PPO. Train with ./train_slide.sh")
+    if mode_ctrl.has_unbox_policy:
+        print(f"[INFO] Unbox sit-up PPO: {unbox_ckpt}")
+    else:
+        print("[INFO] No q1_unbox_ppo.pt yet — Unbox stays on the floor. Train with ./train_unbox.sh")
+    if mode_ctrl.has_recovery_policy:
+        rec = mode_ctrl.recovery
+        splits = getattr(rec, "checkpoints", {}) or {}
+        print(
+            "[INFO] Recovery v3 PPO — "
+            f"supine={'yes' if 0 in splits else 'no'}, "
+            f"prone={'yes' if 1 in splits else 'no'}, "
+            f"mixed={'yes' if getattr(rec, 'mixed_checkpoint', None) else 'no'}"
+        )
+        for mode, path in splits.items():
+            print(f"[INFO]   mode={mode}: {path}")
+        if getattr(rec, "mixed_checkpoint", None):
+            print(f"[INFO]   mixed fallback: {rec.mixed_checkpoint}")
+    else:
+        print("[INFO] No recovery v3 checkpoint — web Recovery PPO disabled.")
 
     pose_ctrl = ScriptedKneelStand()
     web_state = None
@@ -688,7 +742,50 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
             defaults = _named_defaults(robot)
             current = _named_joints(robot)
 
+            def _lie_down() -> None:
+                robot = env.unwrapped.scene["robot"]
+                root = robot.data.root_state_w.clone()
+                origin = env.unwrapped.scene.env_origins
+                root[:, 0:2] = origin[:, 0:2]
+                root[:, 2] = origin[:, 2] + 0.22
+                root[:, 3:7] = torch.tensor([0.70710678, 0.0, -0.70710678, 0.0], device=root.device)
+                root[:, 7:] = 0.0
+                robot.write_root_pose_to_sim(root[:, :7])
+                robot.write_root_velocity_to_sim(root[:, 7:])
+                q = robot.data.default_joint_pos.clone()
+                qd = torch.zeros_like(q)
+                for i, jn in enumerate(robot.joint_names):
+                    for pat, val in LIE_POSE.items():
+                        if re.fullmatch(pat, jn):
+                            q[:, i] = float(val)
+                robot.write_joint_state_to_sim(q, qd)
+
             def _dispatch_pose(name: str) -> None:
+                if name in {"supine", "lie_supine", "prone", "lie_prone", "recovery", "recovery_ppo"}:
+                    msg = mode_ctrl.request(name)
+                    if msg:
+                        if teleop is not None:
+                            teleop.zero()
+                        print(f"[INFO] {msg}")
+                    return
+                if name == "lie":
+                    if mode_ctrl.has_recovery_policy:
+                        msg = mode_ctrl.request("supine")
+                        if msg:
+                            if teleop is not None:
+                                teleop.zero()
+                            print(f"[INFO] {msg}")
+                        return
+                    _lie_down()
+                    msg = mode_ctrl.request("lie")
+                    if msg:
+                        print(f"[INFO] {msg}")
+                    return
+                if name in {"getup", "unbox"}:
+                    msg = mode_ctrl.request("unbox")
+                    if msg:
+                        print(f"[INFO] {msg}")
+                    return
                 if name in {"slide", "skate"}:
                     if pose_ctrl.blocking:
                         print("[INFO] Stand up before changing skate/slide mode.")
@@ -718,6 +815,9 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
             if teleop is not None and teleop.stand_requested:
                 teleop.stand_requested = False
                 _dispatch_pose("stand")
+            if teleop is not None and teleop.lie_requested:
+                teleop.lie_requested = False
+                _dispatch_pose("lie")
             if teleop is not None and teleop.slide_toggle_requested:
                 teleop.slide_toggle_requested = False
                 _dispatch_pose("skate" if mode_ctrl.mode == "slide" else "slide")
@@ -754,6 +854,10 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
                 vel_term.is_standing_env[:] = False
             elif teleop is not None:
                 cmd = teleop.command(n_envs, dt)
+                if mode_ctrl.mode == "posture":
+                    cmd[:, 0].clamp_(-0.35, 0.80)
+                    cmd[:, 1] = 0.0
+                    cmd[:, 2].clamp_(-0.50, 0.50)
                 vel_term = env.unwrapped.command_manager.get_term("base_velocity")
                 vel_term.vel_command_b[:] = cmd
                 vel_term.is_standing_env[:] = cmd.norm(dim=-1) < 0.05
@@ -825,6 +929,16 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
                     "policies": {
                         "posture": mode_ctrl.has_posture_policy,
                         "slide": mode_ctrl.has_slide_policy,
+                        "unbox": mode_ctrl.has_unbox_policy,
+                        "recovery": mode_ctrl.has_recovery_policy,
+                        "recovery_supine": bool(
+                            mode_ctrl.recovery
+                            and 0 in getattr(mode_ctrl.recovery, "checkpoints", {})
+                        ),
+                        "recovery_prone": bool(
+                            mode_ctrl.recovery
+                            and 1 in getattr(mode_ctrl.recovery, "checkpoints", {})
+                        ),
                     },
                 }
                 _publish_web_state(env, web_state, cmd, pose_label, extra)

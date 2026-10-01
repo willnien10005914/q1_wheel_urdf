@@ -97,6 +97,16 @@ torch.backends.cudnn.benchmark = False
 
 def _stable_checkpoint_name(task: str) -> str:
     """Per-task stable checkpoint filename so tasks never clobber each other."""
+    if "Q1-RecoveryV3-Supine" in task:
+        return "q1_recovery_v3_supine_ppo.pt"
+    if "Q1-RecoveryV3-Prone" in task:
+        return "q1_recovery_v3_prone_ppo.pt"
+    if "Q1-RecoveryV3" in task:
+        return "q1_recovery_contact_v3_ppo.pt"
+    if "Q1-Recovery" in task:
+        return "q1_recovery_reference_v2_ppo.pt"
+    if "Q1-Unbox" in task or "Q1-Getup" in task:
+        return "q1_unbox_ppo.pt"
     if "Q1-Posture" in task:
         return "q1_posture_ppo.pt"
     if "Q1-Slide" in task:
@@ -136,6 +146,16 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     agent_cfg.max_iterations = (
         args_cli.max_iterations if args_cli.max_iterations is not None else agent_cfg.max_iterations
     )
+
+    # Optional override for the mixed Isaac-Q1-RecoveryV3-v0 task (prefer dedicated
+    # -Supine / -Prone gym IDs). RECOVERY_MODE=supine|prone|both
+    if args_cli.task.startswith("Isaac-Q1-RecoveryV3"):
+        mode_name = os.environ.get("RECOVERY_MODE", "").strip().lower()
+        if mode_name in {"supine", "prone", "both"} and hasattr(env_cfg, "events"):
+            reset = getattr(env_cfg.events, "reset_reference", None)
+            if reset is not None and hasattr(reset, "params"):
+                reset.params["mode"] = -1 if mode_name == "both" else ["supine", "prone"].index(mode_name)
+                print(f"[INFO] RECOVERY_MODE={mode_name} → reset mode={reset.params['mode']}")
 
     env_cfg.seed = agent_cfg.seed
     env_cfg.sim.device = args_cli.device if args_cli.device is not None else env_cfg.sim.device
@@ -195,13 +215,50 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
         runner = DistillationRunner(env, agent_cfg.to_dict(), log_dir=log_dir, device=agent_cfg.device)
     else:
         raise ValueError(f"Unsupported runner class: {agent_cfg.class_name}")
+    # Recovery v3 starts from a physically tested motor controller. A zero residual
+    # mean preserves that controller at iteration zero; exploration is configured
+    # separately. Resumed policies must retain their learned output layer.
+    if args_cli.task.startswith("Isaac-Q1-RecoveryV3") and not agent_cfg.resume:
+        linear_layers = [m for m in runner.alg.policy.actor.modules() if isinstance(m, torch.nn.Linear)]
+        with torch.no_grad():
+            linear_layers[-1].weight.zero_()
+            if linear_layers[-1].bias is not None:
+                linear_layers[-1].bias.zero_()
+        print("[INFO] Recovery v3 actor output initialized to zero residual.")
     runner.add_git_repo_to_log(__file__)
     if agent_cfg.resume or agent_cfg.algorithm.class_name == "Distillation":
         print(f"[INFO]: Loading model checkpoint from: {resume_path}")
-        runner.load(resume_path)
+        reset_std = os.environ.get("RESET_NOISE_STD", "").strip()
+        runner.load(resume_path, load_optimizer=not bool(reset_std))
+        if reset_std:
+            std = float(reset_std)
+            policy = runner.alg.policy
+            with torch.no_grad():
+                if hasattr(policy, "std"):
+                    policy.std.fill_(std)
+                elif hasattr(policy, "log_std"):
+                    policy.log_std.fill_(torch.log(torch.tensor(std, device=policy.log_std.device)))
+            print(f"[INFO] Reset policy noise std to {std}; optimizer state was not loaded.")
 
     dump_yaml(os.path.join(log_dir, "params", "env.yaml"), env_cfg)
     dump_yaml(os.path.join(log_dir, "params", "agent.yaml"), agent_cfg)
+
+    if args_cli.task.startswith("Isaac-Q1-RecoveryV3"):
+        # Freeze external motor priors together with code: a .pt file alone cannot reproduce residual control.
+        import hashlib, json
+        from pathlib import Path
+        root = Path(__file__).resolve().parents[3]
+        paths = list((root / "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3").glob("*.py"))
+        paths += [root / "docs/reference/getup_candidates_v3" / name for name in ("motor_priors.json", "supine.json", "prone.json")]
+        manifest = {}
+        for path in paths:
+            relative = path.relative_to(root)
+            content = path.read_bytes()
+            dest = Path(log_dir) / "controller_snapshot" / relative
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            dest.write_bytes(content)
+            manifest[str(relative)] = hashlib.sha256(content).hexdigest()
+        (Path(log_dir) / "controller_manifest.json").write_text(json.dumps(manifest, indent=2))
 
     _orig_save = runner.save
 
@@ -212,7 +269,7 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
 
     runner.save = _save_and_publish
 
-    runner.learn(num_learning_iterations=agent_cfg.max_iterations, init_at_random_ep_len=True)
+    runner.learn(num_learning_iterations=agent_cfg.max_iterations, init_at_random_ep_len=not getattr(env.unwrapped.cfg, "reference_phase_resets", False))
     print(f"Training time: {round(time.time() - start_time, 2)} seconds")
     _copy_final_checkpoint(log_dir, args_cli.task)
     env.close()

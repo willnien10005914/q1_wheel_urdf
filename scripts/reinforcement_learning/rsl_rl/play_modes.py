@@ -3,6 +3,7 @@
 * ``skate``   : checkpoints/q1_skate_ppo.pt    - two-wheel balance + WASD (unchanged, never retrained)
 * ``posture`` : checkpoints/q1_posture_ppo.pt  - kneel on four wheels <-> stand up (posture bit in body[0])
 * ``slide``   : checkpoints/q1_slide_ppo.pt    - X2-style push-skating, random wander / circles
+* ``unbox``   : checkpoints/q1_unbox_ppo.pt    - box-open supine -> yoga sit-up -> stable kneel
 
 Why separate networks instead of one PPO with a mode input: the skate policy is already stable and its
 joint-space action clip (knee +-0.45 rad) cannot reach the kneel (knee ~2.35); folding the kneel into it
@@ -23,8 +24,9 @@ import re
 import torch
 from rsl_rl.runners import OnPolicyRunner
 
+from wheel_humanoid_lab.tasks.manager_based.unbox.unbox_env_cfg import LIE_POSE, UNBOX_POS_ACTION_SCALE
 from wheel_humanoid_lab.tasks.manager_based.posture.posture_env_cfg import POSTURE_POS_ACTION_SCALE
-from wheel_humanoid_lab.tasks.manager_based.skate.mdp.observations import POSTURE_OBS_INDEX
+from wheel_humanoid_lab.tasks.manager_based.skate.mdp.observations import GETUP_PHASE_INDEX, POSTURE_OBS_INDEX
 from wheel_humanoid_lab.tasks.manager_based.skate.skate_env_cfg import _position_action_clip
 
 
@@ -128,13 +130,16 @@ class ModeController:
 
     STAND_HOLD_STEPS = 25  # 0.5 s at 50 Hz
 
-    def __init__(self, env, policies: dict[str, LoadedPolicy], device: str):
+    def __init__(self, env, policies: dict[str, LoadedPolicy], device: str, recovery=None):
         self.env = env
         self.policies = policies
         self.device = device
-        self.mode = "skate"  # skate | posture | slide
+        self.recovery = recovery  # optional RecoveryV3PlayBridge
+        self.mode = "skate"  # skate | posture | slide | lie | unbox | recovery
         self.posture_target = 0.0  # 0 stand, 1 kneel — matches training (instant 0/1, never ramped)
         self._stand_hold = 0
+        self._unbox_t = 0.0
+        self.KNEEL_HOLD_STEPS = 25  # 0.5 s at 50 Hz, then hand off to posture PPO
         u = env.unwrapped
         self.robot = u.scene["robot"]
         term = u.action_manager.get_term("joint_pos")
@@ -152,7 +157,24 @@ class ModeController:
         self.posture_scale = scale
         self.posture_lo = lo
         self.posture_hi = hi
+        gscale = torch.zeros(len(ids), device=device)
+        glo = torch.zeros(len(ids), device=device)
+        ghi = torch.zeros(len(ids), device=device)
+        gclip = _position_action_clip(UNBOX_POS_ACTION_SCALE)
+        for i, n in enumerate(self.pos_joint_names):
+            gscale[i] = next(s for pat, s in UNBOX_POS_ACTION_SCALE.items() if re.fullmatch(pat, n))
+            glo[i], ghi[i] = gclip[n]
+        self.unbox_scale = gscale
+        self.unbox_lo = glo
+        self.unbox_hi = ghi
+        lie = self.default_pos.clone()
+        for i, n in enumerate(self.pos_joint_names):
+            for pat, val in LIE_POSE.items():
+                if re.fullmatch(pat, n):
+                    lie[:, i] = float(val)
+        self.lie_targets = lie
         self.processed_override: torch.Tensor | None = None  # (n_envs, 22) targets for the joint_pos term
+        self.processed_wheel: torch.Tensor | None = None  # (n_envs, 2) wheel velocity targets
         for n in ("l_knee_joint", "l_hip_pitch_joint"):
             assert n in self.pos_joint_names
         self._knee = torch.tensor([self.pos_joint_names.index("l_knee_joint"), self.pos_joint_names.index("r_knee_joint")], device=device)
@@ -168,13 +190,41 @@ class ModeController:
     def has_slide_policy(self) -> bool:
         return self.policies["slide"].available
 
+    @property
+    def has_unbox_policy(self) -> bool:
+        p = self.policies.get("unbox") or self.policies.get("getup")
+        return p is not None and p.available
+
+    @property
+    def has_recovery_policy(self) -> bool:
+        return self.recovery is not None and bool(getattr(self.recovery, "available", False))
+
     def request(self, name: str) -> str | None:
-        """kneel | stand | slide | skate -> message or None when nothing changed."""
+        """kneel | stand | slide | skate | lie | unbox/getup | supine | prone | recovery -> message."""
+        if name in {"supine", "lie_supine", "lie"}:
+            if self.recovery is None:
+                self._enter("lie")
+                self._unbox_t = 0.0
+                return "Lie face up (box-open). Press Unbox to sit up onto the knee rollers."
+            self._enter("recovery")
+            return self.recovery.place_lie(0)
+        if name in {"prone", "lie_prone"}:
+            if self.recovery is None:
+                return "Prone lie needs recovery bridge."
+            self._enter("recovery")
+            return self.recovery.place_lie(1)
+        if name in {"recovery", "recovery_ppo", "getup_recovery"}:
+            if self.recovery is None:
+                return "Recovery PPO bridge not loaded."
+            self._enter("recovery")
+            return self.recovery.start_recovery()
         if name == "kneel":
             if not self.has_posture_policy:
                 return None
             if self.mode == "posture" and self.posture_target == 1.0:
                 return None
+            if self.recovery is not None:
+                self.recovery.stop()
             self._enter("posture")
             self.posture_target = 1.0
             return "Kneel: posture PPO (same command it was trained on)."
@@ -191,29 +241,48 @@ class ModeController:
                 return None
             if self.mode == "posture":
                 return None  # stand up first
+            if self.mode == "recovery" and self.recovery is not None and self.recovery.blocking:
+                return "Finish recovery (or Reset) before slide."
+            if self.recovery is not None:
+                self.recovery.stop()
             self._enter("slide")
             self.wander.reset()
             msg = "Slide mode: push-skate PPO, random wander (WASD overrides)."
             if not self.has_slide_policy:
                 msg = "Slide mode: q1_slide_ppo.pt not trained yet, wandering with the skate PPO."
             return msg
+        if name in {"getup", "unbox"}:
+            if not self.has_unbox_policy:
+                return "Unbox: q1_unbox_ppo.pt is not trained yet."
+            if self.recovery is not None:
+                self.recovery.stop()
+            self._enter("unbox")
+            self._unbox_t = 0.0
+            return "Unbox: tuck, yoga sit-up, knee rollers, wheel scoot, waist to a stable kneel."
         if name == "skate":
             if self.mode == "skate":
                 return None
             if self.mode == "posture" and self.posture_target == 1.0:
                 return None
+            if self.mode == "recovery" and self.recovery is not None and self.recovery.blocking:
+                return "Finish recovery (or Reset) before walk/skate."
+            if self.recovery is not None:
+                self.recovery.stop()
             self._enter("skate")
-            return "Skate mode: balance PPO + WASD."
+            return "Walk / skate mode: balance PPO + WASD."
         return None
 
     def _enter(self, mode: str) -> None:
         self.mode = mode
         self._stand_hold = 0
         self.processed_override = None
+        self.processed_wheel = None
         for p in self.policies.values():
             p.reset()
 
     def reset(self) -> None:
+        if self.recovery is not None:
+            self.recovery.stop()
         self._enter("skate")
         self.posture_target = 0.0
         self.wander.reset()
@@ -221,15 +290,29 @@ class ModeController:
     # ---------------------------------------------------------------- per-step
     @property
     def blocking(self) -> bool:
-        """WASD / web velocity commands are ignored (posture transition in progress)."""
-        return self.mode == "posture"
+        """WASD is ignored while squatting down or standing up. A settled kneel accepts it."""
+        if self.mode == "recovery" and self.recovery is not None:
+            return self.recovery.blocking
+        if self.mode in {"lie", "unbox", "getup"}:
+            return True
+        if self.mode != "posture":
+            return False
+        if self.posture_target != 1.0:
+            return True
+        return float(self.robot.data.root_pos_w[0, 2]) > 0.55
 
     @property
     def suppress_terminations(self) -> bool:
-        return self.mode == "posture"
+        if self.mode == "recovery" and self.recovery is not None and self.recovery.blocking:
+            return True
+        return self.mode in {"posture", "lie", "unbox", "getup"}
 
     @property
     def label(self) -> str:
+        if self.mode == "recovery" and self.recovery is not None:
+            return self.recovery.label
+        if self.mode in {"lie", "unbox", "getup"}:
+            return self.mode
         if self.mode == "posture":
             z = float(self.robot.data.root_pos_w[0, 2])
             if self.posture_target == 1.0:
@@ -238,6 +321,8 @@ class ModeController:
         return self.mode
 
     def active_policy(self) -> LoadedPolicy:
+        if self.mode in {"unbox", "getup"} and self.has_unbox_policy:
+            return self.policies.get("unbox") or self.policies["getup"]
         if self.mode == "posture":
             return self.policies["posture"]
         if self.mode == "slide" and self.has_slide_policy:
@@ -251,20 +336,68 @@ class ModeController:
 
     def act(self, obs, dt: float = 0.02) -> torch.Tensor:
         pol = self.active_policy()
+        if self.mode == "recovery" and self.recovery is not None and self.recovery.blocking:
+            actions = self.recovery.act(obs)
+            self.processed_override = self.recovery.processed_override
+            self.processed_wheel = self.recovery.processed_wheel
+            return actions
+        if self.mode == "lie":
+            self.processed_override = self.lie_targets
+            self.processed_wheel = None
+            pol = self.policies["skate"]
+            return torch.zeros(self.env.unwrapped.num_envs, 24, device=self.device)
+        if self.mode in {"unbox", "getup"}:
+            self._unbox_t += dt
+            policy_obs = obs["policy"] if not torch.is_tensor(obs) else obs
+            if not torch.is_tensor(policy_obs):
+                policy_obs = obs["policy"]
+            policy_obs[:, GETUP_PHASE_INDEX] = min(self._unbox_t / 6.0, 1.0)
+            actions = pol.policy(obs)
+            a_pos = actions[:, : len(self.pos_joint_names)]
+            targets = self.default_pos + self.unbox_scale * a_pos
+            self.processed_override = torch.maximum(torch.minimum(targets, self.unbox_hi), self.unbox_lo)
+            self.processed_wheel = None
+            return actions
         if self.mode == "posture":
-            policy_obs = obs["policy"] if isinstance(obs, dict) else obs
+            policy_obs = obs["policy"] if not torch.is_tensor(obs) else obs
+            if not torch.is_tensor(policy_obs):
+                policy_obs = obs["policy"]
             policy_obs[:, POSTURE_OBS_INDEX] = self.posture_target
             actions = pol.policy(obs)
             a_pos = actions[:, : len(self.pos_joint_names)]
             targets = self.default_pos + self.posture_scale * a_pos
             self.processed_override = torch.maximum(torch.minimum(targets, self.posture_hi), self.posture_lo)
+            self.processed_wheel = None
             return actions
         self.processed_override = None
+        self.processed_wheel = None
         return pol.policy(obs)
 
     def after_step(self, dones: torch.Tensor) -> str | None:
         """Posture -> skate handover once the robot is back in the skate pose and still."""
+        if self.mode == "recovery" and self.recovery is not None:
+            msg = self.recovery.after_step()
+            if msg:
+                self._enter("skate")
+                return msg
+            return None
         pol = self.active_policy()
+        if self.mode in {"unbox", "getup"}:
+            z = float(self.robot.data.root_pos_w[0, 2])
+            g = self.robot.data.projected_gravity_b[0]
+            gx = float(g[0])
+            tilt = math.acos(max(-1.0, min(1.0, -float(g[2]))))
+            if 0.36 < z < 0.60 and tilt < 0.50 and gx < 0.40:
+                self._stand_hold += 1
+            else:
+                self._stand_hold = 0
+            if self._stand_hold >= self.KNEEL_HOLD_STEPS:
+                if self.has_posture_policy:
+                    self._enter("posture")
+                    self.posture_target = 1.0
+                    return "Unbox reached a stable kneel — posture PPO holding. Press Stand up."
+                return "Unbox reached a kneel (no posture PPO to stand)."
+            return None
         if self.mode != "posture":
             pol.reset(dones)
             return None
