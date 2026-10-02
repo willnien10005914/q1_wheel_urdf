@@ -10,13 +10,23 @@ import torch,gymnasium as gym
 from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper
 from rsl_rl.runners import OnPolicyRunner
 import wheel_humanoid_lab.tasks
-from wheel_humanoid_lab.tasks.manager_based.recovery_v3.env_cfg import Q1RecoveryV3PlayCfg
+from wheel_humanoid_lab.tasks.manager_based.recovery_v3.env_cfg import (
+ Q1RecoveryV3PlayCfg,Q1RecoveryV3SupinePlayCfg,Q1RecoveryV3PronePlayCfg,
+)
 from wheel_humanoid_lab.tasks.manager_based.recovery_v3.runner_cfg import Q1RecoveryV3PPORunnerCfg
 from wheel_humanoid_lab.tasks.manager_based.recovery_v3.mdp import state
 if a.video and (a.mode=='both' or a.num_envs>1):raise ValueError('Record each mode separately: --mode supine or --mode prone')
-O=Path(a.out);O.mkdir(parents=True,exist_ok=True);cfg=Q1RecoveryV3PlayCfg();cfg.seed=a.seed;cfg.scene.num_envs=a.num_envs or (2 if a.mode=='both' else 1);cfg.scene.env_spacing=5.;cfg.events.reset_reference.params['mode']=-1 if a.mode=='both' else ['supine','prone'].index(a.mode)
+O=Path(a.out);O.mkdir(parents=True,exist_ok=True)
+if a.mode=='supine':
+ cfg=Q1RecoveryV3SupinePlayCfg(); task_id='Isaac-Q1-RecoveryV3-Supine-Play-v0'
+elif a.mode=='prone':
+ cfg=Q1RecoveryV3PronePlayCfg(); task_id='Isaac-Q1-RecoveryV3-Prone-Play-v0'
+else:
+ cfg=Q1RecoveryV3PlayCfg(); task_id='Isaac-Q1-RecoveryV3-Play-v0'
+cfg.seed=a.seed;cfg.scene.num_envs=a.num_envs or (2 if a.mode=='both' else 1);cfg.scene.env_spacing=5.
+cfg.events.reset_reference.params['mode']=-1 if a.mode=='both' else ['supine','prone'].index(a.mode)
 cfg.viewer.origin_type='env';cfg.viewer.env_index=0;cfg.viewer.eye=(2.8,-3.2,2.);cfg.viewer.lookat=(0,0,.5)
-env=gym.make('Isaac-Q1-RecoveryV3-Play-v0',cfg=cfg,render_mode='rgb_array' if a.video else None)
+env=gym.make(task_id,cfg=cfg,render_mode='rgb_array' if a.video else None)
 if a.video:env=gym.wrappers.RecordVideo(env,video_folder=str(O),name_prefix='recovery_eval_'+a.mode,step_trigger=lambda step:step==0,video_length=a.steps,disable_logger=True)
 env=RslRlVecEnvWrapper(env);policy=None
 if a.checkpoint:
