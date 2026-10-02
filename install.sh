@@ -65,8 +65,8 @@ echo "    venv python: $VENV_PY"
 uv pip install --python "$VENV_PY" -e "$ROOT/source/wheel_humanoid_lab"
 
 # --- Isaac Lab editable install ----------------------------------------
-ISAAC_VENV="${ISAAC_VENV:-$HOME/isaac/env_isaaclab}"
-ISAACLAB_PATH="${ISAACLAB_PATH:-$HOME/isaac/IsaacLab}"
+ISAAC_VENV="${ISAAC_VENV:-$HOME/IsaacLab/env_isaaclab}"
+ISAACLAB_PATH="${ISAACLAB_PATH:-$HOME/IsaacLab}"
 
 if [[ "$SKIP_ISAAC" -eq 0 ]]; then
   if [[ -x "$ISAAC_VENV/bin/python" ]]; then

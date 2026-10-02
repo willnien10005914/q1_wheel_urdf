@@ -1,9 +1,7 @@
 #!/bin/bash
-# Headless play + RGB video of the Isaac-Q1-Skate policy (CubeMars plant).
-#
-# Command profile (policy steps @ 50 Hz): coast 2 s -> glide 0.6 m/s -> skate 1.2 m/s.
-#   CHECKPOINT=logs/rsl_rl/q1_skate/<run>/model_3000.pt ./record_skate.sh
-#   STEPS=600 PROFILE="0:0.0,100:0.6,300:1.2" ./record_skate.sh
+# Headless play + RGB video of Isaac-Q1-Slide (L/R fore-aft stance + micro-lift).
+#   ./record_slide.sh
+#   STEPS=800 CHECKPOINT=checkpoints/q1_slide_ppo.pt ./record_slide.sh
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -15,13 +13,13 @@ export WHEEL_HUMANOID_ROOT="${WHEEL_HUMANOID_ROOT:-$ROOT}"
 cd "$ROOT"
 python -m pip install -e source/wheel_humanoid_lab -q
 
-CKPT="${CHECKPOINT:-$ROOT/checkpoints/q1_skate_ppo.pt}"
-STEPS="${STEPS:-600}"
-PROFILE="${PROFILE:-0:0.0,100:0.6,300:1.2}"
-OUT="${OUT:-$ROOT/docs/results/q1_skate_live.mp4}"
+CKPT="${CHECKPOINT:-$ROOT/checkpoints/q1_slide_ppo.pt}"
+STEPS="${STEPS:-800}"
+PROFILE="${PROFILE:-0:0.0,50:0.4,200:0.8,400:1.0}"
+OUT="${OUT:-$ROOT/docs/results/q1_slide_foreaft_live.mp4}"
 
 python -u scripts/reinforcement_learning/rsl_rl/play.py \
-  --task Isaac-Q1-Skate-Play-v0 \
+  --task Isaac-Q1-Slide-Play-v0 \
   --num_envs 1 \
   --headless \
   --video \
