@@ -1,7 +1,11 @@
-"""Base PPO runner cfg for Q1 recovery (mixed / split)."""
+"""Base PPO runner cfg for Q1 recovery (mixed / split). Compatible with rsl-rl >= 4/5."""
 
 from isaaclab.utils import configclass
-from isaaclab_rl.rsl_rl import RslRlOnPolicyRunnerCfg, RslRlPpoActorCriticCfg, RslRlPpoAlgorithmCfg
+from isaaclab_rl.rsl_rl import (
+    RslRlMLPModelCfg,
+    RslRlOnPolicyRunnerCfg,
+    RslRlPpoAlgorithmCfg,
+)
 
 
 @configclass
@@ -12,14 +16,19 @@ class Q1RecoveryPPORunnerCfg(RslRlOnPolicyRunnerCfg):
     experiment_name = "q1_recovery"
     obs_groups = {"policy": ["policy"], "critic": ["critic"]}
     clip_actions = None
-    policy = RslRlPpoActorCriticCfg(
+    actor = RslRlMLPModelCfg(
+        hidden_dims=[512, 256, 128],
+        activation="elu",
+        obs_normalization=True,
+        stochastic=True,
         init_noise_std=0.1,
         noise_std_type="scalar",
-        actor_obs_normalization=True,
-        critic_obs_normalization=True,
-        actor_hidden_dims=[512, 256, 128],
-        critic_hidden_dims=[512, 256, 128],
+    )
+    critic = RslRlMLPModelCfg(
+        hidden_dims=[512, 256, 128],
         activation="elu",
+        obs_normalization=True,
+        stochastic=False,
     )
     algorithm = RslRlPpoAlgorithmCfg(
         value_loss_coef=1.0,

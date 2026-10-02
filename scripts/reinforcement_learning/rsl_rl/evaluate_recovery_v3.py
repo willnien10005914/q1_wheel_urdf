@@ -20,7 +20,21 @@ env=gym.make('Isaac-Q1-RecoveryV3-Play-v0',cfg=cfg,render_mode='rgb_array' if a.
 if a.video:env=gym.wrappers.RecordVideo(env,video_folder=str(O),name_prefix='recovery_eval_'+a.mode,step_trigger=lambda step:step==0,video_length=a.steps,disable_logger=True)
 env=RslRlVecEnvWrapper(env);policy=None
 if a.checkpoint:
- runner=OnPolicyRunner(env,Q1RecoveryV3PPORunnerCfg().to_dict(),log_dir=None,device=str(env.unwrapped.device));runner.load(a.checkpoint);policy=runner.get_inference_policy(device=env.unwrapped.device)
+ from importlib.metadata import version as _pkg_version
+ from isaaclab_rl.rsl_rl import handle_deprecated_rsl_rl_cfg
+ agent_cfg=Q1RecoveryV3PPORunnerCfg()
+ # Split checkpoints: use matching runner experiment name for clarity.
+ if a.mode=='supine':
+  from wheel_humanoid_lab.tasks.manager_based.recovery_v3.runner_cfg import Q1RecoveryV3SupinePPORunnerCfg as _RC
+  agent_cfg=_RC()
+ elif a.mode=='prone':
+  from wheel_humanoid_lab.tasks.manager_based.recovery_v3.runner_cfg import Q1RecoveryV3PronePPORunnerCfg as _RC
+  agent_cfg=_RC()
+ ver=_pkg_version('rsl-rl-lib')
+ handle_deprecated_rsl_rl_cfg(agent_cfg, ver)
+ from isaaclab_rl.rsl_rl import handle_deprecated_rsl_rl_checkpoint
+ ckpt=handle_deprecated_rsl_rl_checkpoint(a.checkpoint, ver)
+ runner=OnPolicyRunner(env,agent_cfg.to_dict(),log_dir=None,device=str(env.unwrapped.device));runner.load(ckpt);policy=runner.get_inference_policy(device=env.unwrapped.device)
 s=state(env.unwrapped);s.cap=3 if a.hold_kneel else 4 # Holding kneel diagnoses transfer separately from standing.
 root=Path(__file__).resolve().parents[3]
 source_paths=list((root/'source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3').glob('*.py'))+[root/'docs/reference/getup_candidates_v3'/name for name in ['motor_priors.json','supine.json','prone.json']]
