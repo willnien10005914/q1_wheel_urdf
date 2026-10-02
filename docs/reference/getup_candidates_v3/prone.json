@@ -3,44 +3,44 @@
   "trajectory": [
     {
       "joints": {
-        "l_hip_pitch_joint": -1.5140677690505981,
-        "r_hip_pitch_joint": -1.5140677690505981,
-        "waist_yaw_joint": 0.0,
-        "l_hip_roll_joint": 0.0,
-        "r_hip_roll_joint": 0.0,
-        "waist_roll_joint": 0.0,
-        "l_knee_joint": 1.2010302543640137,
-        "l_knee_roller_joint": 0.04444440081715584,
-        "r_knee_joint": 1.2010302543640137,
-        "r_knee_roller_joint": 0.04444440081715584,
-        "waist_pitch_joint": 0.2151680886745453,
-        "l_wheel_joint": 0.0,
-        "r_wheel_joint": 0.0,
-        "l_shoulder_pitch_joint": -0.31808918714523315,
-        "neck_joint": 0.0,
-        "r_shoulder_pitch_joint": -0.31808918714523315,
-        "l_shoulder_roll_joint": 0.20000000298023224,
-        "r_shoulder_roll_joint": -0.20000000298023224,
-        "l_shoulder_yaw_joint": 0.0,
-        "r_shoulder_yaw_joint": 0.0,
-        "l_elbow_joint": -2.2671475410461426,
-        "r_elbow_joint": -2.2671475410461426,
-        "l_wrist_joint": 0.0,
-        "r_wrist_joint": 0.0,
-        "l_gripper_joint": 0.0,
-        "r_gripper_joint": 0.0
+        "l_hip_pitch_joint": -0.13434286415576935,
+        "r_hip_pitch_joint": -0.1188211515545845,
+        "waist_yaw_joint": 0.004130346700549126,
+        "l_hip_roll_joint": 0.005401547998189926,
+        "r_hip_roll_joint": 0.004605964291840792,
+        "waist_roll_joint": 0.005914092995226383,
+        "l_knee_joint": 0.11448285728693008,
+        "l_knee_roller_joint": 0.047644488513469696,
+        "r_knee_joint": 0.08900373429059982,
+        "r_knee_roller_joint": 0.03920378535985947,
+        "waist_pitch_joint": -0.10853725671768188,
+        "l_wheel_joint": 0.06421706080436707,
+        "r_wheel_joint": 0.03484418988227844,
+        "l_shoulder_pitch_joint": 0.5537967681884766,
+        "neck_joint": 0.016763778403401375,
+        "r_shoulder_pitch_joint": 0.6180436015129089,
+        "l_shoulder_roll_joint": 0.3094062805175781,
+        "r_shoulder_roll_joint": -0.3043200969696045,
+        "l_shoulder_yaw_joint": 0.22631366550922394,
+        "r_shoulder_yaw_joint": -0.18421001732349396,
+        "l_elbow_joint": -1.42075777053833,
+        "r_elbow_joint": -1.4534517526626587,
+        "l_wrist_joint": 0.05174174904823303,
+        "r_wrist_joint": -0.07279692590236664,
+        "l_gripper_joint": 0.007067140657454729,
+        "r_gripper_joint": 0.002634496660903096
       },
       "root": {
         "position": [
           0.0,
           0.0,
-          0.16
+          0.10083906352519989
         ],
         "quaternion_wxyz": [
-          0.7071067811865476,
-          0.0,
-          -0.7071067811865475,
-          0.0
+          0.6767178177833557,
+          0.0020620161667466164,
+          0.736224889755249,
+          0.004654794931411743
         ]
       }
     }
