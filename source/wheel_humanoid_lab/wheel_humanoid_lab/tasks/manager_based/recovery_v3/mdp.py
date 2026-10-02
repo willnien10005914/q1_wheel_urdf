@@ -177,10 +177,10 @@ class ContactPositionAction(JointPositionAction):
   # Full soft-limit range remains reachable. Zero action follows contact-stage priors.
   lim=self._asset.data.soft_joint_pos_limits[:,self._joint_ids];mid=lim.mean(-1);half=(lim[:,:,1]-lim[:,:,0])/2
   bias=torch.atanh(((s.command[:,self._joint_ids]-mid)/half).clamp(-.98,.98))
-  # Once arms are unloaded at upright kneel / stand, shrink residuals so PPO cannot
-  # keep flailing; early stages keep the full residual so arms can still assist.
-  calm=(s.stage>=3)&(s.arm_force.max(-1).values<30)
-  gain=torch.where(calm,.2,.65)[:,None]
+  # From kneel onward, keep arms near motor prior (reduces shake that also blocks
+  # stand success which requires arm_force < 30). Early floor stages stay free.
+  calm=s.stage>=3
+  gain=torch.where(calm,.15,.65)[:,None]
   processed=mid+half*torch.tanh(gain*actions+bias)
   if not hasattr(self,'_arm_action_ids'):
    ids=self._joint_ids.tolist() if torch.is_tensor(self._joint_ids) else list(self._joint_ids)
@@ -190,7 +190,7 @@ class ContactPositionAction(JointPositionAction):
   if self._arm_action_ids:
    idx=torch.tensor(self._arm_action_ids,device=processed.device,dtype=torch.long)
    prior=s.command[:,self._joint_ids][:,idx]
-   blend=torch.where(calm,.85,.0)[:,None]
+   blend=torch.where(calm,.92,.0)[:,None]
    arm=processed[:,idx]
    processed=processed.clone();processed[:,idx]=blend*prior+(1-blend)*arm
   # Keep feet from pigeon-toeing (內八): motor priors hold hip_roll at 0; damp PPO residuals.
