@@ -606,10 +606,14 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
 
     print(f"[INFO]: Loading model checkpoint from: {resume_path}")
     from importlib.metadata import version as _pkg_version
-    from isaaclab_rl.rsl_rl import handle_deprecated_rsl_rl_cfg, handle_deprecated_rsl_rl_checkpoint
+    from isaaclab_rl.rsl_rl import handle_deprecated_rsl_rl_cfg
+    from pathlib import Path as _P
+    import sys as _sys
+    _sys.path.insert(0, str(_P(__file__).resolve().parents[3] / "tools"))
+    from convert_rslrl5_checkpoint import convert as _convert_ckpt
     _ver = _pkg_version("rsl-rl-lib")
     handle_deprecated_rsl_rl_cfg(agent_cfg, _ver)
-    resume_path = handle_deprecated_rsl_rl_checkpoint(resume_path, _ver)
+    resume_path = str(_convert_ckpt(_P(resume_path)))
     if agent_cfg.class_name == "OnPolicyRunner":
         runner = OnPolicyRunner(env, agent_cfg.to_dict(), log_dir=None, device=agent_cfg.device)
     elif agent_cfg.class_name == "DistillationRunner":

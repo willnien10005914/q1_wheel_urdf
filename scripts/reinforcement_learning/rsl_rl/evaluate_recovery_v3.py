@@ -32,8 +32,11 @@ if a.checkpoint:
   agent_cfg=_RC()
  ver=_pkg_version('rsl-rl-lib')
  handle_deprecated_rsl_rl_cfg(agent_cfg, ver)
- from isaaclab_rl.rsl_rl import handle_deprecated_rsl_rl_checkpoint
- ckpt=handle_deprecated_rsl_rl_checkpoint(a.checkpoint, ver)
+ import sys
+ from pathlib import Path as _P
+ sys.path.insert(0, str(_P(__file__).resolve().parents[3]/'tools'))
+ from convert_rslrl5_checkpoint import convert as _convert_ckpt
+ ckpt=str(_convert_ckpt(_P(a.checkpoint)))
  runner=OnPolicyRunner(env,agent_cfg.to_dict(),log_dir=None,device=str(env.unwrapped.device));runner.load(ckpt);policy=runner.get_inference_policy(device=env.unwrapped.device)
 s=state(env.unwrapped);s.cap=3 if a.hold_kneel else 4 # Holding kneel diagnoses transfer separately from standing.
 root=Path(__file__).resolve().parents[3]
