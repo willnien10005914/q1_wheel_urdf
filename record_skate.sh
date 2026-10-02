@@ -1,26 +1,17 @@
 #!/bin/bash
 # Headless play + RGB video of the Isaac-Q1-Skate policy (CubeMars plant).
-#
-# Command profile (policy steps @ 50 Hz): coast 2 s -> glide 0.6 m/s -> skate 1.2 m/s.
-#   CHECKPOINT=logs/rsl_rl/q1_skate/<run>/model_3000.pt ./record_skate.sh
-#   STEPS=600 PROFILE="0:0.0,100:0.6,300:1.2" ./record_skate.sh
 set -euo pipefail
-
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
 source "$ROOT/scripts/isaac_env.sh"
-export PYTHONPATH="$ROOT/source/wheel_humanoid_lab:${PYTHONPATH:-}"
-export WHEEL_HUMANOID_ROOT="${WHEEL_HUMANOID_ROOT:-$ROOT}"
-
 cd "$ROOT"
-python -m pip install -e source/wheel_humanoid_lab -q
 
 CKPT="${CHECKPOINT:-$ROOT/checkpoints/q1_skate_ppo.pt}"
 STEPS="${STEPS:-600}"
 PROFILE="${PROFILE:-0:0.0,100:0.6,300:1.2}"
 OUT="${OUT:-$ROOT/docs/results/q1_skate_live.mp4}"
 
-python -u scripts/reinforcement_learning/rsl_rl/play.py \
+"$ISAAC_PYTHON" -u scripts/reinforcement_learning/rsl_rl/play.py \
   --task Isaac-Q1-Skate-Play-v0 \
   --num_envs 1 \
   --headless \

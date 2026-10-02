@@ -1,17 +1,13 @@
 #!/bin/bash
 # Record supine + prone + slide (L/R fore-aft) in Isaac Sim, upload to gofile, print links.
-#   ./tools/record_and_upload_demo_videos.sh
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 # shellcheck disable=SC1091
 source "$ROOT/scripts/isaac_env.sh"
-export PYTHONPATH="$ROOT/source/wheel_humanoid_lab:${PYTHONPATH:-}"
-export WHEEL_HUMANOID_ROOT="$ROOT"
-python -m pip install -e source/wheel_humanoid_lab -q
 
-STEPS_REC="${STEPS_REC:-2999}"
-STEPS_SLIDE="${STEPS_SLIDE:-800}"
+STEPS_REC="${STEPS_REC:-2000}"
+STEPS_SLIDE="${STEPS_SLIDE:-600}"
 SUPINE_CKPT="${SUPINE_CKPT:-$ROOT/checkpoints/q1_recovery_v3_supine_ppo.pt}"
 PRONE_CKPT="${PRONE_CKPT:-$ROOT/checkpoints/q1_recovery_v3_prone_ppo.pt}"
 SLIDE_CKPT="${SLIDE_CKPT:-$ROOT/checkpoints/q1_slide_ppo.pt}"
