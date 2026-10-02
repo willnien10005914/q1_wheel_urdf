@@ -84,12 +84,12 @@ ONNX / TorchScript（skate，含 observation normalizer）：
 | 側滑 · **左右腳前後** | [`q1_slide_foreaft_iter32000.mp4`](docs/results/q1_slide_foreaft_iter32000.mp4) · [gofile](https://gofile.io/d/FEl7B5IT) | `checkpoints/q1_slide_ppo.pt` |
 | 側滑 · 抬腳 / 跨步 | [`passlift`](docs/results/q1_slide_passlift_iter42000.mp4) · [`stride`](docs/results/q1_slide_stride_iter32000.mp4) | 同上 `q1_slide_ppo.pt` |
 
-Raw（`main`）：
+Raw（本分支 `cursor/demo-videos-ppo-7d44`）：
 
-- https://github.com/willnien10005914/q1_wheel_urdf/raw/main/docs/reference/review_recovery_v3/split_supine/recovery_eval_supine.mp4
-- https://github.com/willnien10005914/q1_wheel_urdf/raw/main/docs/reference/review_recovery_v3/split_prone/recovery_eval_prone.mp4
-- https://github.com/willnien10005914/q1_wheel_urdf/raw/main/docs/results/q1_skate_cubemars_iter3800.mp4
-- https://github.com/willnien10005914/q1_wheel_urdf/raw/main/docs/results/q1_slide_foreaft_iter32000.mp4
+- https://github.com/willnien10005914/q1_wheel_urdf/raw/cursor/demo-videos-ppo-7d44/docs/reference/review_recovery_v3/split_supine/recovery_eval_supine.mp4
+- https://github.com/willnien10005914/q1_wheel_urdf/raw/cursor/demo-videos-ppo-7d44/docs/reference/review_recovery_v3/split_prone/recovery_eval_prone.mp4
+- https://github.com/willnien10005914/q1_wheel_urdf/raw/cursor/demo-videos-ppo-7d44/docs/results/q1_skate_cubemars_iter3800.mp4
+- https://github.com/willnien10005914/q1_wheel_urdf/raw/cursor/demo-videos-ppo-7d44/docs/results/q1_slide_foreaft_iter32000.mp4
 
 ### 各 PPO 細節
 

@@ -13,14 +13,14 @@
 | **側滑 · 抬腳通過** slide passlift | [`results/q1_slide_passlift_iter42000.mp4`](../results/q1_slide_passlift_iter42000.mp4) | [pNhvqoqe](https://gofile.io/d/pNhvqoqe) | 同上 `q1_slide_ppo.pt` | 同上 |
 | **側滑 · 跨步** slide stride | [`results/q1_slide_stride_iter32000.mp4`](../results/q1_slide_stride_iter32000.mp4) | [PjnkwYEl](https://gofile.io/d/PjnkwYEl) | 同上 `q1_slide_ppo.pt` | 同上 |
 
-### Raw GitHub（本分支推送後可播）
+### Raw GitHub（本分支）
 
-將 `<branch>` 換成實際分支名（例：`main` 或 `cursor/demo-videos-ppo-7d44`）：
-
-- 正躺：`https://github.com/willnien10005914/q1_wheel_urdf/raw/<branch>/docs/reference/review_recovery_v3/split_supine/recovery_eval_supine.mp4`
-- 趴躺：`https://github.com/willnien10005914/q1_wheel_urdf/raw/<branch>/docs/reference/review_recovery_v3/split_prone/recovery_eval_prone.mp4`
-- 滑行：`https://github.com/willnien10005914/q1_wheel_urdf/raw/<branch>/docs/results/q1_skate_cubemars_iter3800.mp4`
-- 左右腳前後：`https://github.com/willnien10005914/q1_wheel_urdf/raw/<branch>/docs/results/q1_slide_foreaft_iter32000.mp4`
+- 正躺：https://github.com/willnien10005914/q1_wheel_urdf/raw/cursor/demo-videos-ppo-7d44/docs/reference/review_recovery_v3/split_supine/recovery_eval_supine.mp4
+- 趴躺：https://github.com/willnien10005914/q1_wheel_urdf/raw/cursor/demo-videos-ppo-7d44/docs/reference/review_recovery_v3/split_prone/recovery_eval_prone.mp4
+- 滑行：https://github.com/willnien10005914/q1_wheel_urdf/raw/cursor/demo-videos-ppo-7d44/docs/results/q1_skate_cubemars_iter3800.mp4
+- 左右腳前後：https://github.com/willnien10005914/q1_wheel_urdf/raw/cursor/demo-videos-ppo-7d44/docs/results/q1_slide_foreaft_iter32000.mp4
+- 抬腳通過：https://github.com/willnien10005914/q1_wheel_urdf/raw/cursor/demo-videos-ppo-7d44/docs/results/q1_slide_passlift_iter42000.mp4
+- 跨步：https://github.com/willnien10005914/q1_wheel_urdf/raw/cursor/demo-videos-ppo-7d44/docs/results/q1_slide_stride_iter32000.mp4
 
 ## 播放設定（Isaac）
 
