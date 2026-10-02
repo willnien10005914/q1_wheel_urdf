@@ -124,7 +124,11 @@ class RecoveryObservationsCfg:
 
     @configclass
     class CriticCfg(ObsGroup):
+        """Privileged critic: 128-D = lin/ang/grav/height + proprio + recovery cmd + wheel terms."""
+
         base_lin_vel = ObsTerm(func=loco_mdp.base_lin_vel)
+        base_ang_vel = ObsTerm(func=loco_mdp.base_ang_vel)
+        projected_gravity = ObsTerm(func=loco_mdp.projected_gravity)
         base_height = ObsTerm(func=loco_mdp.base_pos_z)
         joint_pos = ObsTerm(
             func=skate_mdp.joint_pos_contract_clean,
@@ -142,6 +146,14 @@ class RecoveryObservationsCfg:
         )
         wheel_force = ObsTerm(
             func=skate_mdp.wheel_contact_normal_force,
+            params={
+                "sensor_cfg": SceneEntityCfg(
+                    "contact_forces", body_names=["l_wheel_link", "r_wheel_link"], preserve_order=True
+                )
+            },
+        )
+        wheel_air_time = ObsTerm(
+            func=skate_mdp.wheel_air_time,
             params={
                 "sensor_cfg": SceneEntityCfg(
                     "contact_forces", body_names=["l_wheel_link", "r_wheel_link"], preserve_order=True
