@@ -49,3 +49,12 @@
 - Recovery split 細節與評測：[`../reference/review_recovery_v3/SPLIT_VIDEOS.md`](../reference/review_recovery_v3/SPLIT_VIDEOS.md)
 - Skate 訓練結果說明（英文）：根目錄 [`README.en.md`](../../README.en.md) Results 一節
 - 淘汰權重勿用：`q1_getup_ppo.pt`、混合 `q1_recovery_contact_v3_ppo.pt`、`skateboard_ppo.pt`
+
+## Live Isaac Sim uploads (this machine)
+
+| 動作 | PPO | gofile |
+|---|---|---|
+| 正躺 supine | `checkpoints/q1_recovery_v3_supine_ppo.pt` | https://gofile.io/d/XUMcmzmU |
+| 趴躺 prone | `checkpoints/q1_recovery_v3_prone_ppo.pt` | https://gofile.io/d/hJnyjRmT |
+| 側滑 左右腳前後 | `checkpoints/q1_slide_ppo.pt` | https://gofile.io/d/sXvBGMnl |
+

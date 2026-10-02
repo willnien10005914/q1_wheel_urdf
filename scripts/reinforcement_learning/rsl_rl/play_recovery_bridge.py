@@ -14,7 +14,10 @@ from typing import Any
 import torch
 from tensordict import TensorDict
 
-from rsl_rl.modules import ActorCritic
+try:
+    from rsl_rl.modules import ActorCritic  # rsl-rl < 5
+except ImportError:  # pragma: no cover - rsl-rl >= 5 removed ActorCritic
+    ActorCritic = None  # type: ignore
 
 from wheel_humanoid_lab.tasks.manager_based.recovery_v3 import mdp as recovery_mdp
 
@@ -45,7 +48,10 @@ def _default_checkpoint(project_root: str, mode: int | None = None) -> str:
     )
 
 
-def load_recovery_actor(checkpoint: str, device: str) -> ActorCritic:
+def load_recovery_actor(checkpoint: str, device: str):
+    if ActorCritic is None:
+        raise RuntimeError("rsl-rl >= 5 removed ActorCritic; use evaluate_recovery_v3 / converted MLPModel load instead")
+
     obs = TensorDict(
         {
             "policy": torch.zeros(1, RECOVERY_ACTOR_OBS, device=device),

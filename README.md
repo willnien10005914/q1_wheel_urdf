@@ -223,3 +223,12 @@ uv run python tools/apply_unbox_recording.py \
 
 - 本倉庫含 URDF、訓練腳本與最後有效 PPO；Isaac Sim / Isaac Lab 需另行安裝並遵守其授權。
 - GPU 訓練建議單卡一次一 job；`stop_isaac.sh` 可清殘留 Kit／佔用埠。
+
+## Live Isaac Sim uploads (this machine)
+
+| 動作 | PPO | gofile |
+|---|---|---|
+| 正躺 supine | `checkpoints/q1_recovery_v3_supine_ppo.pt` | https://gofile.io/d/XUMcmzmU |
+| 趴躺 prone | `checkpoints/q1_recovery_v3_prone_ppo.pt` | https://gofile.io/d/hJnyjRmT |
+| 側滑 左右腳前後 | `checkpoints/q1_slide_ppo.pt` | https://gofile.io/d/sXvBGMnl |
+

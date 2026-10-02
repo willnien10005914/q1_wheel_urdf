@@ -116,7 +116,6 @@ from isaaclab_tasks.utils.hydra import hydra_task_config
 
 import wheel_humanoid_lab.tasks  # noqa: F401
 from play_modes import LoadedPolicy, ModeController
-from play_recovery_bridge import RecoveryV3PlayBridge, _default_checkpoint
 from wheel_humanoid_lab.tasks.manager_based.unbox.unbox_env_cfg import LIE_POSE
 from play_web import start_play_web
 
@@ -623,22 +622,32 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     runner.load(resume_path)
     policy = runner.get_inference_policy(device=env.unwrapped.device)
 
-    try:
+    # rsl-rl >= 5: PPO exposes actor/critic via get_policy(); older builds used .policy / .actor_critic.
+    if hasattr(runner.alg, "get_policy"):
+        policy_nn = runner.alg.get_policy()
+    elif hasattr(runner.alg, "actor"):
+        policy_nn = runner.alg.actor
+    elif hasattr(runner.alg, "policy"):
         policy_nn = runner.alg.policy
-    except AttributeError:
-        policy_nn = runner.alg.actor_critic
+    else:
+        policy_nn = getattr(runner.alg, "actor_critic", None)
 
     if hasattr(policy_nn, "actor_obs_normalizer"):
         normalizer = policy_nn.actor_obs_normalizer
+    elif hasattr(policy_nn, "obs_normalizer"):
+        normalizer = policy_nn.obs_normalizer
     elif hasattr(policy_nn, "student_obs_normalizer"):
         normalizer = policy_nn.student_obs_normalizer
     else:
         normalizer = None
 
     export_model_dir = os.path.join(os.path.dirname(resume_path), "exported")
-    export_policy_as_jit(policy_nn, normalizer=normalizer, path=export_model_dir, filename="policy.pt")
-    export_policy_as_onnx(policy_nn, normalizer=normalizer, path=export_model_dir, filename="policy.onnx")
-    print(f"[INFO] Exported JIT/ONNX policies to: {export_model_dir}")
+    try:
+        export_policy_as_jit(policy_nn, normalizer=normalizer, path=export_model_dir, filename="policy.pt")
+        export_policy_as_onnx(policy_nn, normalizer=normalizer, path=export_model_dir, filename="policy.onnx")
+        print(f"[INFO] Exported JIT/ONNX policies to: {export_model_dir}")
+    except Exception as exc:
+        print(f"[WARN] Policy export skipped ({exc})")
 
     dt = env.unwrapped.step_dt
     _start_timeline_watchdog()
@@ -665,9 +674,16 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     unbox_ckpt = os.path.join(project_root, "checkpoints", "q1_unbox_ppo.pt")
     if not os.path.isfile(unbox_ckpt):
         unbox_ckpt = os.path.join(project_root, "checkpoints", "q1_getup_ppo.pt")
-    recovery_ckpt = os.environ.get("RECOVERY_CHECKPOINT") or _default_checkpoint(project_root)
     device = env.unwrapped.device
-    recovery_bridge = RecoveryV3PlayBridge(env, recovery_ckpt, str(device))
+    # Recovery bridge uses legacy ActorCritic APIs; only needed for skate play hot-swap.
+    recovery_bridge = None
+    if "Skate" in args_cli.task:
+        from play_recovery_bridge import RecoveryV3PlayBridge, _default_checkpoint
+        recovery_ckpt = os.environ.get("RECOVERY_CHECKPOINT") or _default_checkpoint(project_root)
+        try:
+            recovery_bridge = RecoveryV3PlayBridge(env, recovery_ckpt, str(device))
+        except Exception as exc:
+            print(f"[WARN] Recovery bridge unavailable ({exc}); skate play continues without it.")
     mode_ctrl = ModeController(
         env,
         {
