@@ -217,10 +217,10 @@ class ContactWheelVelocityAction(JointVelocityAction):
   # PPO adds a bounded residual to a physical balance prior. CubeMars applies torque/current limits.
   super().process_actions(actions)
   s=state(self._env)
-  # Floor→kneel must not spin wheels: old policies commanded ±8 rad/s while kneeling
-  # (looks like "轉圈"). Only apply residuals once the stand transfer is active.
-  standing=(s.stage==4)&s.stand_enabled[s.mode]
-  residual=torch.where(standing[:,None],self._processed_actions,torch.zeros_like(self._processed_actions))
+  # At upright/assisted kneel (stage 3) PPO often commanded ±8 rad/s ("轉圈").
+  # Keep residuals for floor plant (0–2) and stand balance (4); zero only while kneeling.
+  kneeling=s.stage==3
+  residual=torch.where(kneeling[:,None],torch.zeros_like(self._processed_actions),self._processed_actions)
   self._processed_actions=(residual+balance_velocity(s).clamp(-25.,25.)[:,None]).clamp(-25.,25.)
 @configclass
 class ContactWheelVelocityActionCfg(JointVelocityActionCfg):
