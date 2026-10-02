@@ -113,8 +113,22 @@ p/r/y, R elbow, R wrist, R gripper, L hip pitch/roll, L knee, R hip pitch/roll, 
 | `checkpoints/q1_slide_ppo.pt` | `Isaac-Q1-Slide-v0` | L/R front-back skate + passing-foot micro-lift |
 | `checkpoints/q1_posture_ppo.pt` | `Isaac-Q1-Posture-v0` | kneel ↔ stand (the stand-up PPO) |
 | `checkpoints/q1_unbox_ppo.pt` | `Isaac-Q1-Unbox-v0` | box-open supine → yoga sit-up → stable kneel |
+| `checkpoints/q1_recovery_v3_supine_ppo.pt` | `Isaac-Q1-RecoveryV3-Supine-v0` | floor supine → kneel → stand |
+| `checkpoints/q1_recovery_v3_prone_ppo.pt` | `Isaac-Q1-RecoveryV3-Prone-v0` | floor prone → kneel → stand |
 | `checkpoints/q1_getup_ppo.pt` | (superseded) | first all-in-one get-up; stayed supine, do not use |
 | `checkpoints/skateboard_ppo.pt` | `Isaac-WheelHumanoid-Skateboard-v0` | legacy ideal-PD stand-skate |
+
+### Demo videos ↔ PPO map
+
+Curated index: [`docs/demos/README.md`](docs/demos/README.md).
+
+| Demo | Local mp4 | gofile | PPO |
+|---|---|---|---|
+| Supine recovery | `docs/reference/review_recovery_v3/split_supine/recovery_eval_supine.mp4` | https://gofile.io/d/z9w7axZf | `q1_recovery_v3_supine_ppo.pt` |
+| Prone recovery | `docs/reference/review_recovery_v3/split_prone/recovery_eval_prone.mp4` | https://gofile.io/d/hwX7CfTN | `q1_recovery_v3_prone_ppo.pt` |
+| Skate | `docs/results/q1_skate_cubemars_iter3800.mp4` | https://gofile.io/d/Oh6jh3Qd | `q1_skate_ppo.pt` |
+| Slide L/R fore-aft | `docs/results/q1_slide_foreaft_iter32000.mp4` | https://gofile.io/d/FEl7B5IT | `q1_slide_ppo.pt` |
+| Slide passlift / stride | `docs/results/q1_slide_passlift_*.mp4` / `*_stride_*.mp4` | https://gofile.io/d/pNhvqoqe · https://gofile.io/d/PjnkwYEl | `q1_slide_ppo.pt` |
 
 Open-box chain: lie face up → **unbox PPO** to a four-wheel kneel → **posture PPO** stands → skate/slide.
 

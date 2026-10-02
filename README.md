@@ -72,6 +72,25 @@ ONNX / TorchScript（skate，含 observation normalizer）：
 
 **不建議使用（已淘汰，不在倉庫追蹤）：** `skateboard_ppo.pt`（舊 ideal-PD）、`q1_getup_ppo.pt`、`q1_recovery_reference_v2_ppo.pt`、混合 `q1_recovery_contact_v3_ppo.pt`（已由分拆 supine/prone 取代）。
 
+### 示範影片（已上傳）↔ PPO 位置
+
+完整索引見 **[`docs/demos/`](docs/demos/README.md)**。重點如下：
+
+| 動作 | 影片 | PPO |
+|------|------|-----|
+| 正躺起身 | [`split_supine/recovery_eval_supine.mp4`](docs/reference/review_recovery_v3/split_supine/recovery_eval_supine.mp4) · [gofile](https://gofile.io/d/z9w7axZf) | `checkpoints/q1_recovery_v3_supine_ppo.pt` |
+| 趴躺起身 | [`split_prone/recovery_eval_prone.mp4`](docs/reference/review_recovery_v3/split_prone/recovery_eval_prone.mp4) · [gofile](https://gofile.io/d/hwX7CfTN) | `checkpoints/q1_recovery_v3_prone_ppo.pt` |
+| 站立滑行 skate | [`q1_skate_cubemars_iter3800.mp4`](docs/results/q1_skate_cubemars_iter3800.mp4) · [gofile](https://gofile.io/d/Oh6jh3Qd) | `checkpoints/q1_skate_ppo.pt` |
+| 側滑 · **左右腳前後** | [`q1_slide_foreaft_iter32000.mp4`](docs/results/q1_slide_foreaft_iter32000.mp4) · [gofile](https://gofile.io/d/FEl7B5IT) | `checkpoints/q1_slide_ppo.pt` |
+| 側滑 · 抬腳 / 跨步 | [`passlift`](docs/results/q1_slide_passlift_iter42000.mp4) · [`stride`](docs/results/q1_slide_stride_iter32000.mp4) | 同上 `q1_slide_ppo.pt` |
+
+Raw（`main`）：
+
+- https://github.com/willnien10005914/q1_wheel_urdf/raw/main/docs/reference/review_recovery_v3/split_supine/recovery_eval_supine.mp4
+- https://github.com/willnien10005914/q1_wheel_urdf/raw/main/docs/reference/review_recovery_v3/split_prone/recovery_eval_prone.mp4
+- https://github.com/willnien10005914/q1_wheel_urdf/raw/main/docs/results/q1_skate_cubemars_iter3800.mp4
+- https://github.com/willnien10005914/q1_wheel_urdf/raw/main/docs/results/q1_slide_foreaft_iter32000.mp4
+
 ### 各 PPO 細節
 
 | PPO | 觀測 / 動作 | 訓練重點 | 播放行為 |
@@ -161,6 +180,7 @@ web/                                THREE.js 關節 UI
 checkpoints/                        最後有效 PPO + exported ONNX
 tools/                              URDF 建置、MediaPipe、recovery 工具
 docs/                               馬達規格、參考姿態、評測紀錄
+docs/demos/                         示範影片 ↔ PPO 對照（正躺／趴躺／滑行／側滑）
 install.sh / pyproject.toml         uv 安裝入口
 ```
 
