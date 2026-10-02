@@ -222,7 +222,10 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     # mean preserves that controller at iteration zero; exploration is configured
     # separately. Resumed policies must retain their learned output layer.
     if args_cli.task.startswith("Isaac-Q1-RecoveryV3") and not agent_cfg.resume:
-        linear_layers = [m for m in runner.alg.policy.actor.modules() if isinstance(m, torch.nn.Linear)]
+        # rsl-rl 5.x: PPO actor is runner.alg.actor / get_policy()
+        actor = runner.alg.get_policy() if hasattr(runner.alg, "get_policy") else runner.alg.actor
+        mlp = actor.mlp if hasattr(actor, "mlp") else actor
+        linear_layers = [m for m in mlp.modules() if isinstance(m, torch.nn.Linear)]
         with torch.no_grad():
             linear_layers[-1].weight.zero_()
             if linear_layers[-1].bias is not None:
@@ -235,7 +238,7 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
         runner.load(resume_path, load_optimizer=not bool(reset_std))
         if reset_std:
             std = float(reset_std)
-            policy = runner.alg.policy
+            policy = runner.alg.get_policy() if hasattr(runner.alg, "get_policy") else runner.alg.actor
             with torch.no_grad():
                 if hasattr(policy, "std"):
                     policy.std.fill_(std)

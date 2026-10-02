@@ -26,15 +26,21 @@ class Rewards:
  stage_progress=Rew(func=mdp.reward,weight=10.,params={'kind':'progress'})
  supported_lift=Rew(func=mdp.reward,weight=2.,params={'kind':'lift'})
  stand=Rew(func=mdp.reward,weight=10.,params={'kind':'stand'})
- arm_assist=Rew(func=mdp.reward,weight=3.,params={'kind':'arm_assist'})
- arm_calm=Rew(func=mdp.reward,weight=-2.,params={'kind':'arm_calm'})
+ # Elbow-only assist; grippers/wrists must not jam the floor.
+ arm_assist=Rew(func=mdp.reward,weight=3.5,params={'kind':'arm_assist'})
+ gripper_floor=Rew(func=mdp.reward,weight=-6.,params={'kind':'gripper_floor'})
+ # Steady arms through kneel→stand (no shake).
+ arm_calm=Rew(func=mdp.reward,weight=-4.,params={'kind':'arm_calm'})
+ # Waist pitch helps torso rise; yaw spin from wheels is taxed separately.
+ waist_assist=Rew(func=mdp.reward,weight=3.,params={'kind':'waist_assist'})
+ yaw_spin=Rew(func=mdp.reward,weight=-4.,params={'kind':'yaw_spin'})
  motor_prior=Rew(func=mdp.reward,weight=.2,params={'kind':'motor'})
  unsupported_supine=Rew(func=mdp.reward,weight=-5.,params={'kind':'unsupported_supine'})
  airborne_prone=Rew(func=mdp.reward,weight=-4.,params={'kind':'airborne_prone'})
  # Soft L↔R foot spacing (self-collision is globally off) + anti-pigeon-toe.
  foot_apart=Rew(func=mdp.reward,weight=2.,params={'kind':'foot_apart'})
  hip_square=Rew(func=mdp.reward,weight=-3.,params={'kind':'hip_square'})
- action_rate=Rew(func=loco.action_rate_l2,weight=-.02)
+ action_rate=Rew(func=loco.action_rate_l2,weight=-.03)
  action_size=Rew(func=loco.action_l2,weight=-.01)
  torque=Rew(func=loco.joint_torques_l2,weight=-1.e-5)
  limits=Rew(func=loco.joint_pos_limits,weight=-1.)

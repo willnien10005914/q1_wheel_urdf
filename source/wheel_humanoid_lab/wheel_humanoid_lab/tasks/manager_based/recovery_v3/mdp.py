@@ -52,13 +52,22 @@ class State:
   self.pos_ids=self.robot.find_joints(Q1_POSITION_JOINTS,preserve_order=True)[0]
   self.shoulder_ids=self.robot.find_joints(['l_shoulder_pitch_joint','r_shoulder_pitch_joint'],preserve_order=True)[0]
   self.wheel_ids=self.robot.find_bodies(['l_wheel_link','r_wheel_link'],preserve_order=True)[0]
-  self.hand_names=[f'{s}_{p}_link' for s in ['l','r'] for p in ['elbow','wrist','gripper']]
+  # Elbows may plant on the floor; wrists/grippers crack — track them separately.
+  self.elbow_names=[f'{s}_elbow_link' for s in ['l','r']]
+  self.distal_names=[f'{s}_{p}_link' for s in ['l','r'] for p in ['wrist','gripper']]
+  self.elbow_ids=self.sensor.find_bodies(self.elbow_names,preserve_order=True)[0]
+  self.distal_ids=self.sensor.find_bodies(self.distal_names,preserve_order=True)[0]
+  self.hand_names=self.elbow_names+self.distal_names
   self.hand_ids=self.sensor.find_bodies(self.hand_names,preserve_order=True)[0]
   self.support_ids=self.sensor.find_bodies(['l_wheel_link','r_wheel_link','l_knee_roller_link','r_knee_roller_link'],preserve_order=True)[0]
   self.roller_body_ids=self.robot.find_bodies(['l_knee_roller_link','r_knee_roller_link'],preserve_order=True)[0]
   self.arm_joint_ids=self.robot.find_joints(['.*_shoulder_.*_joint','.*_elbow_joint'])[0]
+  self.wrist_gripper_joint_ids=self.robot.find_joints(['.*_wrist_joint','.*_gripper_joint'])[0]
+  self.waist_joint_ids=self.robot.find_joints(['waist_yaw_joint','waist_roll_joint','waist_pitch_joint'],preserve_order=True)[0]
   self.hip_roll_ids=self.robot.find_joints(['l_hip_roll_joint','r_hip_roll_joint'],preserve_order=True)[0]
   self.filtered_force=torch.zeros_like(self.sensor.data.net_forces_w[:,:,2])
+  self.elbow_body_ids=self.robot.find_bodies(self.elbow_names,preserve_order=True)[0]
+  self.distal_body_ids=self.robot.find_bodies(self.distal_names,preserve_order=True)[0]
   self.hand_body_ids=self.robot.find_bodies(self.hand_names,preserve_order=True)[0]
   self.elapsed=torch.zeros(n,device=self.device);self.hold=self.elapsed.clone();self.kneel_hold=self.elapsed.clone();self.stand_hold=self.elapsed.clone()
   self.knelt=torch.zeros(n,dtype=torch.bool,device=self.device);self.stood=self.knelt.clone();self.planted=self.knelt.clone()
@@ -76,8 +85,12 @@ class State:
   # Positive vertical force, not force magnitude: side collisions do not count as support.
   if fresh:self.filtered_force.lerp_(self.sensor.data.net_forces_w[:,:,2].clamp(min=0),.2)
   f=self.filtered_force
-  self.support_force=f[:,self.support_ids];self.arm_force=f[:,self.hand_ids].reshape(-1,2,3).sum(-1)
-  self.support=self.support_force>5.;self.arms=self.arm_force>5.
+  self.support_force=f[:,self.support_ids]
+  # Assist force = elbows only. Distal (wrist/gripper) contact is penalized separately.
+  self.elbow_force=f[:,self.elbow_ids]
+  self.distal_force=f[:,self.distal_ids].reshape(-1,2,2).sum(-1)
+  self.arm_force=self.elbow_force  # plant / assist / gates use elbows, not grippers
+  self.support=self.support_force>5.;self.arms=self.arm_force>5.;self.distal=self.distal_force>5.
   self.height=self.robot.data.root_pos_w[:,2]-e.scene.env_origins[:,2]
   self.upright=-self.robot.data.projected_gravity_b[:,2]
   quat=self.robot.data.body_quat_w[:,self.torso_body_id]
@@ -85,12 +98,17 @@ class State:
   self.face_down=self.robot.data.projected_gravity_b[:,0]>.5
   self.shoulder=self.robot.data.joint_pos[:,self.shoulder_ids]
   self.wheel_clearance=(self.robot.data.body_pos_w[:,self.wheel_ids,2]-e.scene.env_origins[:,None,2]-.1).clamp(min=0)
-  self.hand_height=(self.robot.data.body_pos_w[:,self.hand_body_ids,2]-e.scene.env_origins[:,None,2]).reshape(-1,2,3).min(-1).values
-  arm_ready=self.arms.all(-1)&((self.mode==1)|(self.shoulder.min(-1).values>1.8))
+  self.elbow_height=(self.robot.data.body_pos_w[:,self.elbow_body_ids,2]-e.scene.env_origins[:,None,2])
+  self.distal_height=(self.robot.data.body_pos_w[:,self.distal_body_ids,2]-e.scene.env_origins[:,None,2]).reshape(-1,2,2).min(-1).values
+  self.hand_height=self.elbow_height  # approach targets elbows, not gripper tips
+  # Plant only when elbows bear weight and grippers are not jammed into the floor.
+  arm_ready=self.arms.all(-1)&(~self.distal.any(-1))&((self.mode==1)|(self.shoulder.min(-1).values>1.8))
   self.planted|=arm_ready
-  kneel=self.support.all(-1)&(self.height>.32)&(self.height<.65)&(self.upright>.7)&(self.robot.data.root_lin_vel_w.norm(dim=-1)<.6)
-  stand=self.support[:,:2].all(-1)&(self.height>.72)&(self.upright>.9)&(self.torso_upright>.9)&(self.arm_force.max(-1).values<30)&(self.robot.data.root_lin_vel_w.norm(dim=-1)<.5)
-  upright_kneel=kneel&(self.torso_upright>.85)&(self.arm_force.max(-1).values<30)
+  yaw_rate=self.robot.data.root_ang_vel_b[:,2].abs()
+  kneel=self.support.all(-1)&(self.height>.32)&(self.height<.65)&(self.upright>.7)&(self.robot.data.root_lin_vel_w.norm(dim=-1)<.6)&(yaw_rate<.8)
+  # Standing: elbows may brush lightly, but grippers must stay unloaded.
+  stand=self.support[:,:2].all(-1)&(self.height>.72)&(self.upright>.9)&(self.torso_upright>.9)&(self.arm_force.max(-1).values<40)&(self.distal_force.max(-1).values<8)&(self.robot.data.root_lin_vel_w.norm(dim=-1)<.5)&(yaw_rate<.6)
+  upright_kneel=kneel&(self.torso_upright>.85)&(self.arm_force.max(-1).values<40)&(self.distal_force.max(-1).values<8)
   self.upright_hold=torch.where(upright_kneel,self.upright_hold+dt,0.)
   self.upright_knelt|=self.upright_hold>=.5
   self.kneel_hold=torch.where(kneel,self.kneel_hold+dt,0.)
@@ -169,7 +187,7 @@ def reset(env,env_ids,mode=-1):
 
 def observation(env):
  s=state(env);s.update()
- return torch.cat((torch.nn.functional.one_hot(s.mode,2),torch.nn.functional.one_hot(s.stage,5),s.command[:,s.pos_ids],(s.arm_force/100).clamp(0,2),(s.support_force/100).clamp(0,2),s.wheel_clearance,s.upright[:,None],s.height[:,None],(s.hold/.4).clamp(0,1)[:,None]),-1)
+ return torch.cat((torch.nn.functional.one_hot(s.mode,2),torch.nn.functional.one_hot(s.stage,5),s.command[:,s.pos_ids],(s.elbow_force/100).clamp(0,2),(s.distal_force/100).clamp(0,2),(s.support_force/100).clamp(0,2),s.wheel_clearance,s.upright[:,None],s.height[:,None],(s.hold/.4).clamp(0,1)[:,None]),-1)
 
 class ContactPositionAction(JointPositionAction):
  def process_actions(self,actions):
@@ -177,22 +195,30 @@ class ContactPositionAction(JointPositionAction):
   # Full soft-limit range remains reachable. Zero action follows contact-stage priors.
   lim=self._asset.data.soft_joint_pos_limits[:,self._joint_ids];mid=lim.mean(-1);half=(lim[:,:,1]-lim[:,:,0])/2
   bias=torch.atanh(((s.command[:,self._joint_ids]-mid)/half).clamp(-.98,.98))
-  # From kneel onward, keep arms near motor prior (reduces shake that also blocks
-  # stand success which requires arm_force < 30). Early floor stages stay free.
-  calm=s.stage>=3
-  gain=torch.where(calm,.15,.65)[:,None]
+  # From supported-press onward, damp arm PPO residuals so elbows stay planted/stable
+  # instead of thrashing through kneel→stand. Waist stays free for torso lift.
+  calm=s.stage>=2
+  gain=torch.where(calm,.12,.65)[:,None]
   processed=mid+half*torch.tanh(gain*actions+bias)
   if not hasattr(self,'_arm_action_ids'):
    ids=self._joint_ids.tolist() if torch.is_tensor(self._joint_ids) else list(self._joint_ids)
    names=[self._asset.joint_names[int(i)] for i in ids]
    self._arm_action_ids=[i for i,n in enumerate(names) if ('shoulder' in n or 'elbow' in n)]
+   self._distal_action_ids=[i for i,n in enumerate(names) if ('wrist' in n or 'gripper' in n)]
    self._hip_roll_action_ids=[i for i,n in enumerate(names) if 'hip_roll' in n]
+   self._waist_action_ids=[i for i,n in enumerate(names) if n.startswith('waist_')]
   if self._arm_action_ids:
    idx=torch.tensor(self._arm_action_ids,device=processed.device,dtype=torch.long)
    prior=s.command[:,self._joint_ids][:,idx]
-   blend=torch.where(calm,.92,.0)[:,None]
+   # Stronger prior lock once upright kneel / stand begins.
+   blend=torch.where(s.stage>=3,.95,torch.where(calm,.7,.0))[:,None]
    arm=processed[:,idx]
    processed=processed.clone();processed[:,idx]=blend*prior+(1-blend)*arm
+  # Wrists/grippers never free-style into the floor — stay on motor prior.
+  if self._distal_action_ids:
+   idx=torch.tensor(self._distal_action_ids,device=processed.device,dtype=torch.long)
+   prior=s.command[:,self._joint_ids][:,idx]
+   processed=processed.clone();processed[:,idx]=.97*prior+.03*processed[:,idx]
   # Keep feet from pigeon-toeing (內八): motor priors hold hip_roll at 0; damp PPO residuals.
   if self._hip_roll_action_ids:
    idx=torch.tensor(self._hip_roll_action_ids,device=processed.device,dtype=torch.long)
@@ -217,11 +243,16 @@ class ContactWheelVelocityAction(JointVelocityAction):
   # PPO adds a bounded residual to a physical balance prior. CubeMars applies torque/current limits.
   super().process_actions(actions)
   s=state(self._env)
-  # At kneel (stage 3) PPO often commanded ±8 rad/s ("轉圈"). Clamp hard there;
-  # keep full residuals for floor plant (0–2) and stand balance (4).
   residual=self._processed_actions
-  kneeling=s.stage==3
-  residual=torch.where(kneeling[:,None],residual.clamp(-1.5,1.5),residual)
+  # Kneel→stand must not spin the whole body: mute wheels at stage 3 entirely,
+  # and keep them muted during stage-4 sit-back preload before balance kicks in.
+  mute=(s.stage==3)|((s.stage==4)&s.stand_sit_back[s.mode]&(s.elapsed<s.stand_values[s.mode,11]))
+  residual=torch.where(mute[:,None],torch.zeros_like(residual),residual)
+  # Even after mute lifts, ban large left/right differentials that yaw-spin the base.
+  rising=(s.stage>=3)&(s.stage<=4)
+  if rising.any():
+   mean=residual.mean(-1,keepdim=True)
+   residual=torch.where(rising[:,None],mean+.15*(residual-mean),residual)
   self._processed_actions=(residual+balance_velocity(s).clamp(-25.,25.)[:,None]).clamp(-25.,25.)
 @configclass
 class ContactWheelVelocityActionCfg(JointVelocityActionCfg):
@@ -229,9 +260,9 @@ class ContactWheelVelocityActionCfg(JointVelocityActionCfg):
 
 def reward(env,kind):
  s=state(env);s.update();early=(s.stage<=2).float();sup=(s.mode==0).float();prone=(s.mode==1).float()
- arm=(s.arm_force/40).clamp(0,1).min(-1).values;wheels=(s.support_force[:,:2]/60).clamp(0,1).min(-1).values;rollers=(s.support_force[:,2:]/60).clamp(0,1).min(-1).values
- if kind=='approach':return early*(torch.exp(-s.hand_height.clamp(min=0)/.12).mean(-1)+(s.stage>=1).float()*torch.exp(-s.wheel_clearance/.12).mean(-1))
- if kind=='plant':return (s.stage==0).float()*arm*torch.where(s.mode==0,((s.shoulder.min(-1).values-1.5)/.5).clamp(0,1),1.)
+ elbow=(s.elbow_force/40).clamp(0,1).min(-1).values;wheels=(s.support_force[:,:2]/60).clamp(0,1).min(-1).values;rollers=(s.support_force[:,2:]/60).clamp(0,1).min(-1).values
+ if kind=='approach':return early*(torch.exp(-s.elbow_height.clamp(min=0)/.12).mean(-1)+(s.stage>=1).float()*torch.exp(-s.wheel_clearance/.12).mean(-1))
+ if kind=='plant':return (s.stage==0).float()*elbow*(1.-(s.distal_force/40).clamp(0,1).max(-1).values)*torch.where(s.mode==0,((s.shoulder.min(-1).values-1.5)/.5).clamp(0,1),1.)
  if kind=='wheel':return (s.stage>=1).float()*wheels
  if kind=='kneel':return (s.stage>=2).float()*wheels*rollers*s.upright.clamp(0,1)*s.torso_upright.clamp(0,1).square()*torch.exp(-((s.height-.46)/.15).square())
  if kind=='progress':return s.pulse/env.step_dt
@@ -241,18 +272,40 @@ def reward(env,kind):
  if kind=='stand':
   # Prefer a quiet upper body once standing; flailing arms no longer get a free ride.
   arm_speed=s.robot.data.joint_vel[:,s.arm_joint_ids].abs().mean(-1)
-  calm=torch.exp(-arm_speed/.8)*torch.exp(-(s.arm_force.max(-1).values.clamp(min=0)/40))
+  calm=torch.exp(-arm_speed/.5)*torch.exp(-(s.elbow_force.max(-1).values.clamp(min=0)/40))*torch.exp(-(s.distal_force.max(-1).values.clamp(min=0)/8))
   return s.knelt.float()*(s.stage==4).float()*wheels*s.upright.clamp(0,1)*torch.exp(-((s.height-.84)/.12).square())*torch.exp(-s.robot.data.root_lin_vel_w.square().sum(-1)/.25)*calm
  if kind=='arm_assist':
-  # Push / plant with the arms while getting up; stop rewarding contact once unloaded upright.
+  # Elbow-only push while getting up; never reward wrist/gripper floor jamming.
   rising=(s.stage<=2)|((s.stage==4)&(s.elapsed<(s.stand_values[s.mode,11]+s.stand_values[s.mode,5])))
-  return rising.float()*arm*torch.exp(-s.hand_height.clamp(min=0)/.18).mean(-1)
+  distal_pen=(1.-(s.distal_force/25).clamp(0,1).max(-1).values)
+  return rising.float()*elbow*distal_pen*torch.exp(-s.elbow_height.clamp(min=0)/.18).mean(-1)
  if kind=='arm_calm':
-  # Penalize unloaded-arm thrashing at upright kneel and after the stand rise.
+  # Penalize arm thrashing from supported-press through stand — force must stay steady.
   arm_speed=s.robot.data.joint_vel[:,s.arm_joint_ids].abs().mean(-1)
   residual=(s.robot.data.joint_pos[:,s.arm_joint_ids]-s.command[:,s.arm_joint_ids]).abs().mean(-1)
-  quiet_phase=((s.stage>=3)&(s.arm_force.max(-1).values<30)).float()
-  return quiet_phase*(arm_speed+1.5*residual)
+  quiet_phase=(s.stage>=2).float()
+  return quiet_phase*(arm_speed+2.*residual)
+ if kind=='gripper_floor':
+  # Grippers/wrists cracking on the floor: penalize distal contact + low distal height.
+  near_floor=(s.distal_height<.08).float()
+  return ((s.distal_force/20).clamp(0,2).mean(-1)+near_floor.mean(-1))*(s.stage<=4).float()
+ if kind=='waist_assist':
+  # Encourage waist pitch/roll to help torso upright during kneel→stand (not yaw spin).
+  rising=((s.stage>=2)&(s.stage<=4)).float()
+  waist_q=s.robot.data.joint_pos[:,s.waist_joint_ids]
+  waist_dq=s.robot.data.joint_vel[:,s.waist_joint_ids]
+  # Reward pitch toward upright (torso_upright rising) via waist pitch effort, not yaw thrash.
+  pitch_help=waist_dq[:,2].abs().clamp(0,2)*.5+(-waist_q[:,2]).clamp(0,1)*.5  # pitch index 2
+  roll_stable=torch.exp(-waist_q[:,1].abs()/.35)*torch.exp(-waist_dq[:,1].abs()/1.5)
+  yaw_quiet=torch.exp(-waist_q[:,0].abs()/.4)*torch.exp(-waist_dq[:,0].abs()/1.5)
+  return rising*s.torso_upright.clamp(0,1)*pitch_help*roll_stable*yaw_quiet
+ if kind=='yaw_spin':
+  # Whole-body spin from kneel→stand: penalize yaw rate + wheel L/R differential cmds.
+  rising=((s.stage>=3)&(s.stage<=4)).float()
+  yaw=s.robot.data.root_ang_vel_b[:,2].abs()
+  wheel_cmd=env.action_manager.get_term('wheel_vel').processed_actions
+  diff=(wheel_cmd[:,0]-wheel_cmd[:,1]).abs()
+  return rising*(yaw+0.05*diff)
  if kind=='motor':return torch.exp(-((s.robot.data.joint_pos[:,s.pos_ids]-s.command[:,s.pos_ids])/.6).square().mean(-1))
  if kind=='unsupported_supine':return sup*early*(~s.support.all(-1)).float()*(s.height-.18).clamp(min=0)*((1.8-s.shoulder.min(-1).values).clamp(min=0)+(~s.arms.any(-1)).float())
  if kind=='airborne_prone':return prone*s.face_down.float()*s.wheel_clearance.mean(-1)

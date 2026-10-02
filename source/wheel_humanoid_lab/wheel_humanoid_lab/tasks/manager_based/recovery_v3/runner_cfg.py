@@ -16,11 +16,11 @@ class Q1RecoveryV3PPORunnerCfg(Q1RecoveryPPORunnerCfg):
 @configclass
 class Q1RecoveryV3SupinePPORunnerCfg(Q1RecoveryV3PPORunnerCfg):
  experiment_name='q1_recovery_v3_supine'
- max_iterations=12000
+ max_iterations=15000
  save_interval=200
 
 @configclass
 class Q1RecoveryV3PronePPORunnerCfg(Q1RecoveryV3PPORunnerCfg):
  experiment_name='q1_recovery_v3_prone'
- max_iterations=12000
+ max_iterations=15000
  save_interval=200
