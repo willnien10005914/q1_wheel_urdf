@@ -116,12 +116,13 @@ class State:
   self.hand_height=(self.robot.data.body_pos_w[:,self.hand_body_ids,2]-e.scene.env_origins[:,None,2]).reshape(-1,2,3).min(-1).values
   # Stage-0 gate: hand plant (as before) OR prone foot/knee contact so wheels/rollers can advance.
   hand_ready=self.arms.all(-1)&((self.mode==1)|(self.shoulder.min(-1).values>1.8))
-  prone_leg= (self.mode==1)&self.support.any(-1)&(self.elapsed>.25)
-  supine_leg=(self.mode==0)&self.support[:,:2].any(-1)&(self.shoulder.min(-1).values>1.5)&(self.elapsed>.4)
-  arm_ready=hand_ready|prone_leg|supine_leg
+  prone_leg= (self.mode==1)&self.support.any(-1)&(self.elapsed>.2)
+  supine_leg=(self.mode==0)&self.support[:,:2].any(-1)&(self.shoulder.min(-1).values>1.5)&(self.elapsed>.3)
+  arm_ready=hand_ready|prone_leg|supine_leg|self.planted  # sticky once opened
   self.planted|=arm_ready
-  # Nominal kneel pelvis ~0.45; allow lower roller-loaded entries so PPO can learn the press-up.
-  kneel=self.support.all(-1)&(self.height>.26)&(self.height<.70)&(self.upright>.55)&(self.robot.data.root_lin_vel_w.norm(dim=-1)<.8)
+  # Nominal kneel pelvis ~0.45; accept roller+wheel partial contact while learning the press-up.
+  four=self.support.all(-1); rollers=self.support[:,2:].all(-1); wheels_any=self.support[:,:2].any(-1)
+  kneel=(four|(rollers&wheels_any))&(self.height>.24)&(self.height<.72)&(self.upright>.5)&(self.robot.data.root_lin_vel_w.norm(dim=-1)<1.0)
   stand=self.support[:,:2].all(-1)&(self.height>.72)&(self.upright>.9)&(self.torso_upright>.9)&(self.arm_force.max(-1).values<40)&(self.gripper_force.max(-1).values<12)&(self.robot.data.root_lin_vel_w.norm(dim=-1)<.5)
   upright_kneel=kneel&(self.torso_upright>.85)&(self.arm_force.max(-1).values<40)&(self.gripper_force.max(-1).values<12)
   self.upright_hold=torch.where(upright_kneel,self.upright_hold+dt,0.)
@@ -133,7 +134,7 @@ class State:
   self.stood|=(self.stand_hold>=1.)&self.knelt
   ready=torch.where(self.stage==0,arm_ready,torch.where(self.stage==1,self.support[:,:2].all(-1)|(self.support[:,2:].all(-1)&self.support[:,:2].any(-1)),torch.where(self.stage==2,(self.support.all(-1)&(self.height>.24))|(self.support[:,2:].all(-1)&(self.height>.22)&(self.upright>.45)),torch.where(self.stage==3,upright_kneel,stand))))
   self.hold=torch.where(ready,self.hold+dt,0.)
-  required_hold=torch.where(self.stage==3,self.stand_after,.35)
+  required_hold=torch.where(self.stage==3,self.stand_after,torch.where(self.stage<=1,.2,.3))
   # Finish the planned motor-prior blend before advancing. The old elapsed>=1.5 cut
   # 2 s transitions at ~75% completion and read as a sudden fast-forward on video.
   min_elapsed=self.duration[self.mode,self.stage]
@@ -299,18 +300,20 @@ def reward(env,kind):
   quiet_phase=((s.stage>=3)&(s.forearm_force.max(-1).values<30)).float()
   return quiet_phase*(arm_speed+1.5*residual)
  if kind=='gripper_floor':
-  # Tax gripper-tip load only (not wrist height — prone starts with hands near floor).
-  return (s.gripper_force/25).clamp(0,1.5).mean(-1)*(s.stage<=3).float()
+  # Tax gripper tip beyond forearm share — avoid punishing unavoidable brushes.
+  excess=(s.gripper_force-0.5*s.forearm_force).clamp(min=0)/20
+  return excess.clamp(0,1.5).mean(-1)*(s.stage<=3).float()
  if kind=='waist_assist':
   rising=((s.stage>=2)&(s.stage<=4)).float()
   wq=s.robot.data.joint_pos[:,s.waist_joint_ids]; wd=s.robot.data.joint_vel[:,s.waist_joint_ids]
   pitch_help=wd[:,2].abs().clamp(0,2)*.4+(-wq[:,2]).clamp(0,1)*.4
   return rising*s.torso_upright.clamp(0,1)*pitch_help*torch.exp(-wq[:,0].abs()/.5)
  if kind=='hip_drive':
-  # Reward hip_pitch effort while rising — keep AKE90 hips engaged (not locked to prior).
-  rising=((s.stage>=2)&(s.stage<=4)).float()
-  hq=s.robot.data.joint_pos[:,s.hip_pitch_ids]; hd=s.robot.data.joint_vel[:,s.hip_pitch_ids].abs().mean(-1)
-  return rising*hd.clamp(0,3)*.3*s.upright.clamp(0,1)
+  # Reward hip_pitch motion from wheel-plant onward — AKE90 hips drive the sit-up.
+  rising=((s.stage>=1)&(s.stage<=4)).float()
+  hd=s.robot.data.joint_vel[:,s.hip_pitch_ids].abs().mean(-1)
+  ht=(s.robot.data.joint_pos[:,s.hip_pitch_ids]-s.command[:,s.hip_pitch_ids]).abs().mean(-1)
+  return rising*(hd.clamp(0,3)*.4+ht.clamp(0,1)*.3)*(0.3+0.7*s.upright.clamp(0,1))
  if kind=='yaw_spin':
   rising=((s.stage>=3)&(s.stage<=4)).float()
   yaw=s.robot.data.root_ang_vel_b[:,2].abs()
