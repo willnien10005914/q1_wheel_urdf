@@ -13,11 +13,11 @@ Retrain independent 正躺 / 趴躺 PPOs with contact and spin constraints from 
 
 | Item | Value |
 |---|---|
-| `num_envs` | **4096** |
+| `num_envs` | **4096** supine / **6144** prone |
 | `max_iterations` | **15000** |
 | Order | **supine → prone** (serial on one GPU) |
 | Tasks | `Isaac-Q1-RecoveryV3-Supine-v0` / `…-Prone-v0` |
-| Run names | `v3_{supine,prone}_elbow_waist_4096envs_15000it` |
+| Run names | `v3_supine_elbow_waist_4096envs_15000it`, `v3_prone_elbow_waist_6144envs_15000it` |
 
 ## MDP changes (summary)
 
@@ -40,8 +40,8 @@ Obs adds `distal_force` (2) next to elbow force → **fresh train required** (ol
 # Smoke
 NUM_ENVS=64 MAX_ITERS=5 ./train_recovery_v3_supine.sh
 
-# Full sequential
-NUM_ENVS=4096 MAX_ITERS=15000 ./train_recovery_v3_sequential.sh
+# Full sequential (supine 4096 → prone 6144)
+NUM_ENVS=4096 PRONE_NUM_ENVS=6144 MAX_ITERS=15000 ./train_recovery_v3_sequential.sh
 ```
 
 Logs: `logs/train_recovery_v3_sequential_elbow_*.log`  
