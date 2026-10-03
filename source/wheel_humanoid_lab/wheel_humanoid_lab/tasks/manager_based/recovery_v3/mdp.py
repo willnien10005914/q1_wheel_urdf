@@ -54,9 +54,15 @@ class State:
   self.wheel_ids=self.robot.find_bodies(['l_wheel_link','r_wheel_link'],preserve_order=True)[0]
   # Elbows plant; wrist/gripper must not jam the floor (tracked separately for penalties).
   self.elbow_names=[f'{s}_elbow_link' for s in ['l','r']]
-  self.distal_names=[f'{s}_{p}_link' for s in ['l','r'] for p in ['wrist','gripper']]
+  self.wrist_names=[f'{s}_wrist_link' for s in ['l','r']]
+  self.gripper_names=[f'{s}_gripper_link' for s in ['l','r']]
+  self.forearm_names=self.elbow_names+self.wrist_names  # plant surface: elbow/forearm, not gripper tip
+  self.distal_names=self.wrist_names+self.gripper_names
   self.hand_names=self.elbow_names+self.distal_names
   self.elbow_ids=self.sensor.find_bodies(self.elbow_names,preserve_order=True)[0]
+  self.wrist_ids=self.sensor.find_bodies(self.wrist_names,preserve_order=True)[0]
+  self.gripper_ids=self.sensor.find_bodies(self.gripper_names,preserve_order=True)[0]
+  self.forearm_ids=self.sensor.find_bodies(self.forearm_names,preserve_order=True)[0]
   self.distal_ids=self.sensor.find_bodies(self.distal_names,preserve_order=True)[0]
   self.hand_ids=self.sensor.find_bodies(self.hand_names,preserve_order=True)[0]
   self.support_ids=self.sensor.find_bodies(['l_wheel_link','r_wheel_link','l_knee_roller_link','r_knee_roller_link'],preserve_order=True)[0]
@@ -67,6 +73,8 @@ class State:
   self.hip_pitch_ids=self.robot.find_joints(['l_hip_pitch_joint','r_hip_pitch_joint'],preserve_order=True)[0]
   self.filtered_force=torch.zeros_like(self.sensor.data.net_forces_w[:,:,2])
   self.elbow_body_ids=self.robot.find_bodies(self.elbow_names,preserve_order=True)[0]
+  self.forearm_body_ids=self.robot.find_bodies(self.forearm_names,preserve_order=True)[0]
+  self.gripper_body_ids=self.robot.find_bodies(self.gripper_names,preserve_order=True)[0]
   self.distal_body_ids=self.robot.find_bodies(self.distal_names,preserve_order=True)[0]
   self.hand_body_ids=self.robot.find_bodies(self.hand_names,preserve_order=True)[0]
   self.elapsed=torch.zeros(n,device=self.device);self.hold=self.elapsed.clone();self.kneel_hold=self.elapsed.clone();self.stand_hold=self.elapsed.clone()
@@ -87,10 +95,13 @@ class State:
   f=self.filtered_force
   self.support_force=f[:,self.support_ids]
   self.elbow_force=f[:,self.elbow_ids]
-  self.distal_force=f[:,self.distal_ids].reshape(-1,2,2).sum(-1)
-  # Plant/assist use elbows (not grippers). Obs keeps 2-D arm channel = elbows for 118-D compat.
-  self.arm_force=self.elbow_force
-  self.support=self.support_force>5.;self.arms=self.arm_force>5.;self.distal=self.distal_force>8.
+  self.wrist_force=f[:,self.wrist_ids]
+  self.gripper_force=f[:,self.gripper_ids]
+  # Forearm plant = elbow + wrist (physical contact often lands on forearm). Gripper tip excluded.
+  self.forearm_force=self.elbow_force+self.wrist_force
+  self.distal_force=self.wrist_force+self.gripper_force
+  self.arm_force=self.forearm_force  # 118-D obs arm channel
+  self.support=self.support_force>5.;self.arms=self.arm_force>5.;self.grippers=self.gripper_force>5.
   self.height=self.robot.data.root_pos_w[:,2]-e.scene.env_origins[:,2]
   self.upright=-self.robot.data.projected_gravity_b[:,2]
   quat=self.robot.data.body_quat_w[:,self.torso_body_id]
@@ -99,16 +110,16 @@ class State:
   self.shoulder=self.robot.data.joint_pos[:,self.shoulder_ids]
   self.wheel_clearance=(self.robot.data.body_pos_w[:,self.wheel_ids,2]-e.scene.env_origins[:,None,2]-.1).clamp(min=0)
   self.elbow_height=(self.robot.data.body_pos_w[:,self.elbow_body_ids,2]-e.scene.env_origins[:,None,2])
-  self.distal_height=(self.robot.data.body_pos_w[:,self.distal_body_ids,2]-e.scene.env_origins[:,None,2]).reshape(-1,2,2).min(-1).values
-  self.hand_height=self.elbow_height
-  # Elbow plant opens the stage gate; distal contact is taxed in rewards, not a hard plant ban
-  # (hard ban previously stuck every env at stage 0).
+  self.forearm_height=(self.robot.data.body_pos_w[:,self.forearm_body_ids,2]-e.scene.env_origins[:,None,2]).reshape(-1,2,2).min(-1).values
+  self.gripper_height=(self.robot.data.body_pos_w[:,self.gripper_body_ids,2]-e.scene.env_origins[:,None,2])
+  self.hand_height=self.forearm_height
+  # Plant when forearms load the floor (elbow/wrist). Grippers may brush but do not count.
   arm_ready=self.arms.all(-1)&((self.mode==1)|(self.shoulder.min(-1).values>1.8))
   self.planted|=arm_ready
   # Feet wheels + knee rollers still define kneel/stand (same as last standing policy).
   kneel=self.support.all(-1)&(self.height>.32)&(self.height<.65)&(self.upright>.7)&(self.robot.data.root_lin_vel_w.norm(dim=-1)<.6)
-  stand=self.support[:,:2].all(-1)&(self.height>.72)&(self.upright>.9)&(self.torso_upright>.9)&(self.arm_force.max(-1).values<35)&(self.distal_force.max(-1).values<12)&(self.robot.data.root_lin_vel_w.norm(dim=-1)<.5)
-  upright_kneel=kneel&(self.torso_upright>.85)&(self.arm_force.max(-1).values<35)&(self.distal_force.max(-1).values<12)
+  stand=self.support[:,:2].all(-1)&(self.height>.72)&(self.upright>.9)&(self.torso_upright>.9)&(self.arm_force.max(-1).values<40)&(self.gripper_force.max(-1).values<10)&(self.robot.data.root_lin_vel_w.norm(dim=-1)<.5)
+  upright_kneel=kneel&(self.torso_upright>.85)&(self.arm_force.max(-1).values<40)&(self.gripper_force.max(-1).values<10)
   self.upright_hold=torch.where(upright_kneel,self.upright_hold+dt,0.)
   self.upright_knelt|=self.upright_hold>=.5
   self.kneel_hold=torch.where(kneel,self.kneel_hold+dt,0.)
@@ -255,13 +266,13 @@ class ContactWheelVelocityActionCfg(JointVelocityActionCfg):
 
 def reward(env,kind):
  s=state(env);s.update();early=(s.stage<=2).float();sup=(s.mode==0).float();prone=(s.mode==1).float()
- elbow=(s.elbow_force/40).clamp(0,1).min(-1).values
- distal=(s.distal_force/25).clamp(0,1).max(-1).values
+ forearm=(s.forearm_force/40).clamp(0,1).min(-1).values
+ grip=(s.gripper_force/20).clamp(0,1).max(-1).values
  wheels=(s.support_force[:,:2]/60).clamp(0,1).min(-1).values
  rollers=(s.support_force[:,2:]/60).clamp(0,1).min(-1).values
- if kind=='approach':return early*(torch.exp(-s.elbow_height.clamp(min=0)/.12).mean(-1)+(s.stage>=1).float()*torch.exp(-s.wheel_clearance/.12).mean(-1))
- # Elbow plant preferred; soft distal discount (not a hard zero).
- if kind=='plant':return (s.stage==0).float()*elbow*(1.-.7*distal)*torch.where(s.mode==0,((s.shoulder.min(-1).values-1.5)/.5).clamp(0,1),1.)
+ if kind=='approach':return early*(torch.exp(-s.forearm_height.clamp(min=0)/.12).mean(-1)+(s.stage>=1).float()*torch.exp(-s.wheel_clearance/.12).mean(-1))
+ # Forearm (elbow/wrist) plant; lightly discount gripper tip loading.
+ if kind=='plant':return (s.stage==0).float()*forearm*(1.-.5*grip)*torch.where(s.mode==0,((s.shoulder.min(-1).values-1.5)/.5).clamp(0,1),1.)
  # Foot active wheels + knee passive rollers are first-class through kneel.
  if kind=='wheel':return (s.stage>=1).float()*wheels
  if kind=='kneel':return (s.stage>=2).float()*wheels*rollers*s.upright.clamp(0,1)*s.torso_upright.clamp(0,1).square()*torch.exp(-((s.height-.46)/.15).square())
@@ -271,19 +282,19 @@ def reward(env,kind):
   return (s.stage>=2).float()*wheels*(2*s.upright.clamp(0,1)+2*s.torso_upright.clamp(0,1)+torch.exp(-((s.height-.46)/.18).square())+torch.exp(-roller_z/.18).min(-1).values)
  if kind=='stand':
   arm_speed=s.robot.data.joint_vel[:,s.arm_joint_ids].abs().mean(-1)
-  calm=torch.exp(-arm_speed/.8)*torch.exp(-(s.elbow_force.max(-1).values.clamp(min=0)/40))*torch.exp(-(s.distal_force.max(-1).values.clamp(min=0)/12))
+  calm=torch.exp(-arm_speed/.8)*torch.exp(-(s.forearm_force.max(-1).values.clamp(min=0)/40))*torch.exp(-(s.gripper_force.max(-1).values.clamp(min=0)/10))
   return s.knelt.float()*(s.stage==4).float()*wheels*s.upright.clamp(0,1)*torch.exp(-((s.height-.84)/.12).square())*torch.exp(-s.robot.data.root_lin_vel_w.square().sum(-1)/.25)*calm
  if kind=='arm_assist':
   rising=(s.stage<=2)|((s.stage==4)&(s.elapsed<(s.stand_values[s.mode,11]+s.stand_values[s.mode,5])))
-  return rising.float()*elbow*(1.-.7*distal)*torch.exp(-s.elbow_height.clamp(min=0)/.18).mean(-1)
+  return rising.float()*forearm*(1.-.5*grip)*torch.exp(-s.forearm_height.clamp(min=0)/.18).mean(-1)
  if kind=='arm_calm':
   arm_speed=s.robot.data.joint_vel[:,s.arm_joint_ids].abs().mean(-1)
   residual=(s.robot.data.joint_pos[:,s.arm_joint_ids]-s.command[:,s.arm_joint_ids]).abs().mean(-1)
-  quiet_phase=((s.stage>=3)&(s.elbow_force.max(-1).values<30)).float()
+  quiet_phase=((s.stage>=3)&(s.forearm_force.max(-1).values<30)).float()
   return quiet_phase*(arm_speed+1.5*residual)
  if kind=='gripper_floor':
-  # Soft tax only — enough to prefer elbows, not enough to freeze stage-0 plant.
-  return ((s.distal_force/30).clamp(0,1.5).mean(-1)+0.5*(s.distal_height<.05).float().mean(-1))*(s.stage<=3).float()
+  # Tax gripper-tip load only (not wrist height — prone starts with hands near floor).
+  return (s.gripper_force/25).clamp(0,1.5).mean(-1)*(s.stage<=3).float()
  if kind=='waist_assist':
   rising=((s.stage>=2)&(s.stage<=4)).float()
   wq=s.robot.data.joint_pos[:,s.waist_joint_ids]; wd=s.robot.data.joint_vel[:,s.waist_joint_ids]
