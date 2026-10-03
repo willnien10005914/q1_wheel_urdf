@@ -7,6 +7,7 @@ from wheel_humanoid_lab.assets import Q1_POSITION_JOINTS,Q1_WHEEL_JOINTS
 from . import mdp
 @configclass
 class Actions(RecoveryActionsCfg):
+ # Foot active wheels stay fully available on stages 0–2 / 4; stage-3 residual clamped in mdp.
  wheel_vel=mdp.ContactWheelVelocityActionCfg(asset_name='robot',joint_names=Q1_WHEEL_JOINTS,preserve_order=True,scale=8.,clip={'.*_wheel_joint':(-8.,8.)})
  joint_pos=mdp.ContactPositionActionCfg(asset_name='robot',joint_names=Q1_POSITION_JOINTS,preserve_order=True,scale=1.,clip=None)
 @configclass
@@ -21,26 +22,25 @@ class Events(EventCfg):
 class Rewards:
  approach=Rew(func=mdp.reward,weight=1.,params={'kind':'approach'})
  arm_support=Rew(func=mdp.reward,weight=4.,params={'kind':'plant'})
- wheel_support=Rew(func=mdp.reward,weight=4.,params={'kind':'wheel'})
- kneel=Rew(func=mdp.reward,weight=8.,params={'kind':'kneel'})
+ # Emphasize foot wheels + knee rollers (same path as last standing policy).
+ wheel_support=Rew(func=mdp.reward,weight=5.,params={'kind':'wheel'})
+ kneel=Rew(func=mdp.reward,weight=9.,params={'kind':'kneel'})
  stage_progress=Rew(func=mdp.reward,weight=10.,params={'kind':'progress'})
- supported_lift=Rew(func=mdp.reward,weight=2.,params={'kind':'lift'})
- stand=Rew(func=mdp.reward,weight=10.,params={'kind':'stand'})
- # Elbow-only assist; grippers/wrists must not jam the floor.
- arm_assist=Rew(func=mdp.reward,weight=3.5,params={'kind':'arm_assist'})
- gripper_floor=Rew(func=mdp.reward,weight=-6.,params={'kind':'gripper_floor'})
- # Steady arms through kneel→stand (no shake).
- arm_calm=Rew(func=mdp.reward,weight=-4.,params={'kind':'arm_calm'})
- # Waist pitch helps torso rise; yaw spin from wheels is taxed separately.
- waist_assist=Rew(func=mdp.reward,weight=3.,params={'kind':'waist_assist'})
- yaw_spin=Rew(func=mdp.reward,weight=-4.,params={'kind':'yaw_spin'})
- motor_prior=Rew(func=mdp.reward,weight=.2,params={'kind':'motor'})
+ supported_lift=Rew(func=mdp.reward,weight=2.5,params={'kind':'lift'})
+ stand=Rew(func=mdp.reward,weight=12.,params={'kind':'stand'})
+ arm_assist=Rew(func=mdp.reward,weight=3.,params={'kind':'arm_assist'})
+ # Soft gripper tax (elbow preferred) — must not dominate plant.
+ gripper_floor=Rew(func=mdp.reward,weight=-2.5,params={'kind':'gripper_floor'})
+ arm_calm=Rew(func=mdp.reward,weight=-2.,params={'kind':'arm_calm'})
+ waist_assist=Rew(func=mdp.reward,weight=2.,params={'kind':'waist_assist'})
+ hip_drive=Rew(func=mdp.reward,weight=2.,params={'kind':'hip_drive'})
+ yaw_spin=Rew(func=mdp.reward,weight=-2.,params={'kind':'yaw_spin'})
+ motor_prior=Rew(func=mdp.reward,weight=.25,params={'kind':'motor'})
  unsupported_supine=Rew(func=mdp.reward,weight=-5.,params={'kind':'unsupported_supine'})
  airborne_prone=Rew(func=mdp.reward,weight=-4.,params={'kind':'airborne_prone'})
- # Soft L↔R foot spacing (self-collision is globally off) + anti-pigeon-toe.
  foot_apart=Rew(func=mdp.reward,weight=2.,params={'kind':'foot_apart'})
  hip_square=Rew(func=mdp.reward,weight=-3.,params={'kind':'hip_square'})
- action_rate=Rew(func=loco.action_rate_l2,weight=-.03)
+ action_rate=Rew(func=loco.action_rate_l2,weight=-.02)
  action_size=Rew(func=loco.action_l2,weight=-.01)
  torque=Rew(func=loco.joint_torques_l2,weight=-1.e-5)
  limits=Rew(func=loco.joint_pos_limits,weight=-1.)
@@ -62,7 +62,6 @@ class Q1RecoveryV3EnvCfg(Q1RecoveryEnvCfg):
  curriculum:Curriculum=Curriculum()
  def __post_init__(self):
   super().__post_init__();self.episode_length_s=40.;self.scene.env_spacing=5.
-  # Start with nominal mass/COM: motor electrical limits/delay/friction remain intact.
   self.events.body_mass=None;self.events.randomize_com=None
 @configclass
 class Q1RecoveryV3PlayCfg(Q1RecoveryV3EnvCfg):
@@ -75,10 +74,10 @@ class Q1RecoveryV3SupineEnvCfg(Q1RecoveryV3EnvCfg):
  def __post_init__(self):
   super().__post_init__()
   self.events.reset_reference.params={'mode':0}
-  # Smooth-arms mixed run stuck at kneel for supine; push stand harder relative to kneel.
   self.rewards.stand.weight=14.
-  self.rewards.kneel.weight=6.
+  self.rewards.kneel.weight=7.
   self.rewards.stage_progress.weight=12.
+  self.rewards.wheel_support.weight=5.5
   self.episode_length_s=45.
 
 @configclass
@@ -92,9 +91,9 @@ class Q1RecoveryV3ProneEnvCfg(Q1RecoveryV3EnvCfg):
  def __post_init__(self):
   super().__post_init__()
   self.events.reset_reference.params={'mode':1}
-  # Prone already stands well; keep stand pressure and emphasize clean foot spacing.
   self.rewards.stand.weight=12.
   self.rewards.foot_apart.weight=3.
+  self.rewards.wheel_support.weight=5.5
   self.episode_length_s=40.
 
 @configclass

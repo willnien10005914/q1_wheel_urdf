@@ -17,8 +17,8 @@ if [[ -z "$MODE_NAME" ]]; then
   esac
 fi
 case "$MODE_NAME" in
-  supine) TASK=Isaac-Q1-RecoveryV3-Supine-v0; DEFAULT_RUN=v3_supine_elbow_waist ;;
-  prone)  TASK=Isaac-Q1-RecoveryV3-Prone-v0;  DEFAULT_RUN=v3_prone_elbow_waist ;;
+  supine) TASK=Isaac-Q1-RecoveryV3-Supine-v0; DEFAULT_RUN=v3_supine_feet_elbow ;;
+  prone)  TASK=Isaac-Q1-RecoveryV3-Prone-v0;  DEFAULT_RUN=v3_prone_feet_elbow ;;
   *) echo "Unknown mode '$MODE_NAME'"; exit 1 ;;
 esac
 
@@ -31,8 +31,8 @@ export RECOVERY_MODE="$MODE_NAME"
 LAUNCH="${1:-headless}"
 if [[ "${1:-}" == "gui" || "${1:-}" == "headless" ]]; then shift || true; fi
 
-NUM_ENVS="${NUM_ENVS:-4096}"
-MAX_ITERS="${MAX_ITERS:-15000}"
+NUM_ENVS="${NUM_ENVS:-6144}"
+MAX_ITERS="${MAX_ITERS:-20000}"
 RUN_NAME="${RUN_NAME:-${DEFAULT_RUN}_${NUM_ENVS}envs_${MAX_ITERS}it}"
 
 echo "[INFO] Split recovery PPO: mode=$MODE_NAME task=$TASK envs=$NUM_ENVS iters=$MAX_ITERS run=$RUN_NAME"
