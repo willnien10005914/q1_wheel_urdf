@@ -97,10 +97,11 @@ class State:
   self.elbow_force=f[:,self.elbow_ids]
   self.wrist_force=f[:,self.wrist_ids]
   self.gripper_force=f[:,self.gripper_ids]
-  # Forearm plant = elbow + wrist (physical contact often lands on forearm). Gripper tip excluded.
   self.forearm_force=self.elbow_force+self.wrist_force
+  self.hand_force=f[:,self.hand_ids].reshape(-1,2,3).sum(-1)  # gate sensing (matches last standing policy)
   self.distal_force=self.wrist_force+self.gripper_force
-  self.arm_force=self.forearm_force  # 118-D obs arm channel
+  # Obs arm channel = full hand force (118-D layout of last standing run).
+  self.arm_force=self.hand_force
   self.support=self.support_force>5.;self.arms=self.arm_force>5.;self.grippers=self.gripper_force>5.
   self.height=self.robot.data.root_pos_w[:,2]-e.scene.env_origins[:,2]
   self.upright=-self.robot.data.projected_gravity_b[:,2]
@@ -112,14 +113,16 @@ class State:
   self.elbow_height=(self.robot.data.body_pos_w[:,self.elbow_body_ids,2]-e.scene.env_origins[:,None,2])
   self.forearm_height=(self.robot.data.body_pos_w[:,self.forearm_body_ids,2]-e.scene.env_origins[:,None,2]).reshape(-1,2,2).min(-1).values
   self.gripper_height=(self.robot.data.body_pos_w[:,self.gripper_body_ids,2]-e.scene.env_origins[:,None,2])
-  self.hand_height=self.forearm_height
-  # Plant when forearms load the floor (elbow/wrist). Grippers may brush but do not count.
-  arm_ready=self.arms.all(-1)&((self.mode==1)|(self.shoulder.min(-1).values>1.8))
+  self.hand_height=(self.robot.data.body_pos_w[:,self.hand_body_ids,2]-e.scene.env_origins[:,None,2]).reshape(-1,2,3).min(-1).values
+  # Stage-0 gate: hand plant (as before) OR prone foot/knee contact so wheels/rollers can advance.
+  hand_ready=self.arms.all(-1)&((self.mode==1)|(self.shoulder.min(-1).values>1.8))
+  prone_leg= (self.mode==1)&self.support.any(-1)&(self.elapsed>.25)
+  supine_leg=(self.mode==0)&self.support[:,:2].any(-1)&(self.shoulder.min(-1).values>1.5)&(self.elapsed>.4)
+  arm_ready=hand_ready|prone_leg|supine_leg
   self.planted|=arm_ready
-  # Feet wheels + knee rollers still define kneel/stand (same as last standing policy).
   kneel=self.support.all(-1)&(self.height>.32)&(self.height<.65)&(self.upright>.7)&(self.robot.data.root_lin_vel_w.norm(dim=-1)<.6)
-  stand=self.support[:,:2].all(-1)&(self.height>.72)&(self.upright>.9)&(self.torso_upright>.9)&(self.arm_force.max(-1).values<40)&(self.gripper_force.max(-1).values<10)&(self.robot.data.root_lin_vel_w.norm(dim=-1)<.5)
-  upright_kneel=kneel&(self.torso_upright>.85)&(self.arm_force.max(-1).values<40)&(self.gripper_force.max(-1).values<10)
+  stand=self.support[:,:2].all(-1)&(self.height>.72)&(self.upright>.9)&(self.torso_upright>.9)&(self.arm_force.max(-1).values<40)&(self.gripper_force.max(-1).values<12)&(self.robot.data.root_lin_vel_w.norm(dim=-1)<.5)
+  upright_kneel=kneel&(self.torso_upright>.85)&(self.arm_force.max(-1).values<40)&(self.gripper_force.max(-1).values<12)
   self.upright_hold=torch.where(upright_kneel,self.upright_hold+dt,0.)
   self.upright_knelt|=self.upright_hold>=.5
   self.kneel_hold=torch.where(kneel,self.kneel_hold+dt,0.)
@@ -127,7 +130,7 @@ class State:
   new_kneel=(self.kneel_hold>=.4)&(~self.knelt)
   self.knelt|=new_kneel;self.pulse+=new_kneel.float()*5
   self.stood|=(self.stand_hold>=1.)&self.knelt
-  ready=torch.where(self.stage==0,arm_ready,torch.where(self.stage==1,self.support[:,:2].all(-1)&self.arms.any(-1),torch.where(self.stage==2,self.support.all(-1)&(self.height>.30),torch.where(self.stage==3,upright_kneel,stand))))
+  ready=torch.where(self.stage==0,arm_ready,torch.where(self.stage==1,self.support[:,:2].all(-1)|(self.support[:,2:].all(-1)&self.support[:,:2].any(-1)),torch.where(self.stage==2,self.support.all(-1)&(self.height>.28),torch.where(self.stage==3,upright_kneel,stand))))
   self.hold=torch.where(ready,self.hold+dt,0.)
   required_hold=torch.where(self.stage==3,self.stand_after,.35)
   # Finish the planned motor-prior blend before advancing. The old elapsed>=1.5 cut
@@ -266,15 +269,16 @@ class ContactWheelVelocityActionCfg(JointVelocityActionCfg):
 
 def reward(env,kind):
  s=state(env);s.update();early=(s.stage<=2).float();sup=(s.mode==0).float();prone=(s.mode==1).float()
+ hand=(s.hand_force/40).clamp(0,1).min(-1).values
  forearm=(s.forearm_force/40).clamp(0,1).min(-1).values
  grip=(s.gripper_force/20).clamp(0,1).max(-1).values
  wheels=(s.support_force[:,:2]/60).clamp(0,1).min(-1).values
  rollers=(s.support_force[:,2:]/60).clamp(0,1).min(-1).values
- if kind=='approach':return early*(torch.exp(-s.forearm_height.clamp(min=0)/.12).mean(-1)+(s.stage>=1).float()*torch.exp(-s.wheel_clearance/.12).mean(-1))
- # Forearm (elbow/wrist) plant; lightly discount gripper tip loading.
- if kind=='plant':return (s.stage==0).float()*forearm*(1.-.5*grip)*torch.where(s.mode==0,((s.shoulder.min(-1).values-1.5)/.5).clamp(0,1),1.)
+ if kind=='approach':return early*(torch.exp(-s.hand_height.clamp(min=0)/.12).mean(-1)+(s.stage>=1).float()*torch.exp(-s.wheel_clearance/.12).mean(-1))
+ # Prefer forearm load; still count hand plant so stage can open like the last standing policy.
+ if kind=='plant':return (s.stage==0).float()*torch.maximum(forearm,hand*.6)*(1.-.6*grip)*torch.where(s.mode==0,((s.shoulder.min(-1).values-1.5)/.5).clamp(0,1),1.)
  # Foot active wheels + knee passive rollers are first-class through kneel.
- if kind=='wheel':return (s.stage>=1).float()*wheels
+ if kind=='wheel':return ((s.stage>=1).float()+0.35*(s.stage==0).float())*wheels + 0.5*(s.stage<=2).float()*rollers
  if kind=='kneel':return (s.stage>=2).float()*wheels*rollers*s.upright.clamp(0,1)*s.torso_upright.clamp(0,1).square()*torch.exp(-((s.height-.46)/.15).square())
  if kind=='progress':return s.pulse/env.step_dt
  if kind=='lift':
@@ -286,7 +290,7 @@ def reward(env,kind):
   return s.knelt.float()*(s.stage==4).float()*wheels*s.upright.clamp(0,1)*torch.exp(-((s.height-.84)/.12).square())*torch.exp(-s.robot.data.root_lin_vel_w.square().sum(-1)/.25)*calm
  if kind=='arm_assist':
   rising=(s.stage<=2)|((s.stage==4)&(s.elapsed<(s.stand_values[s.mode,11]+s.stand_values[s.mode,5])))
-  return rising.float()*forearm*(1.-.5*grip)*torch.exp(-s.forearm_height.clamp(min=0)/.18).mean(-1)
+  return rising.float()*torch.maximum(forearm,hand*.5)*(1.-.6*grip)*torch.exp(-s.hand_height.clamp(min=0)/.18).mean(-1)
  if kind=='arm_calm':
   arm_speed=s.robot.data.joint_vel[:,s.arm_joint_ids].abs().mean(-1)
   residual=(s.robot.data.joint_pos[:,s.arm_joint_ids]-s.command[:,s.arm_joint_ids]).abs().mean(-1)

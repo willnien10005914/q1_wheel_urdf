@@ -23,14 +23,14 @@ class Rewards:
  approach=Rew(func=mdp.reward,weight=1.,params={'kind':'approach'})
  arm_support=Rew(func=mdp.reward,weight=4.,params={'kind':'plant'})
  # Emphasize foot wheels + knee rollers (same path as last standing policy).
- wheel_support=Rew(func=mdp.reward,weight=5.,params={'kind':'wheel'})
- kneel=Rew(func=mdp.reward,weight=9.,params={'kind':'kneel'})
+ wheel_support=Rew(func=mdp.reward,weight=6.,params={'kind':'wheel'})
+ kneel=Rew(func=mdp.reward,weight=10.,params={'kind':'kneel'})
  stage_progress=Rew(func=mdp.reward,weight=10.,params={'kind':'progress'})
  supported_lift=Rew(func=mdp.reward,weight=2.5,params={'kind':'lift'})
  stand=Rew(func=mdp.reward,weight=12.,params={'kind':'stand'})
  arm_assist=Rew(func=mdp.reward,weight=3.,params={'kind':'arm_assist'})
  # Soft gripper tax (elbow preferred) — must not dominate plant.
- gripper_floor=Rew(func=mdp.reward,weight=-1.5,params={'kind':'gripper_floor'})
+ gripper_floor=Rew(func=mdp.reward,weight=-3.0,params={'kind':'gripper_floor'})
  arm_calm=Rew(func=mdp.reward,weight=-2.,params={'kind':'arm_calm'})
  waist_assist=Rew(func=mdp.reward,weight=2.,params={'kind':'waist_assist'})
  hip_drive=Rew(func=mdp.reward,weight=2.,params={'kind':'hip_drive'})
