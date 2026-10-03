@@ -1,21 +1,24 @@
-# Recovery restore: feet/knee/wheels/waist/hips + elbow-only plant
+# Recovery restore: feet/knee/wheels/waist/hips + elbow-preferential plant
 
-## What went wrong
-The previous elbow redesign hard-banned distal contact for plant and muted kneel
-wheels. Every env stayed at **stage 0** (no foot/knee roller usage).
+## Root cause
+Elbow-only hard plant + kneel wheel mute left every env at **stage 0**.
 
-## Restore goals
-1. Keep **foot active wheels + knee passive rollers + waist + hip_pitch (AKE90)** as in the last standing policy.
-2. Prefer **elbow** floor assist; soft-tax grippers/wrists (no hard plant ban).
-3. Kneel wheel residual **±1.5** (help plant, limit spin) — not zero.
-4. Small-batch probe until plant/kneel rates rise, then **6144 × 20000** supine → prone.
+## Fixes
+- Restore hand plant gate + **leg escape** (prone/supine) so foot wheels / knee rollers advance stages.
+- Kneel wheel residual **±1.5** (help, not spin).
+- Soft **gripper excess** tax (prefer forearm, don't freeze plant).
+- Sticky stage-0, shorter early blends, hip/waist/lift rewards.
 
-## Small-batch gate
-`MODE=prone NUM_ENVS=256 MAX_ITERS=150 ./tools/probe_recovery_small.sh`
+## Small-batch gates (512 envs × 600 iters)
 
-Pass if any of: `plant≥5%`, `kneel>0`, or `stage_cap≥4`.
+| Mode | Plant | Kneel | Stand | Cap |
+|------|------:|------:|------:|----:|
+| Prone (趴躺) | 99.8% | 80.2% | 79.1% | 4 |
+| Supine (正躺) | 99.5% | 95.8% | 35.0% | (rising) |
 
-## Large batch (only after pass)
+Supine stand still climbing at 600 iters; large batch should finish it.
+
+## Large batch
 ```bash
-NUM_ENVS=6144 MAX_ITERS=20000 PRONE_NUM_ENVS=6144 ./train_recovery_v3_sequential.sh
+NUM_ENVS=6144 PRONE_NUM_ENVS=6144 MAX_ITERS=20000 ./train_recovery_v3_sequential.sh
 ```
