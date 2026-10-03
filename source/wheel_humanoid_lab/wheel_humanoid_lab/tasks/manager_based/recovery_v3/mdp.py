@@ -120,7 +120,8 @@ class State:
   supine_leg=(self.mode==0)&self.support[:,:2].any(-1)&(self.shoulder.min(-1).values>1.5)&(self.elapsed>.4)
   arm_ready=hand_ready|prone_leg|supine_leg
   self.planted|=arm_ready
-  kneel=self.support.all(-1)&(self.height>.32)&(self.height<.65)&(self.upright>.7)&(self.robot.data.root_lin_vel_w.norm(dim=-1)<.6)
+  # Nominal kneel pelvis ~0.45; allow lower roller-loaded entries so PPO can learn the press-up.
+  kneel=self.support.all(-1)&(self.height>.26)&(self.height<.70)&(self.upright>.55)&(self.robot.data.root_lin_vel_w.norm(dim=-1)<.8)
   stand=self.support[:,:2].all(-1)&(self.height>.72)&(self.upright>.9)&(self.torso_upright>.9)&(self.arm_force.max(-1).values<40)&(self.gripper_force.max(-1).values<12)&(self.robot.data.root_lin_vel_w.norm(dim=-1)<.5)
   upright_kneel=kneel&(self.torso_upright>.85)&(self.arm_force.max(-1).values<40)&(self.gripper_force.max(-1).values<12)
   self.upright_hold=torch.where(upright_kneel,self.upright_hold+dt,0.)
@@ -130,7 +131,7 @@ class State:
   new_kneel=(self.kneel_hold>=.4)&(~self.knelt)
   self.knelt|=new_kneel;self.pulse+=new_kneel.float()*5
   self.stood|=(self.stand_hold>=1.)&self.knelt
-  ready=torch.where(self.stage==0,arm_ready,torch.where(self.stage==1,self.support[:,:2].all(-1)|(self.support[:,2:].all(-1)&self.support[:,:2].any(-1)),torch.where(self.stage==2,self.support.all(-1)&(self.height>.28),torch.where(self.stage==3,upright_kneel,stand))))
+  ready=torch.where(self.stage==0,arm_ready,torch.where(self.stage==1,self.support[:,:2].all(-1)|(self.support[:,2:].all(-1)&self.support[:,:2].any(-1)),torch.where(self.stage==2,(self.support.all(-1)&(self.height>.24))|(self.support[:,2:].all(-1)&(self.height>.22)&(self.upright>.45)),torch.where(self.stage==3,upright_kneel,stand))))
   self.hold=torch.where(ready,self.hold+dt,0.)
   required_hold=torch.where(self.stage==3,self.stand_after,.35)
   # Finish the planned motor-prior blend before advancing. The old elapsed>=1.5 cut
@@ -279,11 +280,12 @@ def reward(env,kind):
  if kind=='plant':return (s.stage==0).float()*torch.maximum(forearm,hand*.6)*(1.-.6*grip)*torch.where(s.mode==0,((s.shoulder.min(-1).values-1.5)/.5).clamp(0,1),1.)
  # Foot active wheels + knee passive rollers are first-class through kneel.
  if kind=='wheel':return ((s.stage>=1).float()+0.35*(s.stage==0).float())*wheels + 0.5*(s.stage<=2).float()*rollers
- if kind=='kneel':return (s.stage>=2).float()*wheels*rollers*s.upright.clamp(0,1)*s.torso_upright.clamp(0,1).square()*torch.exp(-((s.height-.46)/.15).square())
+ if kind=='kneel':return (s.stage>=2).float()*wheels*rollers*s.upright.clamp(0,1)*s.torso_upright.clamp(0,1).square()*torch.exp(-((s.height-.42)/.18).square())
  if kind=='progress':return s.pulse/env.step_dt
  if kind=='lift':
   roller_z=(s.robot.data.body_pos_w[:,s.roller_body_ids,2]-env.scene.env_origins[:,None,2]).clamp(min=0)
-  return (s.stage>=2).float()*wheels*(2*s.upright.clamp(0,1)+2*s.torso_upright.clamp(0,1)+torch.exp(-((s.height-.46)/.18).square())+torch.exp(-roller_z/.18).min(-1).values)
+  # Press with wheels+rollers while lifting pelvis; hip/waist drive helps height.
+  return (s.stage>=2).float()*(0.5*wheels+0.5*rollers)*(2.5*s.upright.clamp(0,1)+2*s.torso_upright.clamp(0,1)+torch.exp(-((s.height-.42)/.2).square())+torch.exp(-roller_z/.2).min(-1).values)
  if kind=='stand':
   arm_speed=s.robot.data.joint_vel[:,s.arm_joint_ids].abs().mean(-1)
   calm=torch.exp(-arm_speed/.8)*torch.exp(-(s.forearm_force.max(-1).values.clamp(min=0)/40))*torch.exp(-(s.gripper_force.max(-1).values.clamp(min=0)/10))
