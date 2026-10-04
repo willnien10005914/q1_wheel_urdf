@@ -214,8 +214,8 @@ class ContactPositionAction(JointPositionAction):
   bias=torch.atanh(((s.command[:,self._joint_ids]-mid)/half).clamp(-.98,.98))
   # From kneel onward, keep arms near motor prior (reduces shake that also blocks
   # stand success which requires arm_force < 30). Early floor stages stay free.
-  calm=(s.stage>=3)|s.knelt
-  gain=torch.where(calm,.1,.65)[:,None]
+  calm=s.stage>=3
+  gain=torch.where(calm,.15,.65)[:,None]
   processed=mid+half*torch.tanh(gain*actions+bias)
   if not hasattr(self,'_arm_action_ids'):
    ids=self._joint_ids.tolist() if torch.is_tensor(self._joint_ids) else list(self._joint_ids)
