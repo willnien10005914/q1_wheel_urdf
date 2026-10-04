@@ -32,8 +32,8 @@ class Rewards:
  arm_assist=Rew(func=mdp.reward,weight=3.,params={'kind':'arm_assist'})
  # Soft gripper tax (elbow preferred) — must not dominate plant.
  gripper_floor=Rew(func=mdp.reward,weight=-1.2,params={'kind':'gripper_floor'})
- post_kneel_arm_floor=Rew(func=mdp.reward,weight=-8.,params={'kind':'post_kneel_arm_floor'})
- arm_calm=Rew(func=mdp.reward,weight=-3.,params={'kind':'arm_calm'})
+ post_kneel_arm_floor=Rew(func=mdp.reward,weight=-14.,params={'kind':'post_kneel_arm_floor'})
+ arm_calm=Rew(func=mdp.reward,weight=-6.,params={'kind':'arm_calm'})
  waist_assist=Rew(func=mdp.reward,weight=3.,params={'kind':'waist_assist'})
  hip_drive=Rew(func=mdp.reward,weight=4.,params={'kind':'hip_drive'})
  yaw_spin=Rew(func=mdp.reward,weight=-2.,params={'kind':'yaw_spin'})

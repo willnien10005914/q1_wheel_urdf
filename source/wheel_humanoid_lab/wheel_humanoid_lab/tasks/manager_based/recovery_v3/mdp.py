@@ -212,10 +212,10 @@ class ContactPositionAction(JointPositionAction):
   # Full soft-limit range remains reachable. Zero action follows contact-stage priors.
   lim=self._asset.data.soft_joint_pos_limits[:,self._joint_ids];mid=lim.mean(-1);half=(lim[:,:,1]-lim[:,:,0])/2
   bias=torch.atanh(((s.command[:,self._joint_ids]-mid)/half).clamp(-.98,.98))
-  # From kneel onward, keep arms near motor prior (reduces shake that also blocks
-  # stand success which requires arm_force < 30). Early floor stages stay free.
+  # From kneel onward: hard-park arms (no PPO flail / gripper re-touch).
+  # Early floor stages stay free for elbow plant only.
   calm=s.stage>=3
-  gain=torch.where(calm,.15,.65)[:,None]
+  gain=torch.where(calm,.05,.65)[:,None]
   processed=mid+half*torch.tanh(gain*actions+bias)
   if not hasattr(self,'_arm_action_ids'):
    ids=self._joint_ids.tolist() if torch.is_tensor(self._joint_ids) else list(self._joint_ids)
@@ -227,14 +227,15 @@ class ContactPositionAction(JointPositionAction):
   if self._arm_action_ids:
    idx=torch.tensor(self._arm_action_ids,device=processed.device,dtype=torch.long)
    prior=s.command[:,self._joint_ids][:,idx]
-   blend=torch.where(calm,.96,.0)[:,None]
+   blend=torch.where(calm,.99,.0)[:,None]
    arm=processed[:,idx]
    processed=processed.clone();processed[:,idx]=blend*prior+(1-blend)*arm
-  # Wrists/grippers stay on motor prior — elbows do the floor work.
+  # Wrists/grippers fully parked after kneel — never re-touch the floor.
   if self._distal_action_ids:
    idx=torch.tensor(self._distal_action_ids,device=processed.device,dtype=torch.long)
    prior=s.command[:,self._joint_ids][:,idx]
-   processed=processed.clone();processed[:,idx]=.97*prior+.03*processed[:,idx]
+   blend=torch.where(calm,.995,.97)[:,None]
+   processed=processed.clone();processed[:,idx]=blend*prior+(1.-blend)*processed[:,idx]
   # Keep feet from pigeon-toeing (內八): motor priors hold hip_roll at 0; damp PPO residuals.
   # hip_pitch is intentionally NOT damped — AKE90 hips must drive the sit-up.
   if self._hip_roll_action_ids:
@@ -316,9 +317,9 @@ def reward(env,kind):
  if kind=='post_kneel_arm_floor':
   # Ban elbow/wrist/gripper re-touch after kneel — rise/stand on wheels (+ rollers) only.
   after=((s.stage>=3)|s.knelt).float()
-  load=(s.forearm_force/15).clamp(0,2).mean(-1)+(s.gripper_force/10).clamp(0,2).mean(-1)
-  low=((s.forearm_height<.08).float().mean(-1)+(s.gripper_height<.06).float().mean(-1))
-  return after*(load+0.5*low)
+  load=(s.forearm_force/10).clamp(0,2.5).mean(-1)+(s.gripper_force/6).clamp(0,2.5).mean(-1)
+  low=((s.forearm_height<.10).float().mean(-1)+(s.gripper_height<.08).float().mean(-1))
+  return after*(load+low)
  if kind=='waist_assist':
   rising=((s.stage>=2)&(s.stage<=4)).float()
   wq=s.robot.data.joint_pos[:,s.waist_joint_ids]; wd=s.robot.data.joint_vel[:,s.waist_joint_ids]
