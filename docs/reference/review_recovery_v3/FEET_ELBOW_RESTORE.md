@@ -1,24 +1,14 @@
 # Recovery restore: feet/knee/wheels/waist/hips + elbow-preferential plant
 
-## Root cause
-Elbow-only hard plant + kneel wheel mute left every env at **stage 0**.
+## Supine 6144×20k (done)
+- Peak stand **79% at iter 8000** → collapsed to **34%** by kneel+lift farming.
+- Eval 16 envs: peak **12/16 stood**, final **0/16** (stage-3 kneel).
+- Videos: [peak8000](https://gofile.io/d/46SQWJMx) · [final19999](https://gofile.io/d/clJljFUy)
+- Deploy ckpt: `checkpoints/q1_recovery_v3_supine_ppo.pt` (= peak8000)
 
-## Fixes
-- Restore hand plant gate + **leg escape** (prone/supine) so foot wheels / knee rollers advance stages.
-- Kneel wheel residual **±1.5** (help, not spin).
-- Soft **gripper excess** tax (prefer forearm, don't freeze plant).
-- Sticky stage-0, shorter early blends, hip/waist/lift rewards.
+## Anti-farm fix (for prone + future)
+- Fade kneel after latch; cut lift once knelt
+- `kneel_linger` penalty; higher stand weight
 
-## Small-batch gates (512 envs × 600 iters)
-
-| Mode | Plant | Kneel | Stand | Cap |
-|------|------:|------:|------:|----:|
-| Prone (趴躺) | 99.8% | 80.2% | 79.1% | 4 |
-| Supine (正躺) | 99.5% | 95.8% | 35.0% | (rising) |
-
-Supine stand still climbing at 600 iters; large batch should finish it.
-
-## Large batch
-```bash
-NUM_ENVS=6144 PRONE_NUM_ENVS=6144 MAX_ITERS=20000 ./train_recovery_v3_sequential.sh
-```
+## Prone
+Restarted `6144 × 20000` with anti-farm rewards after aborting the ~66-iter early start.
