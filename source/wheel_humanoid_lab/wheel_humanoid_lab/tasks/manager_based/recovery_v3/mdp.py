@@ -281,16 +281,25 @@ def reward(env,kind):
  if kind=='plant':return (s.stage==0).float()*torch.maximum(forearm,hand*.6)*(1.-.6*grip)*torch.where(s.mode==0,((s.shoulder.min(-1).values-1.5)/.5).clamp(0,1),1.)
  # Foot active wheels + knee passive rollers are first-class through kneel.
  if kind=='wheel':return ((s.stage>=1).float()+0.35*(s.stage==0).float())*wheels + 0.5*(s.stage<=2).float()*rollers
- if kind=='kneel':return (s.stage>=2).float()*wheels*rollers*s.upright.clamp(0,1)*s.torso_upright.clamp(0,1).square()*torch.exp(-((s.height-.42)/.18).square())
+ # Kneel is a waypoint, not a farm: fade after kneel latch so stand must pay.
+ if kind=='kneel':
+  base=(s.stage>=2).float()*wheels*rollers*s.upright.clamp(0,1)*s.torso_upright.clamp(0,1).square()*torch.exp(-((s.height-.42)/.18).square())
+  fade=(s.kneel_hold/3.).clamp(0,1)*s.knelt.float()
+  return base*(1.-.9*fade)
  if kind=='progress':return s.pulse/env.step_dt
  if kind=='lift':
   roller_z=(s.robot.data.body_pos_w[:,s.roller_body_ids,2]-env.scene.env_origins[:,None,2]).clamp(min=0)
-  # Press with wheels+rollers while lifting pelvis; hip/waist drive helps height.
-  return (s.stage>=2).float()*(0.5*wheels+0.5*rollers)*(2.5*s.upright.clamp(0,1)+2*s.torso_upright.clamp(0,1)+torch.exp(-((s.height-.42)/.2).square())+torch.exp(-roller_z/.2).min(-1).values)
+  # Press-up only until kneel latched; do not farm lift forever at kneel.
+  base=(0.5*wheels+0.5*rollers)*(2.5*s.upright.clamp(0,1)+2*s.torso_upright.clamp(0,1)+torch.exp(-((s.height-.42)/.2).square())+torch.exp(-roller_z/.2).min(-1).values)
+  return (s.stage>=2).float()*(~s.knelt).float()*base
  if kind=='stand':
   arm_speed=s.robot.data.joint_vel[:,s.arm_joint_ids].abs().mean(-1)
   calm=torch.exp(-arm_speed/.8)*torch.exp(-(s.forearm_force.max(-1).values.clamp(min=0)/40))*torch.exp(-(s.gripper_force.max(-1).values.clamp(min=0)/10))
+  # Dense stand + one-shot pulse when stand latch fires (via progress already).
   return s.knelt.float()*(s.stage==4).float()*wheels*s.upright.clamp(0,1)*torch.exp(-((s.height-.84)/.12).square())*torch.exp(-s.robot.data.root_lin_vel_w.square().sum(-1)/.25)*calm
+ if kind=='kneel_linger':
+  # Tax holding kneel without standing — closes the farm that collapsed supine stand after ~8k.
+  return s.knelt.float()*(~s.stood).float()*(s.stage>=3).float()*(s.kneel_hold/4.).clamp(0,2)
  if kind=='arm_assist':
   rising=(s.stage<=2)|((s.stage==4)&(s.elapsed<(s.stand_values[s.mode,11]+s.stand_values[s.mode,5])))
   return rising.float()*torch.maximum(forearm,hand*.5)*(1.-.6*grip)*torch.exp(-s.hand_height.clamp(min=0)/.18).mean(-1)
@@ -309,8 +318,8 @@ def reward(env,kind):
   pitch_help=wd[:,2].abs().clamp(0,2)*.4+(-wq[:,2]).clamp(0,1)*.4
   return rising*s.torso_upright.clamp(0,1)*pitch_help*torch.exp(-wq[:,0].abs()/.5)
  if kind=='hip_drive':
-  # Reward hip_pitch motion from wheel-plant onward — AKE90 hips drive the sit-up.
-  rising=((s.stage>=1)&(s.stage<=4)).float()
+  # Hip drive through rise; cut once stood so it cannot substitute for stand reward.
+  rising=((s.stage>=1)&(s.stage<=4)&(~s.stood)).float()
   hd=s.robot.data.joint_vel[:,s.hip_pitch_ids].abs().mean(-1)
   ht=(s.robot.data.joint_pos[:,s.hip_pitch_ids]-s.command[:,s.hip_pitch_ids]).abs().mean(-1)
   return rising*(hd.clamp(0,3)*.4+ht.clamp(0,1)*.3)*(0.3+0.7*s.upright.clamp(0,1))

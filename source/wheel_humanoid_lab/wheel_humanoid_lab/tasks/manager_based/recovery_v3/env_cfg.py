@@ -24,10 +24,11 @@ class Rewards:
  arm_support=Rew(func=mdp.reward,weight=4.,params={'kind':'plant'})
  # Emphasize foot wheels + knee rollers (same path as last standing policy).
  wheel_support=Rew(func=mdp.reward,weight=6.,params={'kind':'wheel'})
- kneel=Rew(func=mdp.reward,weight=12.,params={'kind':'kneel'})
+ kneel=Rew(func=mdp.reward,weight=6.,params={'kind':'kneel'})
  stage_progress=Rew(func=mdp.reward,weight=12.,params={'kind':'progress'})
- supported_lift=Rew(func=mdp.reward,weight=5.,params={'kind':'lift'})
- stand=Rew(func=mdp.reward,weight=12.,params={'kind':'stand'})
+ supported_lift=Rew(func=mdp.reward,weight=3.,params={'kind':'lift'})
+ stand=Rew(func=mdp.reward,weight=16.,params={'kind':'stand'})
+ kneel_linger=Rew(func=mdp.reward,weight=-5.,params={'kind':'kneel_linger'})
  arm_assist=Rew(func=mdp.reward,weight=3.,params={'kind':'arm_assist'})
  # Soft gripper tax (elbow preferred) — must not dominate plant.
  gripper_floor=Rew(func=mdp.reward,weight=-1.2,params={'kind':'gripper_floor'})
@@ -74,8 +75,9 @@ class Q1RecoveryV3SupineEnvCfg(Q1RecoveryV3EnvCfg):
  def __post_init__(self):
   super().__post_init__()
   self.events.reset_reference.params={'mode':0}
-  self.rewards.stand.weight=14.
-  self.rewards.kneel.weight=7.
+  self.rewards.stand.weight=18.
+  self.rewards.kneel.weight=5.
+  self.rewards.kneel_linger.weight=-6.
   self.rewards.stage_progress.weight=12.
   self.rewards.wheel_support.weight=5.5
   self.episode_length_s=45.
@@ -91,7 +93,9 @@ class Q1RecoveryV3ProneEnvCfg(Q1RecoveryV3EnvCfg):
  def __post_init__(self):
   super().__post_init__()
   self.events.reset_reference.params={'mode':1}
-  self.rewards.stand.weight=12.
+  self.rewards.stand.weight=16.
+  self.rewards.kneel.weight=5.
+  self.rewards.kneel_linger.weight=-5.
   self.rewards.foot_apart.weight=3.
   self.rewards.wheel_support.weight=5.5
   self.episode_length_s=40.
