@@ -25,7 +25,9 @@ elif a.mode=='prone':
  cfg=Q1RecoveryV3PronePlayCfg(); task_id='Isaac-Q1-RecoveryV3-Prone-Play-v0'
 else:
  cfg=Q1RecoveryV3PlayCfg(); task_id='Isaac-Q1-RecoveryV3-Play-v0'
-cfg.seed=a.seed;cfg.scene.num_envs=a.num_envs or (2 if a.mode=='both' else 1);cfg.scene.env_spacing=5.
+cfg.seed=a.seed;cfg.scene.num_envs=a.num_envs or (2 if a.mode=='both' else 1)
+# Wide spacing for video so neighbors stay out of frame (single-robot look).
+cfg.scene.env_spacing=40. if a.video else 5.
 cfg.events.reset_reference.params['mode']=-1 if a.mode=='both' else ['supine','prone'].index(a.mode)
 cfg.viewer.origin_type='env';cfg.viewer.env_index=int(a.video_env_index);cfg.viewer.eye=(2.8,-3.2,2.);cfg.viewer.lookat=(0,0,.5)
 env=gym.make(task_id,cfg=cfg,render_mode='rgb_array' if a.video else None)
