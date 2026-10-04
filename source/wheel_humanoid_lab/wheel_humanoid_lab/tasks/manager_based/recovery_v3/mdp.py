@@ -123,10 +123,9 @@ class State:
   # Nominal kneel pelvis ~0.45; accept roller+wheel partial contact while learning the press-up.
   four=self.support.all(-1); rollers=self.support[:,2:].all(-1); wheels_any=self.support[:,:2].any(-1)
   kneel=(four|(rollers&wheels_any))&(self.height>.24)&(self.height<.72)&(self.upright>.5)&(self.robot.data.root_lin_vel_w.norm(dim=-1)<1.0)
-  # After kneel: elbows/hands must leave the floor (elbow assist only pre-kneel).
-  arms_clear=(self.forearm_force.max(-1).values<8)&(self.gripper_force.max(-1).values<5)
-  stand=self.support[:,:2].all(-1)&(self.height>.72)&(self.upright>.9)&(self.torso_upright>.9)&arms_clear&(self.robot.data.root_lin_vel_w.norm(dim=-1)<.5)
-  upright_kneel=kneel&(self.torso_upright>.85)&arms_clear
+  # Stage gates stay reachable; post_kneel_arm_floor reward bans elbow re-touch after kneel.
+  stand=self.support[:,:2].all(-1)&(self.height>.72)&(self.upright>.9)&(self.torso_upright>.9)&(self.arm_force.max(-1).values<40)&(self.gripper_force.max(-1).values<12)&(self.robot.data.root_lin_vel_w.norm(dim=-1)<.5)
+  upright_kneel=kneel&(self.torso_upright>.85)&(self.arm_force.max(-1).values<40)&(self.gripper_force.max(-1).values<12)
   self.upright_hold=torch.where(upright_kneel,self.upright_hold+dt,0.)
   self.upright_knelt|=self.upright_hold>=.5
   self.kneel_hold=torch.where(kneel,self.kneel_hold+dt,0.)
