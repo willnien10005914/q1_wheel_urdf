@@ -123,8 +123,10 @@ class State:
   # Nominal kneel pelvis ~0.45; accept roller+wheel partial contact while learning the press-up.
   four=self.support.all(-1); rollers=self.support[:,2:].all(-1); wheels_any=self.support[:,:2].any(-1)
   kneel=(four|(rollers&wheels_any))&(self.height>.24)&(self.height<.72)&(self.upright>.5)&(self.robot.data.root_lin_vel_w.norm(dim=-1)<1.0)
-  stand=self.support[:,:2].all(-1)&(self.height>.72)&(self.upright>.9)&(self.torso_upright>.9)&(self.arm_force.max(-1).values<40)&(self.gripper_force.max(-1).values<12)&(self.robot.data.root_lin_vel_w.norm(dim=-1)<.5)
-  upright_kneel=kneel&(self.torso_upright>.85)&(self.arm_force.max(-1).values<40)&(self.gripper_force.max(-1).values<12)
+  # After kneel: elbows/hands must leave the floor (elbow assist only pre-kneel).
+  arms_clear=(self.forearm_force.max(-1).values<8)&(self.gripper_force.max(-1).values<5)
+  stand=self.support[:,:2].all(-1)&(self.height>.72)&(self.upright>.9)&(self.torso_upright>.9)&arms_clear&(self.robot.data.root_lin_vel_w.norm(dim=-1)<.5)
+  upright_kneel=kneel&(self.torso_upright>.85)&arms_clear
   self.upright_hold=torch.where(upright_kneel,self.upright_hold+dt,0.)
   self.upright_knelt|=self.upright_hold>=.5
   self.kneel_hold=torch.where(kneel,self.kneel_hold+dt,0.)
@@ -213,8 +215,8 @@ class ContactPositionAction(JointPositionAction):
   bias=torch.atanh(((s.command[:,self._joint_ids]-mid)/half).clamp(-.98,.98))
   # From kneel onward, keep arms near motor prior (reduces shake that also blocks
   # stand success which requires arm_force < 30). Early floor stages stay free.
-  calm=s.stage>=3
-  gain=torch.where(calm,.15,.65)[:,None]
+  calm=(s.stage>=3)|s.knelt
+  gain=torch.where(calm,.1,.65)[:,None]
   processed=mid+half*torch.tanh(gain*actions+bias)
   if not hasattr(self,'_arm_action_ids'):
    ids=self._joint_ids.tolist() if torch.is_tensor(self._joint_ids) else list(self._joint_ids)
@@ -226,7 +228,7 @@ class ContactPositionAction(JointPositionAction):
   if self._arm_action_ids:
    idx=torch.tensor(self._arm_action_ids,device=processed.device,dtype=torch.long)
    prior=s.command[:,self._joint_ids][:,idx]
-   blend=torch.where(calm,.92,.0)[:,None]
+   blend=torch.where(calm,.96,.0)[:,None]
    arm=processed[:,idx]
    processed=processed.clone();processed[:,idx]=blend*prior+(1-blend)*arm
   # Wrists/grippers stay on motor prior — elbows do the floor work.
@@ -301,17 +303,23 @@ def reward(env,kind):
   # Tax holding kneel without standing — closes the farm that collapsed supine stand after ~8k.
   return s.knelt.float()*(~s.stood).float()*(s.stage>=3).float()*(s.kneel_hold/4.).clamp(0,2)
  if kind=='arm_assist':
-  rising=(s.stage<=2)|((s.stage==4)&(s.elapsed<(s.stand_values[s.mode,11]+s.stand_values[s.mode,5])))
-  return rising.float()*torch.maximum(forearm,hand*.5)*(1.-.6*grip)*torch.exp(-s.hand_height.clamp(min=0)/.18).mean(-1)
+  # Elbow/forearm plant ONLY before kneel (stages 0–2). Post-kneel arm floor is illegal.
+  return (s.stage<=2).float()*torch.maximum(forearm,hand*.5)*(1.-.6*grip)*torch.exp(-s.hand_height.clamp(min=0)/.18).mean(-1)
  if kind=='arm_calm':
   arm_speed=s.robot.data.joint_vel[:,s.arm_joint_ids].abs().mean(-1)
   residual=(s.robot.data.joint_pos[:,s.arm_joint_ids]-s.command[:,s.arm_joint_ids]).abs().mean(-1)
-  quiet_phase=((s.stage>=3)&(s.forearm_force.max(-1).values<30)).float()
+  quiet_phase=((s.stage>=3)|s.knelt).float()
   return quiet_phase*(arm_speed+1.5*residual)
  if kind=='gripper_floor':
-  # Tax gripper tip beyond forearm share — avoid punishing unavoidable brushes.
+  # Pre-kneel: tax gripper tip excess. Post-kneel handled by post_kneel_arm_floor.
   excess=(s.gripper_force-0.5*s.forearm_force).clamp(min=0)/20
-  return excess.clamp(0,1.5).mean(-1)*(s.stage<=3).float()
+  return excess.clamp(0,1.5).mean(-1)*(s.stage<=2).float()
+ if kind=='post_kneel_arm_floor':
+  # Ban elbow/wrist/gripper re-touch after kneel — rise/stand on wheels (+ rollers) only.
+  after=((s.stage>=3)|s.knelt).float()
+  load=(s.forearm_force/15).clamp(0,2).mean(-1)+(s.gripper_force/10).clamp(0,2).mean(-1)
+  low=((s.forearm_height<.08).float().mean(-1)+(s.gripper_height<.06).float().mean(-1))
+  return after*(load+0.5*low)
  if kind=='waist_assist':
   rising=((s.stage>=2)&(s.stage<=4)).float()
   wq=s.robot.data.joint_pos[:,s.waist_joint_ids]; wd=s.robot.data.joint_vel[:,s.waist_joint_ids]

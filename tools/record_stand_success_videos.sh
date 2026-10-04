@@ -57,8 +57,9 @@ record_one() {
   local out="docs/reference/review_recovery_v3/live_${mode}"
   mkdir -p "$out"
   echo "=== VIDEO $mode seed=$seed stop_hold=${STOP_HOLD}s ==="
+  # Always 1 env for demos (single robot in frame).
   bash evaluate_recovery_v3.sh --checkpoint "$ckpt" --mode "$mode" --seed "$seed" \
-    --video --steps "$STEPS_VIDEO" \
+    --num_envs 1 --video --steps "$STEPS_VIDEO" \
     --stop-after-stand-s "$STOP_HOLD" --tail-after-stand-s "$TAIL_S" \
     --out "$out"
   local mp4="$out/recovery_eval_${mode}.mp4"
