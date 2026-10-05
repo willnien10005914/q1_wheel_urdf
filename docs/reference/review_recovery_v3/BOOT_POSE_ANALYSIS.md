@@ -41,3 +41,16 @@ NUM_ENVS=4096 MAX_ITERS=5000 RUN_NAME=v3_boot_kneel_full ./train_recovery_v3_boo
 ```
 
 Gate: stand reward > 0 and `supine_kneel_then_stand_success` rising (boot mode reports under supine_* diagnostics because it reuses mode=0 sit-back stand priors).
+
+## Probe result (2026-10-05)
+
+Run: `v3_boot_kneel_probe_256e_500it` → `logs/rsl_rl/q1_recovery_v3_boot_kneel/2026-10-05_18-28-15_v3_boot_kneel_probe_256e_500it`  
+Stable ckpt: `checkpoints/q1_recovery_v3_boot_kneel_ppo.pt`
+
+| Iter | Stand reward | Cumulative kneel→stand |
+|------|--------------|------------------------|
+| ~100 | ~8–12 | **~0.79** |
+| ~300 | ~13–16 | **~0.83** |
+| **499 (final)** | — | **0.836** |
+
+Gate **passed**. Scaled next: `4096×5000` full boot-kneel train (single mode only).
