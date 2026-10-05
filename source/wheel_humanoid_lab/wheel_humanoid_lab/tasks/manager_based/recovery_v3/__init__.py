@@ -7,6 +7,8 @@ _TASKS = [
  ('-Supine-Play', 'Q1RecoveryV3SupinePlayCfg', 'Q1RecoveryV3SupinePPORunnerCfg'),
  ('-Prone', 'Q1RecoveryV3ProneEnvCfg', 'Q1RecoveryV3PronePPORunnerCfg'),
  ('-Prone-Play', 'Q1RecoveryV3PronePlayCfg', 'Q1RecoveryV3PronePPORunnerCfg'),
+ ('-BootKneel', 'Q1RecoveryV3BootKneelEnvCfg', 'Q1RecoveryV3BootKneelPPORunnerCfg'),
+ ('-BootKneel-Play', 'Q1RecoveryV3BootKneelPlayCfg', 'Q1RecoveryV3BootKneelPPORunnerCfg'),
 ]
 for suffix, env_cfg, runner_cfg in _TASKS:
  gym.register(

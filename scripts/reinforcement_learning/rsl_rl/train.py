@@ -97,6 +97,8 @@ torch.backends.cudnn.benchmark = False
 
 def _stable_checkpoint_name(task: str) -> str:
     """Per-task stable checkpoint filename so tasks never clobber each other."""
+    if "Q1-RecoveryV3-BootKneel" in task:
+        return "q1_recovery_v3_boot_kneel_ppo.pt"
     if "Q1-RecoveryV3-Supine" in task:
         return "q1_recovery_v3_supine_ppo.pt"
     if "Q1-RecoveryV3-Prone" in task:

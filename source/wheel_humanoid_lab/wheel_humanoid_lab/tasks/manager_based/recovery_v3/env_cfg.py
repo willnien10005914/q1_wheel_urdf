@@ -105,3 +105,36 @@ class Q1RecoveryV3ProneEnvCfg(Q1RecoveryV3EnvCfg):
 class Q1RecoveryV3PronePlayCfg(Q1RecoveryV3ProneEnvCfg):
  def __post_init__(self):
   super().__post_init__();self.scene.num_envs=1;self.observations.policy.enable_corruption=False
+
+@configclass
+class Q1RecoveryV3BootKneelEnvCfg(Q1RecoveryV3EnvCfg):
+ """Operator-assisted kneel → stand only (no gripper / no floor plant).
+
+ Product path: store/unbox prone (power button on back) → human sits robot into
+ kneel with wheels+rollers planted and arms parked off floor → policy rises.
+ """
+ def __post_init__(self):
+  super().__post_init__()
+  self.events.reset_reference.params={'mode':0,'boot_kneel':True}
+  # Floor plant terms are irrelevant; focus budget on kneel→stand.
+  self.rewards.approach.weight=0.
+  self.rewards.arm_support.weight=0.
+  self.rewards.arm_assist.weight=0.
+  self.rewards.unsupported_supine.weight=0.
+  self.rewards.airborne_prone.weight=0.
+  self.rewards.gripper_floor.weight=0.
+  self.rewards.kneel.weight=2.
+  self.rewards.kneel_linger.weight=-8.
+  self.rewards.stand.weight=22.
+  self.rewards.stage_progress.weight=10.
+  self.rewards.hip_drive.weight=5.
+  self.rewards.waist_assist.weight=4.
+  self.rewards.post_kneel_arm_floor.weight=-16.
+  self.rewards.arm_calm.weight=-8.
+  self.rewards.wheel_support.weight=6.
+  self.episode_length_s=25.
+
+@configclass
+class Q1RecoveryV3BootKneelPlayCfg(Q1RecoveryV3BootKneelEnvCfg):
+ def __post_init__(self):
+  super().__post_init__();self.scene.num_envs=1;self.observations.policy.enable_corruption=False

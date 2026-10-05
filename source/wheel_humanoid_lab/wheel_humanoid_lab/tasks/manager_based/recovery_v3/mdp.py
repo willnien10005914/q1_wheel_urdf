@@ -9,6 +9,9 @@ from isaaclab.envs.mdp.actions.joint_actions import JointPositionAction, JointVe
 from isaaclab.envs.mdp.actions.actions_cfg import JointPositionActionCfg, JointVelocityActionCfg
 from wheel_humanoid_lab import WHEEL_HUMANOID_ROOT_DIR
 from wheel_humanoid_lab.assets import Q1_POSITION_JOINTS
+from wheel_humanoid_lab.assets.wheel_humanoid import (
+ KNEEL_PELVIS_Z,KNEEL_HIP_PITCH,KNEEL_KNEE,KNEEL_WAIST_PITCH,
+)
 
 class State:
  def __init__(self,env):
@@ -48,6 +51,22 @@ class State:
   self.upright_captured=self.upright_active.clone();self.upright_knelt=self.upright_active.clone()
   self.upright_age=torch.zeros(n,device=self.device);self.upright_hold=self.upright_age.clone()
   self.upright_start=self.held_command.clone();self.upright_command=self.held_command.clone()
+  # Operator-assisted boot: human sits robot into kneel (wheels+rollers), arms parked off floor.
+  # Policy only learns kneel→stand — no gripper plant needed.
+  names=self.robot.joint_names
+  bq=torch.zeros(len(names),device=self.device)
+  for side in ['l','r']:
+   bq[names.index(f'{side}_hip_pitch_joint')]=KNEEL_HIP_PITCH
+   bq[names.index(f'{side}_knee_joint')]=KNEEL_KNEE
+   bq[names.index(f'{side}_knee_roller_joint')]=0.444444*KNEEL_KNEE
+   bq[names.index(f'{side}_shoulder_pitch_joint')]=0.35
+   bq[names.index(f'{side}_shoulder_roll_joint')]=(0.25 if side=='l' else -0.25)
+   bq[names.index(f'{side}_elbow_joint')]=-1.1
+  bq[names.index('waist_pitch_joint')]=KNEEL_WAIST_PITCH
+  self.boot_kneel_q=bq
+  # Upright pelvis at kneel height (wxyz identity ≈ torso up for this URDF).
+  self.boot_kneel_root=torch.tensor([0.,0.,KNEEL_PELVIS_Z,1.,0.,0.,0.],device=self.device)
+  self.boot_assist=torch.zeros(n,dtype=torch.bool,device=self.device)
   self.mode=torch.arange(n,device=self.device)%2;self.stage=torch.zeros(n,dtype=torch.long,device=self.device)
   self.pos_ids=self.robot.find_joints(Q1_POSITION_JOINTS,preserve_order=True)[0]
   self.shoulder_ids=self.robot.find_joints(['l_shoulder_pitch_joint','r_shoulder_pitch_joint'],preserve_order=True)[0]
@@ -128,17 +147,23 @@ class State:
   upright_kneel=kneel&(self.torso_upright>.85)&(self.arm_force.max(-1).values<40)&(self.gripper_force.max(-1).values<12)
   self.upright_hold=torch.where(upright_kneel,self.upright_hold+dt,0.)
   self.upright_knelt|=self.upright_hold>=.5
-  self.kneel_hold=torch.where(kneel,self.kneel_hold+dt,0.)
+  # Assisted boot: do not zero kneel_hold while settling into roller+wheel contact.
+  assist_hold=self.boot_assist&(self.stage==3)&(self.height>.20)
+  self.kneel_hold=torch.where(kneel|assist_hold,torch.where(kneel,self.kneel_hold+dt,self.kneel_hold),0.)
   self.stand_hold=torch.where(stand,self.stand_hold+dt,0.)
   new_kneel=(self.kneel_hold>=.4)&(~self.knelt)
   self.knelt|=new_kneel;self.pulse+=new_kneel.float()*5
   self.stood|=(self.stand_hold>=1.)&self.knelt
-  ready=torch.where(self.stage==0,arm_ready,torch.where(self.stage==1,self.support[:,:2].all(-1)|(self.support[:,2:].all(-1)&self.support[:,:2].any(-1)),torch.where(self.stage==2,(self.support.all(-1)&(self.height>.24))|(self.support[:,2:].all(-1)&(self.height>.22)&(self.upright>.45)),torch.where(self.stage==3,upright_kneel,stand))))
+  # boot_assist already starts at upright kneel — treat as ready for stage-3 hold.
+  stage3_ready=upright_kneel|(self.boot_assist&(self.stage==3)&(self.upright>.5)&(self.height>.24)&(self.support[:,2:].all(-1)|self.support[:,:2].any(-1)))
+  ready=torch.where(self.stage==0,arm_ready,torch.where(self.stage==1,self.support[:,:2].all(-1)|(self.support[:,2:].all(-1)&self.support[:,:2].any(-1)),torch.where(self.stage==2,(self.support.all(-1)&(self.height>.24))|(self.support[:,2:].all(-1)&(self.height>.22)&(self.upright>.45)),torch.where(self.stage==3,stage3_ready,stand))))
   self.hold=torch.where(ready,self.hold+dt,0.)
   required_hold=torch.where(self.stage==3,self.stand_after,torch.where(self.stage<=1,.2,.3))
   # Finish the planned motor-prior blend before advancing. The old elapsed>=1.5 cut
   # 2 s transitions at ~75% completion and read as a sudden fast-forward on video.
   min_elapsed=self.duration[self.mode,self.stage]
+  # Assisted boot skips floor stages; allow earlier stand advance once physically ready.
+  min_elapsed=torch.where(self.boot_assist&(self.stage==3),torch.full_like(min_elapsed,.8),min_elapsed)
   advance=(self.hold>=required_hold)&(self.elapsed>=min_elapsed)&(self.stage<self.cap)
   advance&=(self.stage<3)|self.stand_allowed[self.mode]
   # Keep the first stage transition grounded. Never advance merely because a timer expired.
@@ -187,19 +212,34 @@ def state(env):
  if not hasattr(env,'_recovery_v3'):env._recovery_v3=State(env)
  return env._recovery_v3
 
-def reset(env,env_ids,mode=-1):
+def reset(env,env_ids,mode=-1,boot_kneel=False):
  s=state(env)
  if env_ids is None:env_ids=torch.arange(env.num_envs,device=env.device)
+ # Boot-kneel is a single upright-kneel mode (reuse supine stand/sit-back priors).
+ if boot_kneel:mode=0
  s.mode[env_ids]=env_ids%2 if mode<0 else mode
+ s.boot_assist[env_ids]=bool(boot_kneel)
  s.upright_active[env_ids]=False;s.upright_captured[env_ids]=False;s.upright_knelt[env_ids]=False;s.upright_age[env_ids]=0.;s.upright_hold[env_ids]=0.;s.upright_command[env_ids]=0.
  s.transfer_held[env_ids]=False;s.held_command[env_ids]=0.
- s.stage[env_ids]=0;s.elapsed[env_ids]=0;s.hold[env_ids]=0;s.kneel_hold[env_ids]=0;s.stand_hold[env_ids]=0;s.knelt[env_ids]=False;s.stood[env_ids]=False;s.planted[env_ids]=False
- q=s.initial_q[s.mode[env_ids]];root=s.initial_root[s.mode[env_ids]].clone();root[:,:3]+=env.scene.env_origins[env_ids];root[:,2]+=.02
- s.start_q[env_ids]=q;s.command[env_ids]=q
+ s.elapsed[env_ids]=0;s.hold[env_ids]=0;s.stand_hold[env_ids]=0;s.stood[env_ids]=False
+ if boot_kneel:
+  # Assisted boot: already in kneel with arms parked — skip floor plant entirely.
+  # Real product path: unbox prone (power on back) → human sits into kneel → policy kneel→stand.
+  s.stage[env_ids]=3;s.knelt[env_ids]=True;s.planted[env_ids]=True;s.kneel_hold[env_ids]=1.
+  s.upright_knelt[env_ids]=True;s.cap=4;s.stand_allowed[:]=True
+  q=s.boot_kneel_q.unsqueeze(0).expand(len(env_ids),-1).clone()
+  root=s.boot_kneel_root.unsqueeze(0).expand(len(env_ids),-1).clone()
+  root[:,:3]+=env.scene.env_origins[env_ids];root[:,2]+=.01
+  s.start_q[env_ids]=q;s.command[env_ids]=q;s.held_command[env_ids]=q;s.transfer_held[env_ids]=True
+  # Begin upright transfer immediately so PPO only residual-corrects kneel→stand.
+  s.upright_start[env_ids]=q;s.upright_command[env_ids]=q;s.upright_active[env_ids]=True
+ else:
+  s.stage[env_ids]=0;s.knelt[env_ids]=False;s.planted[env_ids]=False;s.kneel_hold[env_ids]=0
+  q=s.initial_q[s.mode[env_ids]];root=s.initial_root[s.mode[env_ids]].clone();root[:,:3]+=env.scene.env_origins[env_ids];root[:,2]+=.02
+  s.start_q[env_ids]=q;s.command[env_ids]=q
  s.robot.write_joint_state_to_sim(q,torch.zeros_like(q),env_ids=env_ids)
  s.robot.write_root_pose_to_sim(root,env_ids=env_ids)
  s.robot.write_root_velocity_to_sim(torch.zeros((len(env_ids),6),device=env.device),env_ids=env_ids)
- # Clear derived values through next observation update, including initial reset at step 0.
  s.filtered_force[env_ids]=0.;s.dirty=True
 
 def observation(env):

@@ -24,3 +24,9 @@ class Q1RecoveryV3PronePPORunnerCfg(Q1RecoveryV3PPORunnerCfg):
  experiment_name='q1_recovery_v3_prone'
  max_iterations=20000
  save_interval=200
+
+@configclass
+class Q1RecoveryV3BootKneelPPORunnerCfg(Q1RecoveryV3PPORunnerCfg):
+ experiment_name='q1_recovery_v3_boot_kneel'
+ max_iterations=5000
+ save_interval=100
