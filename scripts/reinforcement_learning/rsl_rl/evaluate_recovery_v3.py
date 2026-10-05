@@ -4,18 +4,18 @@ Default emits telemetry only. Cursor can enable --video and run each mode separa
 import argparse,json,os,hashlib
 from pathlib import Path
 from isaaclab.app import AppLauncher
-p=argparse.ArgumentParser();p.add_argument('--checkpoint');p.add_argument('--out',required=True);p.add_argument('--mode',choices=['both','supine','prone'],default='both');p.add_argument('--steps',type=int,default=1499);p.add_argument('--video',action='store_true');p.add_argument('--num_envs',type=int,default=0);p.add_argument('--hold-kneel',action='store_true');p.add_argument('--record-stride',type=int,default=5);p.add_argument('--seed',type=int,default=42);p.add_argument('--stop-after-stand-s',type=float,default=0.0,help='If >0, stop once kneel_then_stand and stand_hold >= this many seconds');p.add_argument('--tail-after-stand-s',type=float,default=1.5,help='Extra seconds to keep recording after stand success before stopping');p.add_argument('--video-env-index',type=int,default=0,help='Camera / stop-gate env index (use with --num_envs to film a standing parallel env)');p.add_argument('--auto-video-stand-env',action='store_true',help='If set with --video and --num_envs>1, retarget camera to the first env that reaches stand success')
+p=argparse.ArgumentParser();p.add_argument('--checkpoint');p.add_argument('--out',required=True);p.add_argument('--mode',choices=['both','supine','prone','boot_kneel'],default='both');p.add_argument('--steps',type=int,default=1499);p.add_argument('--video',action='store_true');p.add_argument('--num_envs',type=int,default=0);p.add_argument('--hold-kneel',action='store_true');p.add_argument('--record-stride',type=int,default=5);p.add_argument('--seed',type=int,default=42);p.add_argument('--stop-after-stand-s',type=float,default=0.0,help='If >0, stop once kneel_then_stand and stand_hold >= this many seconds');p.add_argument('--tail-after-stand-s',type=float,default=1.5,help='Extra seconds to keep recording after stand success before stopping');p.add_argument('--video-env-index',type=int,default=0,help='Camera / stop-gate env index (use with --num_envs to film a standing parallel env)');p.add_argument('--auto-video-stand-env',action='store_true',help='If set with --video and --num_envs>1, retarget camera to the first env that reaches stand success')
 AppLauncher.add_app_launcher_args(p);a=p.parse_args();a.enable_cameras=a.video;app=AppLauncher(a).app
 import torch,gymnasium as gym
 from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper
 from rsl_rl.runners import OnPolicyRunner
 import wheel_humanoid_lab.tasks
 from wheel_humanoid_lab.tasks.manager_based.recovery_v3.env_cfg import (
- Q1RecoveryV3PlayCfg,Q1RecoveryV3SupinePlayCfg,Q1RecoveryV3PronePlayCfg,
+ Q1RecoveryV3PlayCfg,Q1RecoveryV3SupinePlayCfg,Q1RecoveryV3PronePlayCfg,Q1RecoveryV3BootKneelPlayCfg,
 )
 from wheel_humanoid_lab.tasks.manager_based.recovery_v3.runner_cfg import Q1RecoveryV3PPORunnerCfg
 from wheel_humanoid_lab.tasks.manager_based.recovery_v3.mdp import state
-if a.video and a.mode=='both':raise ValueError('Record each mode separately: --mode supine or --mode prone')
+if a.video and a.mode=='both':raise ValueError('Record each mode separately: --mode supine|prone|boot_kneel')
 if a.video and a.num_envs>1 and not (a.auto_video_stand_env or a.video_env_index>0):
  raise ValueError('Multi-env video needs --video-env-index N or --auto-video-stand-env')
 O=Path(a.out);O.mkdir(parents=True,exist_ok=True)
@@ -23,12 +23,17 @@ if a.mode=='supine':
  cfg=Q1RecoveryV3SupinePlayCfg(); task_id='Isaac-Q1-RecoveryV3-Supine-Play-v0'
 elif a.mode=='prone':
  cfg=Q1RecoveryV3PronePlayCfg(); task_id='Isaac-Q1-RecoveryV3-Prone-Play-v0'
+elif a.mode=='boot_kneel':
+ cfg=Q1RecoveryV3BootKneelPlayCfg(); task_id='Isaac-Q1-RecoveryV3-BootKneel-Play-v0'
 else:
  cfg=Q1RecoveryV3PlayCfg(); task_id='Isaac-Q1-RecoveryV3-Play-v0'
 cfg.seed=a.seed;cfg.scene.num_envs=a.num_envs or (2 if a.mode=='both' else 1)
 # Wide spacing for video so neighbors stay out of frame (single-robot look).
 cfg.scene.env_spacing=40. if a.video else 5.
-cfg.events.reset_reference.params['mode']=-1 if a.mode=='both' else ['supine','prone'].index(a.mode)
+if a.mode=='boot_kneel':
+ cfg.events.reset_reference.params={'mode':0,'boot_kneel':True}
+else:
+ cfg.events.reset_reference.params['mode']=-1 if a.mode=='both' else ['supine','prone'].index(a.mode)
 cfg.viewer.origin_type='env';cfg.viewer.env_index=int(a.video_env_index);cfg.viewer.eye=(2.8,-3.2,2.);cfg.viewer.lookat=(0,0,.5)
 env=gym.make(task_id,cfg=cfg,render_mode='rgb_array' if a.video else None)
 if a.video:env=gym.wrappers.RecordVideo(env,video_folder=str(O),name_prefix='recovery_eval_'+a.mode,step_trigger=lambda step:step==0,video_length=a.steps,disable_logger=True)
@@ -43,6 +48,9 @@ if a.checkpoint:
   agent_cfg=_RC()
  elif a.mode=='prone':
   from wheel_humanoid_lab.tasks.manager_based.recovery_v3.runner_cfg import Q1RecoveryV3PronePPORunnerCfg as _RC
+  agent_cfg=_RC()
+ elif a.mode=='boot_kneel':
+  from wheel_humanoid_lab.tasks.manager_based.recovery_v3.runner_cfg import Q1RecoveryV3BootKneelPPORunnerCfg as _RC
   agent_cfg=_RC()
  ver=_pkg_version('rsl-rl-lib')
  handle_deprecated_rsl_rl_cfg(agent_cfg, ver)
