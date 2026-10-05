@@ -54,3 +54,10 @@ Stable ckpt: `checkpoints/q1_recovery_v3_boot_kneel_ppo.pt`
 | **499 (final)** | — | **0.836** |
 
 Gate **passed**. Scaled next: `4096×5000` full boot-kneel train (single mode only).
+
+## Full train + demo (2026-10-05)
+
+- Run: `v3_boot_kneel_full_4096e_5k` → final cumulative kneel→stand **0.943**
+- Ckpt: `checkpoints/q1_recovery_v3_boot_kneel_ppo.pt` (= `model_4999.pt`)
+- Demo (1 env, stop after stand ~4.8s): https://gofile.io/d/bAjDlQFs  
+  Local: `docs/reference/review_recovery_v3/live_boot_kneel/recovery_eval_boot_kneel.mp4`
