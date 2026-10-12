@@ -3,7 +3,7 @@
 export function actionStatus(action, state) {
   const pose = state.pose;
   if (action === "kneel") return ["prepare_kneel", "kneeling"].includes(pose) ? "執行中" : pose === "kneel" ? "已跪穩" : "";
-  if (action === "unbox") return pose === "unbox" ? "執行中" : pose === "unbox_hold" ? "已站穩" : "";
+  if (action === "unbox") return pose === "prepare_unbox" ? "準備中" : pose === "unbox" ? "執行中" : pose === "unbox_hold" ? "已站穩" : "";
   if (action === "backflip") return pose === "prepare_backflip" ? "準備中" : pose === "backflip" ? (state.backflip?.success ? "已完成" : "執行中") : "";
   if (["skate", "slide"].includes(action)) return pose === action ? "執行中" : "";
   if (action.startsWith("recovery_")) return pose === action ? "執行中" : "";
@@ -19,7 +19,7 @@ export function updateActionButtons(state = {}, root = document) {
     const unavailable = action === "backflip" ? !state.policies?.backflip
       : action === "unbox" ? state.policies?.unbox === false
       : action.startsWith("recovery_") ? !state.policies?.[action.slice(9)] : false;
-    button.disabled = pending || unavailable;
+    button.disabled = pending || unavailable || (running && !["skate", "slide"].includes(action));
     button.dataset.actionState = status;
     button.classList.remove("active-pose");
     button.classList.toggle("action-running", running);

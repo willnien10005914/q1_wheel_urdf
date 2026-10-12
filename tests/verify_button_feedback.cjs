@@ -26,6 +26,7 @@ const out=process.env.Q1_UI_TEST_OUTPUT || '/tmp/q1_button_feedback';fs.mkdirSyn
  await unbox.click();expect(await unbox.evaluate(b=>b.classList.contains('press-feedback')),'Unbox has no press feedback');
  await page.waitForFunction(()=>document.querySelector('#pose-unbox').dataset.actionState==='執行中');
  expect(await unbox.getAttribute('aria-busy')==='true','Unbox executing state missing');
+ expect(await unbox.isDisabled(),'Running one-shot action must reject duplicate clicks');
  await page.screenshot({path:out+'/executing.png'});
  state={...state,pose:'unbox_hold'};await page.waitForFunction(()=>document.querySelector('#pose-unbox').dataset.actionState==='已站穩');
  await page.mouse.move(20,200);await page.waitForTimeout(400);
@@ -36,6 +37,7 @@ const out=process.env.Q1_UI_TEST_OUTPUT || '/tmp/q1_button_feedback';fs.mkdirSyn
  state={...state,pose:'stand',manual_control_available:true};await page.waitForTimeout(100);
  const preset=page.locator('[data-preset=tpose]');await preset.click();expect(await preset.evaluate(b=>b.classList.contains('press-feedback')),'Preset button uses different click feedback');
  const release=page.locator('#follow-all');await release.click();expect(await release.evaluate(b=>b.classList.contains('press-feedback')),'Toolbar button uses different click feedback');
+ state={...state,pose:'prepare_unbox'};await page.waitForFunction(()=>document.querySelector('#pose-unbox').dataset.actionState==='準備中');
  state={...state,pose:'prepare_backflip'};await page.waitForFunction(()=>document.querySelector('#pose-backflip').dataset.actionState==='準備中');
  state={...state,pose:'backflip',backflip:{success:true}};await page.waitForFunction(()=>document.querySelector('#pose-backflip').dataset.actionState==='已完成');
  expect(await page.locator('#pose-backflip').getAttribute('aria-busy')==='false','Completed backflip still busy');

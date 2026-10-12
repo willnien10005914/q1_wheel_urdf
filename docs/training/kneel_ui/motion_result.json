@@ -1,0 +1,208 @@
+{
+  "seed": 4107,
+  "envs_per_case": 4,
+  "contact_threshold_N": 5,
+  "cases": [
+    {
+      "case": "idle",
+      "accepted": true,
+      "final_mode": "kneel",
+      "steps": 182,
+      "no_foot_current_frames": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "no_foot_history_frames": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "max_root_rise_m": [
+        -0.0002835392951965332,
+        -0.0005326271057128906,
+        -0.0005196928977966309,
+        -0.0002689957618713379
+      ],
+      "final_height_m": [
+        0.4050239324569702,
+        0.4048200249671936,
+        0.40102919936180115,
+        0.4023406505584717
+      ],
+      "final_upright": [
+        0.9956960678100586,
+        0.9950798153877258,
+        0.990561306476593,
+        0.9938907027244568
+      ],
+      "final_feet": [
+        [
+          true,
+          true
+        ],
+        [
+          true,
+          true
+        ],
+        [
+          true,
+          true
+        ],
+        [
+          true,
+          true
+        ]
+      ],
+      "final_rollers": [
+        [
+          true,
+          true
+        ],
+        [
+          true,
+          true
+        ],
+        [
+          true,
+          true
+        ],
+        [
+          true,
+          true
+        ]
+      ]
+    },
+    {
+      "case": "skate",
+      "accepted": true,
+      "final_mode": "kneel",
+      "steps": 102,
+      "no_foot_current_frames": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "no_foot_history_frames": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "max_root_rise_m": [
+        -0.0010426044464111328,
+        -0.0008292794227600098,
+        -0.0007821321487426758,
+        -0.0009696483612060547
+      ],
+      "final_height_m": [
+        0.440279096364975,
+        0.4435504674911499,
+        0.43915173411369324,
+        0.44025903940200806
+      ],
+      "final_upright": [
+        0.9995981454849243,
+        0.998903751373291,
+        0.9999153017997742,
+        0.9997158646583557
+      ],
+      "final_feet": [
+        [
+          true,
+          true
+        ],
+        [
+          true,
+          true
+        ],
+        [
+          true,
+          true
+        ],
+        [
+          true,
+          true
+        ]
+      ],
+      "final_rollers": [
+        [
+          true,
+          true
+        ],
+        [
+          true,
+          true
+        ],
+        [
+          true,
+          true
+        ],
+        [
+          true,
+          true
+        ]
+      ]
+    }
+  ],
+  "recorded_sequence": {
+    "requests": [
+      {
+        "step": 0,
+        "name": "reset",
+        "accepted": true,
+        "message": "Reset to slightly bent standing pose."
+      },
+      {
+        "step": 150,
+        "name": "kneel",
+        "accepted": true,
+        "message": "Kneel PPO: lowering smoothly with foot-wheel support."
+      },
+      {
+        "step": 350,
+        "name": "unbox",
+        "accepted": true,
+        "message": "Unbox: smoothly parking arms in the trained start pose."
+      }
+    ],
+    "final_pose": "unbox_hold",
+    "final_base": {
+      "qw": 0.9991953372955322,
+      "qx": -0.001938210683874786,
+      "qy": -0.03688974678516388,
+      "qz": 0.015623877756297588,
+      "z": 0.8402009010314941,
+      "x": -0.5922955870628357,
+      "y": -0.009307061322033405,
+      "lin_vel_w": [
+        -0.03190245106816292,
+        -0.0018193416763097048,
+        -0.0014878620859235525
+      ],
+      "ang_vel_b": [
+        0.001656386535614729,
+        0.09400738030672073,
+        -0.006247983314096928
+      ]
+    },
+    "models": {
+      "boot_kneel": {
+        "checkpoint": "/home/will/Documents/Codex/2026-10-08/projects-q1-wheel-urdf-cursor-kneel/integrated_q1/checkpoints/q1_unbox_transfer_ppo.pt",
+        "sha256": "814968100a6738141b6e07a93200521a77d51df07e474c4e70ddc7e3f5ef653b",
+        "iteration": 199
+      },
+      "posture": {
+        "checkpoint": "/home/will/Documents/Codex/2026-10-08/projects-q1-wheel-urdf-cursor-kneel/integrated_q1/checkpoints/q1_posture_ppo.pt",
+        "sha256": "60b862bdd0f1c34243bb24569856aabd90843d9431b96ae55827f027009b0228",
+        "iteration": 7998
+      }
+    },
+    "steps": 1100,
+    "dt_s": 0.02,
+    "pose_state_writes_during_kneel_unbox": false
+  }
+}

@@ -476,3 +476,5 @@ button:disabled { opacity: .42; cursor: not-allowed; }
   button:enabled:active, .file-btn:active { transform: none; }
   .press-feedback { animation: none; background-color: #334652; }
 }
+
+button.action-running:disabled { opacity: 1; cursor: progress; }

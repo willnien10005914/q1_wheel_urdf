@@ -43,6 +43,8 @@ class Env(ArmEnv):
         self.last_skill_action=torch.zeros(self.num_envs,24,device=self.device)
         self.idle_target=self.home.expand(self.num_envs,-1).clone()
         self.manual_overrides={};self.position_bounds=self.limits.tolist()
+        self.kneel_rates=torch.tensor([1.2 if '_knee_' in joint else .9 if '_hip_pitch_' in joint else .5 if 'waist_pitch' in joint else 10. for joint in self.names],device=self.device)
+        self.kneel_sagittal=torch.tensor([joint=='waist_pitch_joint' or '_hip_pitch_' in joint or '_knee_' in joint for joint in self.names],device=self.device)
         self.skate_default=self.robot.data.default_joint_pos[:,self.pids].clone()
         for i,name in enumerate(self.names):
             if name.endswith('_hip_pitch_joint'):self.skate_default[:,i]=SKATE_HIP_PITCH
@@ -70,6 +72,9 @@ class Env(ArmEnv):
             teacher=json.loads(teacher_file.read_text())
             self.set_parameters(torch.tensor(teacher['parameters'],device=self.device).expand(self.num_envs,-1))
             self.backflip_actor=FrozenActor(checkpoint,self.device);self.backflip_checkpoint=str(checkpoint)
+        self.unbox_arm_indices=[i for i,name in enumerate(self.names) if any(part in name for part in ['shoulder_pitch','shoulder_roll','shoulder_yaw','elbow','waist_pitch'])]
+        self.unbox_arm_joint_ids=[self.pids[i] for i in self.unbox_arm_indices]
+        self.unbox_arm_target=self.recoveries['boot_kneel'].state.boot_kneel_q[self.unbox_arm_joint_ids].clone()
         self.pose_timer=0.;self.prepare_hold=0.;self.posture_target=0.;self.kneel_ready_hold=0.
         self.hold_phase=torch.zeros(self.num_envs,device=self.device)
         self.stand_anchor=self.robot.data.root_pos_w.clone();self.ready=True
@@ -116,13 +121,13 @@ class Env(ArmEnv):
         self.prev_prior.copy_(self.home);self.target_velocity.zero_();self.tick=-1
         self.episode_length_buf.zero_();self.updates=20000
 
-    def _standing_wheels(self):
+    def _standing_wheels(self,neutral_scale=1.):
         r=self.robot.data
         com=(r.body_com_pos_w*self.mass[:,:,None]).sum(1)/self.mass.sum(1)[:,None]
         ids=self.robot.find_bodies(['l_wheel_link','r_wheel_link'],preserve_order=True)[0]
         support=r.body_pos_w[:,ids].mean(1)
         offset=quat_apply_inverse(r.root_quat_w,com-support)
-        neutral=-torch.atan2(offset[:,0],offset[:,2]).clamp(-.15,.15)
+        neutral=-torch.atan2(offset[:,0],offset[:,2]).clamp(-.15,.15)*neutral_scale
         pitch=torch.atan2(r.projected_gravity_b[:,0],-r.projected_gravity_b[:,2])
         error=quat_apply_inverse(r.root_quat_w,r.root_pos_w-self.stand_anchor)[:,0]
         velocity=65*(pitch-neutral)+12*r.root_ang_vel_b[:,1]+14*r.root_lin_vel_b[:,0]+3*error
@@ -165,6 +170,7 @@ class Env(ArmEnv):
             else:self.message='Moving smoothly to the trained slight knee bend.'
             return True
         if name in ['unbox','getup']:
+            if self.mode in ['prepare_unbox','unbox']:return True
             if self.mode=='kneeling':
                 self.message='Wait for the kneeling motion to settle before Unbox.';return False
             if self.mode=='backflip' and not bool(self.success.all()):
@@ -177,11 +183,17 @@ class Env(ArmEnv):
             hips=self.robot.find_joints(['l_hip_pitch_joint','r_hip_pitch_joint'],preserve_order=True)[0]
             folded=(knees>2.48)&(self.robot.data.joint_pos[:,hips].mean(-1)>-1.15)
             landing=(self.mode=='backflip' or (self.mode not in ['kneel','kneeling'] and bool(folded.all()))) and 'landing_rise' in self.recoveries
-            self._clear_command_queues()
-            self.recovery=self.recoveries['landing_rise' if landing else 'boot_kneel']
-            if landing:self.recovery.start_landing()
-            else:self.recovery.start_kneel()
-            self.mode='unbox';self.command.zero_();self.message='Unbox: trained kneel-to-stand PPO from current pose.';return True
+            if not landing and not bool(self._unbox_arms_ready().all()):
+                previous_mode=self.mode
+                self.unbox_arm_start=self.robot.data.joint_pos[:,self.unbox_arm_joint_ids].clone()
+                if previous_mode!='kneel' or not hasattr(self,'kneel_target'):
+                    self.kneel_target=self.idle_target.clone()
+                    self.kneel_support_hold=torch.zeros(self.num_envs,device=self.device)
+                    self.kneel_supported=torch.zeros(self.num_envs,dtype=torch.bool,device=self.device)
+                self.stand_anchor.copy_(self.robot.data.root_pos_w)
+                self.command.zero_();self.command_target.zero_();self.pose_timer=0.;self.posture_target=1.
+                self.mode='prepare_unbox';self.message='Unbox: smoothly parking arms in the trained start pose.';return True
+            return self._begin_unbox('landing_rise' if landing else 'boot_kneel')
         if name in ['supine','prone']:
             self.recovery=self.recoveries[name+'_gripper'];self.recovery.place_lie(0 if name=='supine' else 1)
             self.idle_target.copy_(self.robot.data.joint_pos[:,self.pids]);self.motor_wheels.zero_()
@@ -210,10 +222,19 @@ class Env(ArmEnv):
         if name in ['recovery','recovery_ppo']:
             orientation='prone' if self.mode=='prone' else 'supine'
             return self.request('recovery_'+orientation+'_gripper')
-        if name=='stand' and (self.mode in ['kneel','kneeling','backflip_hold'] or (self.mode=='backflip' and bool(self.success.all()))):
+        if name=='stand':
             return self.request('unbox')
         if name=='kneel':
-            self.mode='kneeling';self.kneel_ready_hold=0.;self.posture_target=1.;self.message='Trained posture PPO: kneel.';return True
+            if self.mode in ['kneeling','kneel']:return True
+            height=self.robot.data.root_pos_w[:,2]-self.scene.env_origins[:,2]
+            if not bool(((height>.68)&(-self.robot.data.projected_gravity_b[:,2]>.94)).all()):
+                self.message='Kneel requires upright standing; use Unbox from kneel or Reset after a fall.';return False
+            self._clear_command_queues();self.command.zero_();self.command_target.zero_()
+            self.kneel_target=self.robot.data.joint_pos[:,self.pids].clone()
+            self.kneel_ff=self._standing_feedforward().clone();self.pose_timer=0.
+            self.stand_anchor.copy_(self.robot.data.root_pos_w)
+            self.kneel_support_hold=torch.zeros(self.num_envs,device=self.device);self.kneel_supported=torch.zeros(self.num_envs,dtype=torch.bool,device=self.device)
+            self.mode='kneeling';self.kneel_ready_hold=0.;self.posture_target=1.;self.message='Kneel PPO: lowering smoothly with foot-wheel support.';return True
         if name in ['skate','slide']:
             height=self.robot.data.root_pos_w[:,2]-self.scene.env_origins[:,2]
             if not bool((height>.72).all()):
@@ -221,6 +242,19 @@ class Env(ArmEnv):
             self.recoveries['boot_kneel'].last_action.zero_()
             self.mode=name;self.message=name+' PPO active.';return True
         self.message='Unknown or unavailable skill: '+name;return False
+
+    def _unbox_arms_ready(self):
+        r=self.robot.data
+        error=(r.joint_pos[:,self.unbox_arm_joint_ids]-self.unbox_arm_target).abs().amax(-1)
+        velocity=r.joint_vel[:,self.unbox_arm_joint_ids].abs().amax(-1)
+        return (error<.10)&(velocity<.6)&(r.root_lin_vel_w.norm(dim=-1)<.25)&(r.root_ang_vel_b.norm(dim=-1)<.6)
+
+    def _begin_unbox(self,variant):
+        self._clear_command_queues();self.recovery=self.recoveries[variant]
+        if variant=='landing_rise':self.recovery.start_landing()
+        else:self.recovery.start_kneel()
+        self.mode='unbox';self.command.zero_();self.command_target.zero_()
+        self.message='Unbox: trained kneel-to-stand PPO from current pose.';return True
 
     def _launch_ready(self):
         r=self.robot.data
@@ -258,8 +292,8 @@ class Env(ArmEnv):
             self.motor_wheels=self._standing_wheels()
         elif self.mode in ['unbox','unbox_hold'] or self.mode.startswith('recovery_'):
             self.idle_target,self.motor_wheels=self.recovery.act()
-        elif self.mode in ['kneeling','kneel','skate','slide']:
-            name='posture' if self.mode in ['kneeling','kneel'] else self.mode
+        elif self.mode in ['kneeling','kneel','prepare_unbox','skate','slide']:
+            name='posture' if self.mode in ['kneeling','kneel','prepare_unbox'] else self.mode
             runtime=self.recoveries['boot_kneel']
             # Reuse the 78-D proprio contract and append the skill command block.
             proprio=runtime.observation()[:,:78]
@@ -272,8 +306,40 @@ class Env(ArmEnv):
             for i,joint in enumerate(self.names):
                 scale=next(v for p,v in scale_spec.items() if re.fullmatch(p,joint))
                 target[:,i]=(target[:,i]+scale*action[:,i]).clamp(*clip[joint])
+            if self.mode in ['kneeling','kneel','prepare_unbox']:
+                if self.mode=='kneeling':
+                    # Reach the measured knee-roller support region even when
+                    # the old fast-transition policy pauses at a half squat.
+                    for joint in ['l_knee_joint','r_knee_joint']:
+                        i=self.names.index(joint);target[:,i]=target[:,i].clamp_min(2.30)
+                # Hip flexion must keep up with the measured knee motion;
+                # retain unrestricted learned lateral and arm balance commands.
+                lowered=self.kneel_target+(target-self.kneel_target).clamp(-self.kneel_rates*self.step_dt,self.kneel_rates*self.step_dt)
+                self.kneel_target=torch.where(self.kneel_sagittal,lowered,target)
+                target=self.kneel_target
             self.idle_target=target;self.motor_wheels=(WHEEL_VEL_ACTION_SCALE*action[:,22:]).clamp(-WHEEL_VEL_ACTION_SCALE,WHEEL_VEL_ACTION_SCALE)
+            if self.mode in ['kneeling','kneel','prepare_unbox']:
+                # Keep the standing wheel controller until roller contact is
+                # physically confirmed, then blend into the trained pose hold.
+                rollers=self.contacts.data.net_forces_w[:,self.rb].norm(dim=-1)>5
+                self.kneel_support_hold=torch.where(rollers.any(-1),self.kneel_support_hold+self.step_dt,torch.zeros_like(self.kneel_support_hold))
+                self.kneel_supported|=self.kneel_support_hold>=.3
+                mix=torch.where(self.kneel_supported,1.,(self.kneel_support_hold/.3).clamp(0,1))[:,None]
+                knees=self.robot.data.joint_pos[:,self.kids].mean(-1)
+                neutral_scale=1-.5*((knees-2.3)/.2).clamp(0,1)
+                self.motor_wheels=(1-mix)*self._standing_wheels(neutral_scale)+mix*self.motor_wheels
             runtime.last_action.copy_(action)
+            if self.mode=='prepare_unbox':
+                x=min(1.,self.pose_timer/1.4);x=x*x*(3-2*x)
+                self.idle_target[:,self.unbox_arm_indices]=self.unbox_arm_start+x*(self.unbox_arm_target-self.unbox_arm_start)
+                self.kneel_target[:,self.unbox_arm_indices]=self.idle_target[:,self.unbox_arm_indices]
+                height=self.robot.data.root_pos_w[:,2]-self.scene.env_origins[:,2]
+                upright=-self.robot.data.projected_gravity_b[:,2]
+                still_knelt=(height>.24)&(height<.68)&(upright>.85)
+                if x==1. and bool((self._unbox_arms_ready()&still_knelt).all()):
+                    self._begin_unbox('boot_kneel');self.idle_target,self.motor_wheels=self.recovery.act()
+                elif self.pose_timer>6.:
+                    self.mode='failed';self.message='Unbox preparation did not settle; Reset before retry.'
         elif self.mode in ['supine','prone']:
             self.motor_wheels.zero_()
         else:
@@ -295,8 +361,14 @@ class Env(ArmEnv):
         recovery_mode=self.mode in ['unbox','unbox_hold'] or self.mode.startswith('recovery_')
         self.robot.set_joint_position_target(self.target,joint_ids=self.pids)
         self.robot.set_joint_velocity_target(torch.zeros_like(self.target),joint_ids=self.pids)
-        regular_mode=self.mode in ['kneeling','kneel','skate','slide','supine','prone']
-        self.robot.set_joint_effort_target(torch.zeros_like(self.target) if recovery_mode or regular_mode else self._standing_feedforward(),joint_ids=self.pids)
+        regular_mode=self.mode in ['kneeling','kneel','prepare_unbox','skate','slide','supine','prone']
+        effort=torch.zeros_like(self.target) if recovery_mode or regular_mode else self._standing_feedforward()
+        if self.mode=='kneeling':effort=self.kneel_ff*max(0.,1-self.pose_timer/1.2)
+        if self.mode=='prepare_unbox':
+            # Reach the actual training arm pose despite gravity-induced PD
+            # offsets. This changes motor effort, never root/joint simulator state.
+            effort[:,self.unbox_arm_indices]=self._standing_feedforward()[:,self.unbox_arm_indices]
+        self.robot.set_joint_effort_target(effort,joint_ids=self.pids)
         self.robot.set_joint_velocity_target(self.motor_wheels,joint_ids=self.wids)
         self.robot.set_joint_effort_target(torch.zeros_like(self.motor_wheels),joint_ids=self.wids)
         self.robot.set_joint_position_target(.444444*self.robot.data.joint_pos[:,self.kids],joint_ids=self.rids)
@@ -328,6 +400,9 @@ class Env(ArmEnv):
         if self.mode=='kneeling':
             z=self.robot.data.root_pos_w[:,2]-self.scene.env_origins[:,2]
             ready=(z>.24)&(z<.60)&(-self.robot.data.projected_gravity_b[:,2]>.85)&(self.robot.data.root_lin_vel_w.norm(dim=-1)<.25)&(self.robot.data.root_ang_vel_b.norm(dim=-1)<.6)
+            forces=self.contacts.data.net_forces_w.norm(dim=-1)
+            feet=forces[:,self.wb]>5;rollers=forces[:,self.rb]>5
+            ready&=(self.robot.data.joint_pos[:,self.kids].mean(-1)>2.2)&feet.any(-1)&rollers.any(-1)&((feet.sum(-1)+rollers.sum(-1))>=3)
             self.kneel_ready_hold=self.kneel_ready_hold+self.step_dt if bool(ready.all()) else 0.
             if self.kneel_ready_hold>=.3:
                 self.mode='kneel';self.message='Stable kneel; press Unbox to stand.'
