@@ -68,7 +68,7 @@ class Env(ArmEnv):
             teacher=json.loads(teacher_file.read_text())
             self.set_parameters(torch.tensor(teacher['parameters'],device=self.device).expand(self.num_envs,-1))
             self.backflip_actor=FrozenActor(checkpoint,self.device);self.backflip_checkpoint=str(checkpoint)
-        self.pose_timer=0.;self.prepare_hold=0.;self.posture_target=0.
+        self.pose_timer=0.;self.prepare_hold=0.;self.posture_target=0.;self.kneel_ready_hold=0.
         self.hold_phase=torch.zeros(self.num_envs,device=self.device)
         self.stand_anchor=self.robot.data.root_pos_w.clone();self.ready=True
 
@@ -158,6 +158,8 @@ class Env(ArmEnv):
             else:self.message='Moving smoothly to the trained slight knee bend.'
             return True
         if name in ['unbox','getup']:
+            if self.mode=='kneeling':
+                self.message='Wait for the kneeling motion to settle before Unbox.';return False
             if self.mode=='backflip' and not bool(self.success.all()):
                 self.message='Wait for Backflip to finish the arms-down landing hold.';return False
             height=self.robot.data.root_pos_w[:,2]-self.scene.env_origins[:,2]
@@ -167,7 +169,7 @@ class Env(ArmEnv):
             knees=self.robot.data.joint_pos[:,self.kids].mean(-1)
             hips=self.robot.find_joints(['l_hip_pitch_joint','r_hip_pitch_joint'],preserve_order=True)[0]
             folded=(knees>2.48)&(self.robot.data.joint_pos[:,hips].mean(-1)>-1.15)
-            landing=(self.mode=='backflip' or bool(folded.all())) and 'landing_rise' in self.recoveries
+            landing=(self.mode=='backflip' or (self.mode not in ['kneel','kneeling'] and bool(folded.all()))) and 'landing_rise' in self.recoveries
             self._clear_command_queues()
             self.recovery=self.recoveries['landing_rise' if landing else 'boot_kneel']
             if landing:self.recovery.start_landing()
@@ -203,7 +205,7 @@ class Env(ArmEnv):
         if name=='stand' and (self.mode in ['kneel','kneeling','backflip_hold'] or (self.mode=='backflip' and bool(self.success.all()))):
             return self.request('unbox')
         if name=='kneel':
-            self.mode='kneeling';self.posture_target=1.;self.message='Trained posture PPO: kneel.';return True
+            self.mode='kneeling';self.kneel_ready_hold=0.;self.posture_target=1.;self.message='Trained posture PPO: kneel.';return True
         if name in ['skate','slide']:
             height=self.robot.data.root_pos_w[:,2]-self.scene.env_origins[:,2]
             if not bool((height>.72).all()):
@@ -297,7 +299,10 @@ class Env(ArmEnv):
                     self.mode='skate';self.message='Standing stable; skate PPO balances.'
         if self.mode=='kneeling':
             z=self.robot.data.root_pos_w[:,2]-self.scene.env_origins[:,2]
-            if bool((z<.60).all()):self.mode='kneel'
+            ready=(z>.24)&(z<.60)&(-self.robot.data.projected_gravity_b[:,2]>.85)&(self.robot.data.root_lin_vel_w.norm(dim=-1)<.25)&(self.robot.data.root_ang_vel_b.norm(dim=-1)<.6)
+            self.kneel_ready_hold=self.kneel_ready_hold+self.step_dt if bool(ready.all()) else 0.
+            if self.kneel_ready_hold>=.3:
+                self.mode='kneel';self.message='Stable kneel; press Unbox to stand.'
 
     def snapshot(self):
         r=self.robot.data;q=r.root_quat_w[0];pos=r.root_pos_w[0]-self.scene.env_origins[0]
