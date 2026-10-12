@@ -1,0 +1,14 @@
+{
+  "slider_count": 26,
+  "mobile_scroll_y": 650,
+  "same_origin_api": true,
+  "elbow_manual_position": -0.6204359531402588,
+  "pose_buttons_dispatched": true,
+  "browser_wasd_command": {
+    "vx": 1.2000000476837158,
+    "vy": 0,
+    "yaw": 0
+  },
+  "keyup_stops": true,
+  "page_errors": []
+}

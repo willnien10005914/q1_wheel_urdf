@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Wheel Humanoid joint control</title>
-  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./style.css?v=20261012-controls">
   <base href="/web/">
 </head>
 <body>
@@ -69,8 +69,9 @@
           <button data-preset="tpose">T-pose</button>
           <button data-preset="reach">Reach</button>
         </div>
-        <div class="ref-panel">
-          <h3>Unbox reference (MediaPipe → motors)</h3>
+        <p class="pose-hint">W/S 前後、A/D 轉向、空白停止、R 重設。Isaac 視窗也支援 WASD；關節滑桿在站立待命時可調整。</p>
+        <details class="ref-panel">
+          <summary>Unbox reference (MediaPipe → motors)</summary>
           <p class="ref-hint">Load A3 keyframes, scrub / edit sliders, then record motor angles for RL.</p>
           <div class="toolbar">
             <button id="load-ref" type="button">Load A3 keyframes</button>
@@ -95,7 +96,7 @@
             </div>
             <div id="ref-status" class="ref-status">No recording yet</div>
           </div>
-        </div>
+        </details>
         <div class="toolbar" style="margin-top:8px">
           <button id="reset">Zero all</button>
           <button id="copy">Copy JSON</button>
@@ -115,7 +116,7 @@
   </div>
   <script type="module">
     // Single bundled module (no bare "three" imports / import maps).
-    import("./app.bundle.js?v=20261011-skills").catch((err) => {
+    import("./app.bundle.js?v=20261012-controls").catch((err) => {
       const status = document.getElementById("load-status");
       const error = document.getElementById("error");
       const detail = (err && (err.stack || err.message)) ? (err.stack || err.message) : String(err);

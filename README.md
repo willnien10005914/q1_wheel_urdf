@@ -39,10 +39,17 @@ cd q1_wheel_urdf
 ### 3. 播放（Isaac Sim + 網頁）
 
 ```bash
+./stop_isaac.sh
 ./play_skateboard.sh
 # 瀏覽器：http://127.0.0.1:8765/web/
 # 結束：./stop_isaac.sh
 ```
+
+更新後請重新啟動播放器，並在網頁按 **Ctrl+Shift+R** 清除舊版程式快取。網頁 API 使用同一網址與埠號；可用 `?api=http://主機:埠號` 指定其他後端。
+
+Isaac 視窗先點模擬畫面取得焦點；網頁則點空白處，避免輸入欄取得焦點。兩者皆可用 **W/S 前後、A/D 轉向、空白停止、R 重設、K 跪下、U 起立、B 後翻、P 切換滑行**。站立待命時按 WASD 會自動啟動 Walk 策略。無頭模式僅支援網頁鍵盤，`--no-keyboard` 可停用 Isaac 鍵盤。
+
+右側面板可垂直捲動；窄畫面則整頁往下捲。關節滑桿僅在站立待命時啟用，mimic 關節唯讀；**Release all → PPO** 清除手動覆蓋。
 
 僅開網頁（無 Isaac、無 PPO）：
 
@@ -118,16 +125,16 @@ Raw（本分支 `cursor/demo-videos-ppo-7d44`）：
 
 ## 網頁按鈕 ↔ 功能
 
-`./play_skateboard.sh` 會啟動 Isaac Sim，並在 **8766** 提供 `/api/pose`。按鈕對應如下：
+`./play_skateboard.sh` 會啟動 Isaac Sim，並在 **8765** 提供 `/api/pose`。按鈕對應如下：
 
 | 按鈕 | `POST /api/pose` | 載入的策略 | 行為 |
 |---|---|---|---|
 | **Kneel (4 wheels)** | `kneel` | `q1_posture_ppo.pt`（target=跪） | 蹲成四輪跪姿 |
-| **Stand up** | `stand` | posture → 完成後切 `q1_skate_ppo.pt` | 從跪站起，再交給滑行策略 |
+| **Stand up** | `stand` | Unbox，依目前跪姿選模型 | 從跪站起；站穩後可選 Walk |
 | **Slide mode** | `slide` | `q1_slide_ppo.pt` | 側滑／交替抬腳模式 |
 | **Walk / skate** | `skate` | `q1_skate_ppo.pt` | 站立滑行；鍵盤 WASD |
-| **正躺 supine** | `supine` | （尚不跑 PPO） | 放到正躺並**凍結**姿態 |
-| **趴躺 prone** | `prone` | （尚不跑 PPO） | 放到趴躺並**凍結**姿態 |
+| **正躺 supine** | `supine` | （尚不跑 PPO） | 放到正躺並保持關節目標（物理仍運作） |
+| **趴躺 prone** | `prone` | （尚不跑 PPO） | 放到趴躺並保持關節目標（物理仍運作） |
 | **Recovery PPO 起身** | `recovery` | 依上次躺姿選 `…_supine_ppo.pt` 或 `…_prone_ppo.pt` | 接觸閘門起身到站立 |
 
 建議流程：先選 **正躺** 或 **趴躺** → 再按 **Recovery PPO 起身** → 站穩後按 **Walk / skate** 或 **Slide mode**，用 WASD 操控。
@@ -136,7 +143,7 @@ Raw（本分支 `cursor/demo-videos-ppo-7d44`）：
 
 | 控制 | 說明 |
 |---|---|
-| Zero / T-pose / Reach | 僅本機網頁預設姿，不送 Isaac |
+| Zero / T-pose / Reach | 站立待命時送出關節手動覆蓋 |
 | Iso / Front / Side / Top | 相機視角 |
 | 滑桿拖曳 | 覆蓋該馬達到 sim；**Follow PPO** 交還策略 |
 | Load A3 keyframes… | MediaPipe 開箱參考軌跡編輯（見下方） |

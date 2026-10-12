@@ -3,7 +3,7 @@
 Skill handovers change only controller state. Simulator pose writes are confined
 to explicit Reset / Lie commands; Backflip and Unbox start from the current pose.
 """
-import json,re,hashlib
+import json,re,hashlib,math
 from pathlib import Path
 import torch
 from isaaclab.utils.math import quat_apply_inverse
@@ -41,6 +41,7 @@ class Env(ArmEnv):
         self.motor_wheels=torch.zeros(self.num_envs,2,device=self.device)
         self.last_skill_action=torch.zeros(self.num_envs,24,device=self.device)
         self.idle_target=self.home.expand(self.num_envs,-1).clone()
+        self.manual_overrides={};self.position_bounds=self.limits.tolist()
         self.skate_default=self.robot.data.default_joint_pos[:,self.pids].clone()
         for i,name in enumerate(self.names):
             if name.endswith('_hip_pitch_joint'):self.skate_default[:,i]=SKATE_HIP_PITCH
@@ -177,6 +178,7 @@ class Env(ArmEnv):
             self.mode='unbox';self.command.zero_();self.message='Unbox: trained kneel-to-stand PPO from current pose.';return True
         if name in ['supine','prone']:
             self.recovery=self.recoveries[name+'_gripper'];self.recovery.place_lie(0 if name=='supine' else 1)
+            self.idle_target.copy_(self.robot.data.joint_pos[:,self.pids]);self.motor_wheels.zero_()
             self.mode=name;self.message='Floor pose ready; select Recovery Elbow or Gripper.';return True
         if name.startswith('recovery_') and name.removeprefix('recovery_') in RECOVERIES:
             variant=name.removeprefix('recovery_');orientation=variant.split('_')[0]
@@ -210,6 +212,7 @@ class Env(ArmEnv):
             height=self.robot.data.root_pos_w[:,2]-self.scene.env_origins[:,2]
             if not bool((height>.72).all()):
                 self.message='Use Unbox to stand before skate / slide.';return False
+            self.recoveries['boot_kneel'].last_action.zero_()
             self.mode=name;self.message=name+' PPO active.';return True
         self.message='Unknown or unavailable skill: '+name;return False
 
@@ -257,8 +260,19 @@ class Env(ArmEnv):
                 target[:,i]=(target[:,i]+scale*action[:,i]).clamp(*clip[joint])
             self.idle_target=target;self.motor_wheels=(8*action[:,22:]).clamp(-20,20)
             runtime.last_action.copy_(action)
+        elif self.mode in ['supine','prone']:
+            self.motor_wheels.zero_()
         else:
             self.motor_wheels=self._standing_wheels()
+            if self.mode=='stand':
+                self.idle_target=self.home.expand(self.num_envs,-1).clone()
+                for name,value in self.manual_overrides.items():
+                    if not math.isfinite(value):continue
+                    if name in self.names:
+                        i=self.names.index(name);lo,hi=self.position_bounds[i]
+                        self.idle_target[:,i]=min(hi,max(lo,value))
+                    elif name in ['l_wheel_joint','r_wheel_joint']:
+                        self.motor_wheels[:,0 if name.startswith('l_') else 1]=min(25.,max(-25.,value))
         self.target=self.idle_target
 
     def _apply_action(self):
@@ -267,7 +281,7 @@ class Env(ArmEnv):
         recovery_mode=self.mode in ['unbox','unbox_hold'] or self.mode.startswith('recovery_')
         self.robot.set_joint_position_target(self.target,joint_ids=self.pids)
         self.robot.set_joint_velocity_target(torch.zeros_like(self.target),joint_ids=self.pids)
-        regular_mode=self.mode in ['kneeling','kneel','skate','slide']
+        regular_mode=self.mode in ['kneeling','kneel','skate','slide','supine','prone']
         self.robot.set_joint_effort_target(torch.zeros_like(self.target) if recovery_mode or regular_mode else self._standing_feedforward(),joint_ids=self.pids)
         self.robot.set_joint_velocity_target(self.motor_wheels,joint_ids=self.wids)
         self.robot.set_joint_effort_target(torch.zeros_like(self.motor_wheels),joint_ids=self.wids)
@@ -311,6 +325,7 @@ class Env(ArmEnv):
         actors={k:v.actor for k,v in self.recoveries.items()};actors.update(self.regular)
         if self.backflip_actor is not None:actors['backflip']=self.backflip_actor
         return {'ok':True,'pose':self.mode,'message':self.message,
+            'manual_control_available':self.mode=='stand',
             'cmd':{'vx':float(self.command[0,0]),'vy':0.,'yaw':float(self.command[0,2])},
             'base':dict(zip(['qw','qx','qy','qz'],telemetry[:4]),z=telemetry[6],x=telemetry[4],y=telemetry[5],lin_vel_w=telemetry[11:14],ang_vel_b=telemetry[14:17]),
             'joints':{name:dict(zip(['pos','vel','torque'],row)) for name,row in zip(self.robot.joint_names,rows)},

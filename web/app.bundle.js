@@ -22332,7 +22332,7 @@ var PRESETS = {
     waist_pitch_joint: 0.25
   }
 };
-var API = new URLSearchParams(location.search).get("api") || (location.port === "8766" ? "" : "http://127.0.0.1:8766");
+var API = new URLSearchParams(location.search).get("api") ?? "";
 var els = {
   viewport: document.getElementById("viewport"),
   joints: document.getElementById("joints"),
@@ -22521,6 +22521,11 @@ function applyIsaacState(state) {
     const active = state.pose === pose || pose === "skate" && state.pose === "skate" || pose === "supine" && state.pose === "supine" || pose === "prone" && state.pose === "prone" || pose === "recovery" && state.pose === "recovery";
     btn.classList.toggle("active-pose", active);
   });
+  const manualAvailable = state.manual_control_available !== false;
+  document.querySelectorAll("[data-preset]").forEach((btn) => { btn.disabled = !manualAvailable; });
+  Object.entries(sliderEls).forEach(([name, input]) => {
+    input.disabled = Boolean(robot?.joints[name]?.mimicJoint) || !manualAvailable;
+  });
   applyIsaacRoot(state.base);
   const joints = state.joints || {};
   const liveOverrides = new Set(Object.keys(state.overrides || {}));
@@ -22530,7 +22535,7 @@ function applyIsaacState(state) {
     applying = true;
     setJoint(name, j.pos, { fromSlider: true, mirrored: true, fromIsaac: true });
     applying = false;
-    if (extraEls[name]) extraEls[name].textContent = fmtMotor(name, j.pos, j.vel, j.tau);
+    if (extraEls[name]) extraEls[name].textContent = fmtMotor(name, j.pos, j.vel, j.torque ?? j.tau);
     const held = overrides.has(name) || liveOverrides.has(name) || dragging.has(name);
     if (!held && sliderEls[name]) {
       sliderEls[name].value = String(isWheel(name) ? j.vel : j.pos);
@@ -22741,6 +22746,7 @@ document.querySelectorAll("[data-view]").forEach((btn) => {
 document.getElementById("reset").addEventListener("click", () => applyPose(PRESETS.zero));
 document.getElementById("follow-all").addEventListener("click", () => releaseAll());
 document.getElementById("reset-sim").addEventListener("click", async () => {
+  stopBrowserDrive();
   await releaseAll();
   try {
     await postJson("/api/reset", {});
@@ -22748,11 +22754,10 @@ document.getElementById("reset-sim").addEventListener("click", async () => {
   }
 });
 async function requestPose(name) {
+  stopBrowserDrive();
   await releaseAll();
-  try {
-    await postJson("/api/pose", { name });
-  } catch {
-  }
+  try { await postJson("/api/pose", { name }); }
+  catch (err) { if (els.pose) els.pose.textContent = `Command failed: ${err.message}. Start play_skateboard.sh and use its web address.`; }
 }
 document.querySelectorAll("[data-pose]").forEach((btn) => {
   btn.addEventListener("click", () => requestPose(btn.dataset.pose));
@@ -23042,7 +23047,7 @@ function loadRobot() {
   if (location.protocol === "file:") {
     els.status.textContent = "Open this page from a local server, not as a file:// URL.";
     els.error.style.display = "block";
-    els.error.textContent = "Run ./play_skateboard.sh (port 8766) or python web/serve.py then open http://127.0.0.1:8766/web/";
+    els.error.textContent = "Run ./play_skateboard.sh and open http://127.0.0.1:8765/web/";
     return;
   }
   els.status.textContent = `Fetching URDF\u2026 ${URDF_URL}`;
@@ -23129,3 +23134,43 @@ requestAnimationFrame(loop);
  * Copyright 2010-2024 Three.js Authors
  * SPDX-License-Identifier: MIT
  */
+
+// Keyboard commands use the same origin as the live model snapshots.
+const browserDriveKeys = new Set();
+const browserDriveCodes = new Set(["KeyW", "KeyS", "KeyA", "KeyD", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]);
+function browserDriveCommand() {
+  const keys = browserDriveKeys;
+  return {
+    vx: 1.2 * Number(keys.has("KeyW") || keys.has("ArrowUp")) - 0.55 * Number(keys.has("KeyS") || keys.has("ArrowDown")),
+    vy: 0,
+    yaw: 0.45 * (Number(keys.has("KeyA") || keys.has("ArrowLeft")) - Number(keys.has("KeyD") || keys.has("ArrowRight"))),
+  };
+}
+async function sendBrowserDrive() {
+  if (!isaacConnected) return;
+  try { await postJson("/api/command", browserDriveCommand()); }
+  catch (err) { if (els.pose) els.pose.textContent = `Drive command failed: ${err.message}`; }
+}
+function stopBrowserDrive() {
+  browserDriveKeys.clear();
+  sendBrowserDrive();
+}
+document.addEventListener("keydown", (event) => {
+  if (event.target.closest?.("input, textarea, select, [contenteditable='true']") || event.ctrlKey || event.metaKey || event.altKey) return;
+  if (browserDriveCodes.has(event.code)) {
+    event.preventDefault();
+    if (!browserDriveKeys.has(event.code)) { browserDriveKeys.add(event.code); sendBrowserDrive(); }
+    return;
+  }
+  if (event.code === "Space") { event.preventDefault(); stopBrowserDrive(); return; }
+  if (event.repeat) return;
+  const poses = {KeyK: "kneel", KeyU: "unbox", KeyB: "backflip", KeyP: lastIsaac?.pose === "slide" ? "skate" : "slide"};
+  if (event.code === "KeyR") { event.preventDefault(); document.getElementById("reset-sim").click(); }
+  else if (poses[event.code]) { event.preventDefault(); stopBrowserDrive(); requestPose(poses[event.code]); }
+});
+document.addEventListener("keyup", (event) => {
+  if (browserDriveKeys.delete(event.code)) { event.preventDefault(); sendBrowserDrive(); }
+});
+window.addEventListener("blur", stopBrowserDrive);
+document.addEventListener("visibilitychange", () => { if (document.hidden) stopBrowserDrive(); });
+setInterval(() => { if (browserDriveKeys.size) sendBrowserDrive(); }, 150);

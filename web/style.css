@@ -130,10 +130,11 @@ html, body {
   border-top: 1px solid var(--line);
 }
 
-.ref-panel h3 {
+.ref-panel summary {
   margin: 0 0 4px;
   font-size: 13px;
   font-weight: 650;
+  cursor: pointer;
 }
 
 .ref-hint {
@@ -283,9 +284,12 @@ html, body {
   background: var(--panel);
   border-left: 1px solid var(--line);
   min-height: 0;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
 }
 
 .side-head {
+  flex: 0 0 auto;
   padding: 16px 16px 12px;
   border-bottom: 1px solid var(--line);
 }
@@ -318,8 +322,8 @@ html, body {
 .toggles input { accent-color: var(--accent-2); }
 
 .joint-list {
-  flex: 1;
-  overflow: auto;
+  flex: 0 0 auto;
+  overflow: visible;
   padding: 8px 10px 16px;
 }
 
@@ -401,6 +405,7 @@ html, body {
 }
 
 .export {
+  flex: 0 0 auto;
   padding: 10px 12px 14px;
   border-top: 1px solid var(--line);
 }
@@ -462,6 +467,8 @@ html, body {
 }
 
 @media (max-width: 960px) {
-  #app { grid-template-columns: 1fr; grid-template-rows: 48vh 52vh; }
-  #sidebar { border-left: none; border-top: 1px solid var(--line); }
+  html, body { height: auto; min-height: 100%; overflow-x: hidden; overflow-y: auto; }
+  #app { height: auto; min-height: 100svh; grid-template-columns: 1fr; grid-template-rows: minmax(280px, 45svh) auto; }
+  #viewport { min-height: 280px; }
+  #sidebar { overflow: visible; border-left: none; border-top: 1px solid var(--line); }
 }

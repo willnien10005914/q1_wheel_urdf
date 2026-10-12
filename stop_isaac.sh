@@ -60,10 +60,12 @@ add_tree() {
 # Repo entry points (play, train, record, tests, standalone web).
 PATTERNS=(
   "$ROOT/scripts/reinforcement_learning/rsl_rl/play.py"
+  "$ROOT/scripts/reinforcement_learning/rsl_rl/play_skills.py"
   "$ROOT/scripts/reinforcement_learning/rsl_rl/train.py"
   "$ROOT/web/serve.py"
   "$ROOT/tests/"
   "$ROOT/play_skateboard.sh"
+  "$ROOT/play_skills.sh"
   "$ROOT/train_skate.sh"
   "$ROOT/train_skateboard.sh"
   "$ROOT/train_posture.sh"
@@ -78,6 +80,14 @@ for pattern in "${PATTERNS[@]}"; do
   for pid in $(collect_matches "$pattern"); do
     add_tree "$pid"
   done
+done
+
+# The Isaac wrapper launches this script with a relative path. Match its
+# working directory so startup can also be stopped before HTTP starts.
+for pid in $(collect_matches "[s]cripts/reinforcement_learning/rsl_rl/play_skills.py"); do
+  if [[ "$(readlink -f "/proc/$pid/cwd" 2>/dev/null)" == "$ROOT" ]]; then
+    add_tree "$pid"
+  fi
 done
 
 for port in "${WEB_PORTS[@]}"; do
