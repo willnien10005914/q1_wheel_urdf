@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Wheel Humanoid joint control</title>
-  <link rel="stylesheet" href="./style.css?v=20261012-controls">
+  <link rel="stylesheet" href="./style.css?v=20261012-actions">
   <base href="/web/">
 </head>
 <body>
@@ -38,7 +38,7 @@
         <h2>Joint control</h2>
         <div class="preset-row pose-row">
           <button id="pose-kneel" type="button" data-pose="kneel">Kneel (4 wheels)</button>
-          <button id="pose-stand" type="button" data-pose="stand">Stand up</button>
+          <button id="pose-unbox" type="button" data-pose="unbox">起立（Unbox PPO）</button>
         </div>
         <div class="preset-row pose-row">
           <button id="pose-slide" type="button" data-pose="slide">Slide mode</button>
@@ -47,9 +47,6 @@
         <div class="preset-row pose-row">
           <button id="pose-supine" type="button" data-pose="supine">正躺 supine</button>
           <button id="pose-prone" type="button" data-pose="prone">趴躺 prone</button>
-        </div>
-        <div class="preset-row pose-row">
-          <button id="pose-recovery" type="button" data-pose="recovery" class="primary-pose">Recovery PPO 起身</button>
         </div>
         <div class="preset-row pose-row">
           <button type="button" data-pose="recovery_supine_elbow">正躺 Elbow PPO（實驗測試）</button>
@@ -61,14 +58,14 @@
         </div>
         <div class="preset-row pose-row">
           <button id="pose-backflip" type="button" data-pose="backflip" class="primary-pose">Backflip 後空翻</button>
-          <button id="pose-unbox" type="button" data-pose="unbox">Unbox 跪姿起立</button>
         </div>
-        <p class="pose-hint">站穩後按 Backflip，收臂並平衡跪姿落地；按 Unbox 從目前跪姿起立。落地 Unbox 仍為實驗版本。正反躺先選姿勢，再選 Elbow 或 Gripper 輔助模型起身。</p>
+        <p class="pose-hint">站穩後可按 Backflip；跪穩後按「起立（Unbox PPO）」。後翻落地後的起立仍為實驗版本。躺姿先選正躺／趴躺，再選對應的 Elbow 或 Gripper PPO。</p>
         <div class="preset-row">
           <button data-preset="zero">Zero</button>
           <button data-preset="tpose">T-pose</button>
           <button data-preset="reach">Reach</button>
         </div>
+        <p class="pose-hint">按下會短暫縮放；「執行中／準備中」表示動作尚未完成，完成後顯示結果。</p>
         <p class="pose-hint">W/S 前後、A/D 轉向、空白停止、R 重設。Isaac 視窗也支援 WASD；關節滑桿在站立待命時可調整。</p>
         <details class="ref-panel">
           <summary>Unbox reference (MediaPipe → motors)</summary>
@@ -115,8 +112,8 @@
     </aside>
   </div>
   <script type="module">
-    // Single bundled module (no bare "three" imports / import maps).
-    import("./app.bundle.js?v=20261012-controls").catch((err) => {
+    // Bundled viewer and local controls; no bare three imports / import maps.
+    import("./app.bundle.js?v=20261012-actions").catch((err) => {
       const status = document.getElementById("load-status");
       const error = document.getElementById("error");
       const detail = (err && (err.stack || err.message)) ? (err.stack || err.message) : String(err);

@@ -121,7 +121,7 @@ Raw（本分支 `cursor/demo-videos-ppo-7d44`）：
 | **recovery prone** | 同上 | 同上，僅 mode=趴躺 | 先按趴躺，再 Recovery |
 
 開箱鏈（可選）：正躺 → **unbox** 跪 → **posture** 站 → skate/slide。  
-地板起身鏈（網頁主流程）：正躺／趴躺 → **Recovery PPO** → 站穩後切 Walk / Slide。
+地板起身鏈（網頁主流程）：正躺／趴躺 → **對應的 Elbow／Gripper PPO** → 站穩後切 Walk / Slide。
 
 ---
 
@@ -132,14 +132,18 @@ Raw（本分支 `cursor/demo-videos-ppo-7d44`）：
 | 按鈕 | `POST /api/pose` | 載入的策略 | 行為 |
 |---|---|---|---|
 | **Kneel (4 wheels)** | `kneel` | `q1_posture_ppo.pt`（target=跪） | 蹲成四輪跪姿 |
-| **Stand up** | `stand` | Unbox，依目前跪姿選模型 | 從跪站起；站穩後可選 Walk |
+| **起立（Unbox PPO）** | `unbox` | 標準跪姿或後翻落地對應模型 | 從目前跪姿起立；原 Stand up 已合併 |
 | **Slide mode** | `slide` | `q1_slide_ppo.pt` | 側滑／交替抬腳模式 |
 | **Walk / skate** | `skate` | `q1_skate_ppo.pt` | 站立滑行；鍵盤 WASD |
 | **正躺 supine** | `supine` | （尚不跑 PPO） | 放到正躺並保持關節目標（物理仍運作） |
 | **趴躺 prone** | `prone` | （尚不跑 PPO） | 放到趴躺並保持關節目標（物理仍運作） |
-| **Recovery PPO 起身** | `recovery` | 依上次躺姿選 `…_supine_ppo.pt` 或 `…_prone_ppo.pt` | 接觸閘門起身到站立 |
+| **正／反躺 Elbow PPO** | `recovery_supine_elbow`／`recovery_prone_elbow` | 各自 Elbow 模型 | 指定躺姿的肘部支撐起身（實驗） |
+| **正／反躺 Gripper 輔助 PPO** | `recovery_supine_gripper`／`recovery_prone_gripper` | 各自 Gripper 模型 | 指定躺姿的 Gripper 輔助起身 |
+| **Backflip 後空翻** | `backflip` | 收臂後翻模型 | 站立後翻、收臂並平衡跪姿落地 |
 
-建議流程：先選 **正躺** 或 **趴躺** → 再按 **Recovery PPO 起身** → 站穩後按 **Walk / skate** 或 **Slide mode**，用 WASD 操控。
+建議流程：先選 **正躺** 或 **趴躺** → 再選 **對應的 Elbow／Gripper PPO** → 站穩後按 **Walk / skate** 或 **Slide mode**，用 WASD 操控。
+
+「Recovery PPO 起身」原本只是依躺姿自動選同一個 Gripper 模型，已移除重複按鈕；API `recovery` 與 `stand` 仍保留相容。按鈕短暫縮放代表按下；「送出中／準備中／執行中」與完成結果明確分開，完成後不保留選取框。
 
 其餘：
 

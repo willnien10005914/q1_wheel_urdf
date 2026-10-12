@@ -1,3 +1,4 @@
+import { updateActionButtons, animateButton } from "./button_feedback.mjs?v=20261012-actions";
 // vendor/three/three.module.js
 var REVISION = "170";
 var MOUSE = { LEFT: 0, MIDDLE: 1, RIGHT: 2, ROTATE: 0, DOLLY: 1, PAN: 2 };
@@ -22512,15 +22513,7 @@ function applyIsaacState(state) {
     const rec = parts.length ? ` \xB7 ${parts.join(" + ")}` : "";
     els.pose.textContent = state.message || `mode ${state.pose || "skate"}${rec}`;
   }
-  document.querySelectorAll("[data-pose]").forEach((btn) => {
-    const pose = btn.dataset.pose;
-    if (pose === "backflip") btn.disabled = !state.policies?.backflip;
-    if (pose.startsWith("recovery_") && !["recovery_ppo"].includes(pose)) {
-      btn.disabled = !state.policies?.[pose.replace("recovery_", "")];
-    }
-    const active = state.pose === pose || pose === "skate" && state.pose === "skate" || pose === "supine" && state.pose === "supine" || pose === "prone" && state.pose === "prone" || pose === "recovery" && state.pose === "recovery";
-    btn.classList.toggle("active-pose", active);
-  });
+  updateActionButtons(state);
   const manualAvailable = state.manual_control_available !== false;
   document.querySelectorAll("[data-preset]").forEach((btn) => { btn.disabled = !manualAvailable; });
   Object.entries(sliderEls).forEach(([name, input]) => {
@@ -22754,11 +22747,23 @@ document.getElementById("reset-sim").addEventListener("click", async () => {
   }
 });
 async function requestPose(name) {
+  const button = document.querySelector(`[data-pose="${name}"]`);
+  if (button?.dataset.pending === "true") return;
+  animateButton(button);
+  if (button) button.dataset.pending = "true";
+  updateActionButtons(lastIsaac || {});
   stopBrowserDrive();
   await releaseAll();
-  try { await postJson("/api/pose", { name }); }
-  catch (err) { if (els.pose) els.pose.textContent = `Command failed: ${err.message}. Start play_skateboard.sh and use its web address.`; }
+  try {
+    await postJson("/api/pose", { name });
+  } catch (err) {
+    if (els.pose) els.pose.textContent = `Command failed: ${err.message}. Start play_skateboard.sh and use its web address.`;
+  } finally {
+    if (button) delete button.dataset.pending;
+    updateActionButtons(lastIsaac || {});
+  }
 }
+
 document.querySelectorAll("[data-pose]").forEach((btn) => {
   btn.addEventListener("click", () => requestPose(btn.dataset.pose));
 });

@@ -1,0 +1,14 @@
+{
+  "ui_fixtures": true,
+  "single_rise_button": true,
+  "explicit_recovery_variants": true,
+  "unified_press_feedback": true,
+  "pending_execution_completion_states": true,
+  "no_persistent_green_selection": true,
+  "mobile_scroll": true,
+  "commands": [
+    "kneel",
+    "unbox"
+  ],
+  "page_errors": []
+}
