@@ -1,0 +1,39 @@
+{
+  "boot_kneel": {
+    "seed": 4107,
+    "trials": 8,
+    "stand_successes": 8,
+    "stable_at_end": 8,
+    "best_stand_hold_s": [
+      17.640213012695312,
+      17.680213928222656,
+      17.700214385986328,
+      18.080223083496094,
+      18.100223541259766,
+      17.700214385986328,
+      18.080223083496094,
+      17.62021255493164
+    ],
+    "max_stage": [
+      4.0,
+      4.0,
+      4.0,
+      4.0,
+      4.0,
+      4.0,
+      4.0,
+      4.0
+    ],
+    "unbroken": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "no_pose_writes_at_unbox_handover": true
+  }
+}

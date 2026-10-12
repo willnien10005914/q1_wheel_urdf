@@ -1,0 +1,422 @@
+[
+  {
+    "generation": 0,
+    "best": {
+      "score": 160.6095733642578,
+      "max_backturn_rad": 1.1611230373382568,
+      "takeoff": true,
+      "early_hop": false,
+      "illegal": false,
+      "takeoff_omega": 10.436029434204102,
+      "hold_s": 0.0,
+      "success": false,
+      "end_winding_rad": -1.1238288879394531,
+      "takeoff_com_vz": 1.900389313697815,
+      "peak_com_height": 0.9496094584465027,
+      "airtime": 0.5200000405311584
+    },
+    "global_score": 160.6095733642578,
+    "valid_takeoffs": 420,
+    "early_hops": 0,
+    "successes": 0
+  },
+  {
+    "generation": 1,
+    "best": {
+      "score": 200.4297332763672,
+      "max_backturn_rad": 1.1193373203277588,
+      "takeoff": true,
+      "early_hop": false,
+      "illegal": false,
+      "takeoff_omega": 10.654655456542969,
+      "hold_s": 0.0,
+      "success": false,
+      "end_winding_rad": -1.847609043121338,
+      "takeoff_com_vz": 2.386303663253784,
+      "peak_com_height": 1.058442234992981,
+      "airtime": 0.5799999833106995
+    },
+    "global_score": 200.4297332763672,
+    "valid_takeoffs": 445,
+    "early_hops": 0,
+    "successes": 0
+  },
+  {
+    "generation": 2,
+    "best": {
+      "score": 197.75265502929688,
+      "max_backturn_rad": 0.951270580291748,
+      "takeoff": true,
+      "early_hop": false,
+      "illegal": false,
+      "takeoff_omega": 10.160345077514648,
+      "hold_s": 0.0,
+      "success": false,
+      "end_winding_rad": -1.5961952209472656,
+      "takeoff_com_vz": 2.460726737976074,
+      "peak_com_height": 1.058758020401001,
+      "airtime": 0.5999999642372131
+    },
+    "global_score": 200.4297332763672,
+    "valid_takeoffs": 464,
+    "early_hops": 0,
+    "successes": 0
+  },
+  {
+    "generation": 3,
+    "best": {
+      "score": 203.92286682128906,
+      "max_backturn_rad": 1.238738775253296,
+      "takeoff": true,
+      "early_hop": false,
+      "illegal": false,
+      "takeoff_omega": 9.852031707763672,
+      "hold_s": 0.0,
+      "success": false,
+      "end_winding_rad": 1.427457332611084,
+      "takeoff_com_vz": 2.426816463470459,
+      "peak_com_height": 1.0421843528747559,
+      "airtime": 0.5999999642372131
+    },
+    "global_score": 203.92286682128906,
+    "valid_takeoffs": 455,
+    "early_hops": 0,
+    "successes": 0
+  },
+  {
+    "generation": 4,
+    "best": {
+      "score": 208.17355346679688,
+      "max_backturn_rad": 1.519141435623169,
+      "takeoff": true,
+      "early_hop": false,
+      "illegal": false,
+      "takeoff_omega": 9.047615051269531,
+      "hold_s": 0.0,
+      "success": false,
+      "end_winding_rad": -1.5631558895111084,
+      "takeoff_com_vz": 2.7013964653015137,
+      "peak_com_height": 1.1443783044815063,
+      "airtime": 0.6799998879432678
+    },
+    "global_score": 208.17355346679688,
+    "valid_takeoffs": 449,
+    "early_hops": 0,
+    "successes": 0
+  },
+  {
+    "generation": 5,
+    "best": {
+      "score": 218.9075469970703,
+      "max_backturn_rad": 1.8706902265548706,
+      "takeoff": true,
+      "early_hop": false,
+      "illegal": false,
+      "takeoff_omega": 12.184517860412598,
+      "hold_s": 0.0,
+      "success": false,
+      "end_winding_rad": -1.9354751110076904,
+      "takeoff_com_vz": 2.344174861907959,
+      "peak_com_height": 1.0286238193511963,
+      "airtime": 0.6199999451637268
+    },
+    "global_score": 218.9075469970703,
+    "valid_takeoffs": 476,
+    "early_hops": 0,
+    "successes": 0
+  },
+  {
+    "generation": 6,
+    "best": {
+      "score": 208.60018920898438,
+      "max_backturn_rad": 2.6084749698638916,
+      "takeoff": true,
+      "early_hop": false,
+      "illegal": true,
+      "takeoff_omega": 10.41988754272461,
+      "hold_s": 0.0,
+      "success": false,
+      "end_winding_rad": -2.7152528762817383,
+      "takeoff_com_vz": 2.5172972679138184,
+      "peak_com_height": 1.0748722553253174,
+      "airtime": 0.6199999451637268
+    },
+    "global_score": 218.9075469970703,
+    "valid_takeoffs": 497,
+    "early_hops": 0,
+    "successes": 0
+  },
+  {
+    "generation": 7,
+    "best": {
+      "score": 206.27642822265625,
+      "max_backturn_rad": 1.5192973613739014,
+      "takeoff": true,
+      "early_hop": false,
+      "illegal": false,
+      "takeoff_omega": 8.4495267868042,
+      "hold_s": 0.0,
+      "success": false,
+      "end_winding_rad": 0.5856885313987732,
+      "takeoff_com_vz": 2.9651598930358887,
+      "peak_com_height": 1.1984570026397705,
+      "airtime": 0.6999998688697815
+    },
+    "global_score": 218.9075469970703,
+    "valid_takeoffs": 509,
+    "early_hops": 0,
+    "successes": 0
+  },
+  {
+    "generation": 8,
+    "best": {
+      "score": 213.629150390625,
+      "max_backturn_rad": 1.3405556678771973,
+      "takeoff": true,
+      "early_hop": false,
+      "illegal": false,
+      "takeoff_omega": 11.122401237487793,
+      "hold_s": 0.0,
+      "success": false,
+      "end_winding_rad": 1.4475922584533691,
+      "takeoff_com_vz": 2.670624256134033,
+      "peak_com_height": 1.1332285404205322,
+      "airtime": 0.6599999070167542
+    },
+    "global_score": 218.9075469970703,
+    "valid_takeoffs": 506,
+    "early_hops": 0,
+    "successes": 0
+  },
+  {
+    "generation": 9,
+    "best": {
+      "score": 213.18226623535156,
+      "max_backturn_rad": 2.6017041206359863,
+      "takeoff": true,
+      "early_hop": false,
+      "illegal": true,
+      "takeoff_omega": 10.975993156433105,
+      "hold_s": 0.0,
+      "success": false,
+      "end_winding_rad": -2.651324987411499,
+      "takeoff_com_vz": 2.7565577030181885,
+      "peak_com_height": 1.164059042930603,
+      "airtime": 0.6599999070167542
+    },
+    "global_score": 218.9075469970703,
+    "valid_takeoffs": 511,
+    "early_hops": 0,
+    "successes": 0
+  },
+  {
+    "generation": 10,
+    "best": {
+      "score": 220.250732421875,
+      "max_backturn_rad": 2.8074700832366943,
+      "takeoff": true,
+      "early_hop": false,
+      "illegal": true,
+      "takeoff_omega": 10.702534675598145,
+      "hold_s": 0.0,
+      "success": false,
+      "end_winding_rad": -2.8035411834716797,
+      "takeoff_com_vz": 2.8013319969177246,
+      "peak_com_height": 1.1875896453857422,
+      "airtime": 0.6799998879432678
+    },
+    "global_score": 220.250732421875,
+    "valid_takeoffs": 413,
+    "early_hops": 0,
+    "successes": 0
+  },
+  {
+    "generation": 11,
+    "best": {
+      "score": 223.09002685546875,
+      "max_backturn_rad": 2.839742660522461,
+      "takeoff": true,
+      "early_hop": false,
+      "illegal": true,
+      "takeoff_omega": 10.096863746643066,
+      "hold_s": 0.0,
+      "success": false,
+      "end_winding_rad": -2.8742458820343018,
+      "takeoff_com_vz": 2.8948874473571777,
+      "peak_com_height": 1.2120096683502197,
+      "airtime": 0.6799998879432678
+    },
+    "global_score": 223.09002685546875,
+    "valid_takeoffs": 472,
+    "early_hops": 0,
+    "successes": 0
+  },
+  {
+    "generation": 12,
+    "best": {
+      "score": 236.40768432617188,
+      "max_backturn_rad": 2.126420497894287,
+      "takeoff": true,
+      "early_hop": false,
+      "illegal": false,
+      "takeoff_omega": 9.825221061706543,
+      "hold_s": 0.0,
+      "success": false,
+      "end_winding_rad": -2.126420497894287,
+      "takeoff_com_vz": 2.7356209754943848,
+      "peak_com_height": 1.1356333494186401,
+      "airtime": 0.6799998879432678
+    },
+    "global_score": 236.40768432617188,
+    "valid_takeoffs": 512,
+    "early_hops": 0,
+    "successes": 0
+  },
+  {
+    "generation": 13,
+    "best": {
+      "score": 216.993408203125,
+      "max_backturn_rad": 2.7931337356567383,
+      "takeoff": true,
+      "early_hop": false,
+      "illegal": true,
+      "takeoff_omega": 10.111096382141113,
+      "hold_s": 0.0,
+      "success": false,
+      "end_winding_rad": -2.876192569732666,
+      "takeoff_com_vz": 2.65997052192688,
+      "peak_com_height": 1.117497205734253,
+      "airtime": 0.6399999260902405
+    },
+    "global_score": 236.40768432617188,
+    "valid_takeoffs": 512,
+    "early_hops": 0,
+    "successes": 0
+  },
+  {
+    "generation": 14,
+    "best": {
+      "score": 218.57086181640625,
+      "max_backturn_rad": 2.8704562187194824,
+      "takeoff": true,
+      "early_hop": false,
+      "illegal": true,
+      "takeoff_omega": 10.095809936523438,
+      "hold_s": 0.0,
+      "success": false,
+      "end_winding_rad": -2.957169532775879,
+      "takeoff_com_vz": 2.622859477996826,
+      "peak_com_height": 1.102899193763733,
+      "airtime": 0.6399999260902405
+    },
+    "global_score": 236.40768432617188,
+    "valid_takeoffs": 512,
+    "early_hops": 0,
+    "successes": 0
+  },
+  {
+    "generation": 15,
+    "best": {
+      "score": 222.11944580078125,
+      "max_backturn_rad": 3.033161163330078,
+      "takeoff": true,
+      "early_hop": false,
+      "illegal": true,
+      "takeoff_omega": 10.855838775634766,
+      "hold_s": 0.0,
+      "success": false,
+      "end_winding_rad": -3.0745017528533936,
+      "takeoff_com_vz": 2.556229829788208,
+      "peak_com_height": 1.0973894596099854,
+      "airtime": 0.6199999451637268
+    },
+    "global_score": 236.40768432617188,
+    "valid_takeoffs": 512,
+    "early_hops": 0,
+    "successes": 0
+  },
+  {
+    "generation": 16,
+    "best": {
+      "score": 217.72906494140625,
+      "max_backturn_rad": 2.9365806579589844,
+      "takeoff": true,
+      "early_hop": false,
+      "illegal": true,
+      "takeoff_omega": 10.125308990478516,
+      "hold_s": 0.0,
+      "success": false,
+      "end_winding_rad": -2.862023115158081,
+      "takeoff_com_vz": 2.4815826416015625,
+      "peak_com_height": 1.0572826862335205,
+      "airtime": 0.6199999451637268
+    },
+    "global_score": 236.40768432617188,
+    "valid_takeoffs": 512,
+    "early_hops": 0,
+    "successes": 0
+  },
+  {
+    "generation": 17,
+    "best": {
+      "score": 217.39968872070312,
+      "max_backturn_rad": 2.9937028884887695,
+      "takeoff": true,
+      "early_hop": false,
+      "illegal": true,
+      "takeoff_omega": 11.24553108215332,
+      "hold_s": 0.0,
+      "success": false,
+      "end_winding_rad": -2.948861837387085,
+      "takeoff_com_vz": 2.3961703777313232,
+      "peak_com_height": 1.0310490131378174,
+      "airtime": 0.5999999642372131
+    },
+    "global_score": 236.40768432617188,
+    "valid_takeoffs": 512,
+    "early_hops": 0,
+    "successes": 0
+  },
+  {
+    "generation": 18,
+    "best": {
+      "score": 220.33953857421875,
+      "max_backturn_rad": 3.039297580718994,
+      "takeoff": true,
+      "early_hop": false,
+      "illegal": true,
+      "takeoff_omega": 9.653120040893555,
+      "hold_s": 0.0,
+      "success": false,
+      "end_winding_rad": -3.026175022125244,
+      "takeoff_com_vz": 2.66615891456604,
+      "peak_com_height": 1.1048915386199951,
+      "airtime": 0.6399999260902405
+    },
+    "global_score": 236.40768432617188,
+    "valid_takeoffs": 512,
+    "early_hops": 0,
+    "successes": 0
+  },
+  {
+    "generation": 19,
+    "best": {
+      "score": 221.68661499023438,
+      "max_backturn_rad": 2.9887616634368896,
+      "takeoff": true,
+      "early_hop": false,
+      "illegal": true,
+      "takeoff_omega": 9.783778190612793,
+      "hold_s": 0.0,
+      "success": false,
+      "end_winding_rad": -2.938408851623535,
+      "takeoff_com_vz": 2.730921983718872,
+      "peak_com_height": 1.1293222904205322,
+      "airtime": 0.6599999070167542
+    },
+    "global_score": 236.40768432617188,
+    "valid_takeoffs": 512,
+    "early_hops": 0,
+    "successes": 0
+  }
+]

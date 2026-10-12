@@ -1,0 +1,16 @@
+{
+  "checkpoint": "q1_unbox_landing_ppo.pt",
+  "checkpoint_sha256": "8262378f5836b904de4845e6e921ecd836ad8c32ae75a3c1cba3aa0e70bd59cb",
+  "files_sha256": {
+    "controller_manifest.json": "47cec53c98c8ea90369451dd0190386a21e63a0c478114de62143e616eec128a",
+    "rise_prior.json": "35160d9e25c697f310766e630fa02118aab66bcf5aeb935a7f2bfadadc6c78b8",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3/mdp.py": "6d5fae64e1264386cea16537b397c8b0e3b89f0e88c4b00a142758236b4d201c",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3/runner_cfg.py": "cf4733018ff491a03c11f434c560733d0eefcc718bee844f20fef886f67605d3",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3/__init__.py": "d333d93af250f6b60fbafe086bdf171be50524bc62f6742b0742d2a46bdde29d",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3/env_cfg.py": "8eb4e2e7f5e554e6d14d36ec7703c0f9bffa42be902520d753f23d1fef39b814",
+    "docs/reference/getup_candidates_v3/supine.json": "0ac39417132481852b57759385ddeabd705f4a775bccbccb6437e23bb6e792df",
+    "docs/reference/getup_candidates_v3/prone.json": "89518c7bc06abc061a714311bd3b96286cf6180ec850559c7c57a96e495c1c7c",
+    "docs/reference/getup_candidates_v3/motor_priors.json": "8038344bf53d512c9097c936864c31f5e9491e0d9c9c1fb9f9de12dd2b939f29"
+  },
+  "validation": "docs/training/README.md"
+}

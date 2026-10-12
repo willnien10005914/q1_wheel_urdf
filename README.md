@@ -1,5 +1,7 @@
 # Q1 Wheel（BI2 Wheel）URDF + Isaac Lab PPO
 
+2026-10-12：新增後翻收臂模型、實際落地姿態 Unbox 微調與四種正反躺 recovery 測試按鈕。最新驗證與模型來源見 [整合訓練紀錄](docs/training/README.md)。
+
 廣達 Q1 / BI2 輪式人形：約 1.4 m、**40 kg**、24 顆 CubeMars 準直驅關節、雙 Ø200 mm 驅動輪、骨盆 Xsens MTi-630 IMU。在 Isaac Lab（Isaac Sim 5.1 / PhysX、RSL-RL PPO）訓練站立滑行、側滑、蹲跪／站起，以及正躺／趴躺起身。
 
 英文版說明見 [`README.en.md`](README.en.md)。
@@ -38,7 +40,7 @@ cd q1_wheel_urdf
 
 ```bash
 ./play_skateboard.sh
-# 瀏覽器：http://127.0.0.1:8766/web/
+# 瀏覽器：http://127.0.0.1:8765/web/
 # 結束：./stop_isaac.sh
 ```
 
@@ -53,7 +55,7 @@ uv run python web/serve.py
 
 ## 已訓練 PPO（最後有效 checkpoint）
 
-倉庫只保留各動作**最後有效**的權重（其餘實驗 ckpt 不追蹤）。
+倉庫保留已訓練權重、有效 peak checkpoint 與後翻歷史版本。Backflip／Unbox 以獨立驗證決定模型；recovery 按鈕包含實驗測試版本，詳見最新整合紀錄。
 
 | 動作 | Checkpoint | Gym task | 說明 |
 |---|---|---|---|
@@ -61,9 +63,14 @@ uv run python web/serve.py
 | **Slide / 側滑** | `checkpoints/q1_slide_ppo.pt` | `Isaac-Q1-Slide-v0` | 前後腳交替微抬腳滑行（X2 風格） |
 | **Stand / 站起** | `checkpoints/q1_posture_ppo.pt` | `Isaac-Q1-Posture-v0` | 四輪跪姿 ↔ 站立（再切到 skate） |
 | **Sit / 跪坐** | 同上 `q1_posture_ppo.pt`（Kneel） | `Isaac-Q1-Posture-v0` | 從站立蹲成四輪跪姿 |
-| **地板 → 跪**（開箱鏈） | `checkpoints/q1_unbox_ppo.pt` | `Isaac-Q1-Unbox-v0` | 正躺開箱 → 仰臥起坐 → 穩定跪姿 |
-| **正躺起身** | `checkpoints/q1_recovery_v3_supine_ppo.pt` | `Isaac-Q1-RecoveryV3-Supine-v0` | 僅正躺：地板 → 跪 → 站 |
-| **趴躺起身** | `checkpoints/q1_recovery_v3_prone_ppo.pt` | `Isaac-Q1-RecoveryV3-Prone-v0` | 僅趴躺：地板 → 跪 → 站 |
+| **舊版地板 → 跪**（開箱鏈） | `checkpoints/q1_unbox_ppo.pt` | `Isaac-Q1-Unbox-v0` | 正躺開箱 → 仰臥起坐 → 穩定跪姿 |
+| **正躺 Elbow 測試** | `checkpoints/q1_recovery_v3_supine_ppo.pt` | `Isaac-Q1-RecoveryV3-Supine-v0` | 新 checkpoint，完整起立尚未通過網頁驗證 |
+| **反躺 Elbow 測試** | `checkpoints/q1_recovery_v3_prone_ppo.pt` | `Isaac-Q1-RecoveryV3-Prone-v0` | 新 checkpoint，完整起立尚未通過網頁驗證 |
+| **Backflip 收臂後翻** | `checkpoints/backflip_arm_rest/model.pt` | shared physical web environment | 落地收臂，雙腳輪＋膝輪跪姿平衡 |
+| **Unbox 標準跪姿起立** | `checkpoints/q1_unbox_transfer_ppo.pt` | shared physical web environment | 新 iter199；Kneel接Unbox及20秒站穩已驗證 |
+| **Unbox 後翻落地實驗** | `checkpoints/q1_unbox_landing_ppo.pt` | shared physical web environment | 新連動 iter119；7/32起立、5/32結束仍穩定，實驗測試 |
+| **正躺 Gripper 輔助** | `checkpoints/q1_recovery_v3_supine_ppo_peak8000.pt` | shared physical web environment | 歷史 peak 模型；共用網頁尚未通過完整起立 |
+| **反躺 Gripper 輔助** | `checkpoints/q1_recovery_v3_prone_gripper_ppo.pt` | shared physical web environment | 歷史有效模型，對應控制器快照 |
 
 ONNX / TorchScript（skate，含 observation normalizer）：
 
@@ -73,6 +80,8 @@ ONNX / TorchScript（skate，含 observation normalizer）：
 **不建議使用（已淘汰，不在倉庫追蹤）：** `skateboard_ppo.pt`（舊 ideal-PD）、`q1_getup_ppo.pt`、`q1_recovery_reference_v2_ppo.pt`、混合 `q1_recovery_contact_v3_ppo.pt`（已由分拆 supine/prone 取代）。
 
 ### 示範影片（已上傳）↔ PPO 位置
+
+下列影片為歷史模型示範；最新 recovery 權重已更新，不能把歷史影片當成新模型驗證。最新結果見 [整合訓練紀錄](docs/training/README.md)。
 
 完整索引見 **[`docs/demos/`](docs/demos/README.md)**。重點如下：
 
@@ -98,7 +107,7 @@ Raw（本分支 `cursor/demo-videos-ppo-7d44`）：
 | **skate** | 92-D obs、24-D action；CubeMars 致動器 + DR | 課程 stand→glide→swizzle→lean→micro-lift | 預設模式；WASD 控 `vx` / yaw |
 | **slide** | 同 skate 契約 | 前後腳交換、50–220 ms 抬腳獎勵 | 自動 wander 或 WASD |
 | **posture** | 同契約；較寬腿部 clip | kneel↔stand 姿態轉移 | Kneel / Stand 按鈕 |
-| **unbox** | 同契約 + MediaPipe 關鍵幀 prior | 正躺開箱到穩定四輪跪 | API `unbox`（網頁無獨立按鈕） |
+| **unbox** | 同契約 + MediaPipe 關鍵幀 prior | 正躺開箱到穩定四輪跪 | 舊版 launcher 的 API `unbox`；新版按鈕為跪姿起立 |
 | **recovery supine** | recovery_v3 MDP；接觸閘門 | 6144 envs × ~10k iters，僅 mode=正躺 | 先按正躺，再 Recovery |
 | **recovery prone** | 同上 | 同上，僅 mode=趴躺 | 先按趴躺，再 Recovery |
 

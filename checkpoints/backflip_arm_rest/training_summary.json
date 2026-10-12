@@ -1,0 +1,10 @@
+{
+  "state": "stopped_after_independent_validation",
+  "budget_iterations": 500,
+  "num_envs": 6144,
+  "selected_iteration": 200,
+  "last_logged_iteration": 297,
+  "selection_trials": 96,
+  "selection_successes": 84,
+  "early_hops": 0
+}

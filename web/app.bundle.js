@@ -22506,12 +22506,18 @@ function applyIsaacState(state) {
     const parts = [];
     if (policies.recovery_supine) parts.push("supine PPO");
     if (policies.recovery_prone) parts.push("prone PPO");
+    if (policies.backflip) parts.push("backflip PPO");
+    if (policies.unbox) parts.push("kneel-to-stand PPO");
     if (!parts.length && policies.recovery) parts.push("recovery mixed");
     const rec = parts.length ? ` \xB7 ${parts.join(" + ")}` : "";
-    els.pose.textContent = `mode ${state.pose || "skate"}${rec}`;
+    els.pose.textContent = state.message || `mode ${state.pose || "skate"}${rec}`;
   }
   document.querySelectorAll("[data-pose]").forEach((btn) => {
     const pose = btn.dataset.pose;
+    if (pose === "backflip") btn.disabled = !state.policies?.backflip;
+    if (pose.startsWith("recovery_") && !["recovery_ppo"].includes(pose)) {
+      btn.disabled = !state.policies?.[pose.replace("recovery_", "")];
+    }
     const active = state.pose === pose || pose === "skate" && state.pose === "skate" || pose === "supine" && state.pose === "supine" || pose === "prone" && state.pose === "prone" || pose === "recovery" && state.pose === "recovery";
     btn.classList.toggle("active-pose", active);
   });

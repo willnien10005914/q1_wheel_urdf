@@ -182,6 +182,11 @@ class PlayWebHandler(SimpleHTTPRequestHandler):
                 "lie_prone",
                 "recovery",
                 "recovery_ppo",
+                "backflip",
+                "recovery_supine_elbow",
+                "recovery_prone_elbow",
+                "recovery_supine_gripper",
+                "recovery_prone_gripper",
             }
             if name in allowed:
                 self.state.request_pose(name)

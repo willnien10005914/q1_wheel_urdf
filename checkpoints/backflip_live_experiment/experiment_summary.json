@@ -1,0 +1,10 @@
+{
+  "state": "stopped_no_independent_success",
+  "budget": 200,
+  "last_logged_iteration": 172,
+  "num_envs": 6144,
+  "checkpoint_archived": "model_150.pt",
+  "independent_trials": 32,
+  "independent_successes": 0,
+  "activated": false
+}

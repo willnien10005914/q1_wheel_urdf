@@ -31,3 +31,25 @@ docs/reference/*_web_recording.json
 !docs/reference/a3_unbox_ref_web_recording.json
 docs/reference/review/*.mp4
 checkpoints/*_rslrl5.pt
+
+# Keep trained skill checkpoints and their controller/validation provenance.
+!checkpoints/*.pt
+!checkpoints/backflip_v1_20k/
+!checkpoints/backflip_v1_20k/**
+!checkpoints/backflip_v2_20k/
+!checkpoints/backflip_v2_20k/**
+!checkpoints/backflip_arm_rest/
+!checkpoints/backflip_arm_rest/**
+
+!checkpoints/backflip_live_experiment/
+!checkpoints/backflip_live_experiment/**
+!checkpoints/backflip_live_arm_rest/
+!checkpoints/backflip_live_arm_rest/**
+!checkpoints/unbox_transfer_200/
+!checkpoints/unbox_transfer_200/**
+!checkpoints/unbox_landing_200/
+!checkpoints/unbox_landing_200/**
+!checkpoints/unbox_landing_continue/
+!checkpoints/unbox_landing_continue/**
+!checkpoints/unbox_linkage_120/
+!checkpoints/unbox_linkage_120/**

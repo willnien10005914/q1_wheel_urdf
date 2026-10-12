@@ -1,0 +1,31 @@
+{
+  "download_page": "https://gofile.io/d/iE8sYQLW",
+  "filename": "q1_unbox_canonical.mp4",
+  "sha256": "25371d01699cc68b2631f7ca1492f158b34560bffe7531701e0daf620479b7cc",
+  "checkpoint_sha256": "814968100a6738141b6e07a93200521a77d51df07e474c4e70ddc7e3f5ef653b",
+  "seed": 4107,
+  "initial_state": "Explicit standard kneel at demo reset",
+  "no_pose_writes_on_unbox": true,
+  "terminal": {
+    "pose": "unbox_hold",
+    "base": {
+      "qw": 0.9991686940193176,
+      "qx": -0.0028176859486848116,
+      "qy": -0.033618420362472534,
+      "qz": 0.022885151207447052,
+      "z": 0.8419033885002136,
+      "x": 0.4584997892379761,
+      "y": 0.01603844203054905,
+      "lin_vel_w": [
+        0.01512178871780634,
+        -0.0011451223399490118,
+        -0.0006936966092325747
+      ],
+      "ang_vel_b": [
+        -0.006121681537479162,
+        0.0818360224366188,
+        -0.009393301792442799
+      ]
+    }
+  }
+}

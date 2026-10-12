@@ -1,0 +1,13 @@
+{
+  "source_sha256": {
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3/mdp.py": "805a32533e0f1d069d1dce590d471ecd80f9c11007fbebdc8a0f12e3356c846d",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3/runner_cfg.py": "a28e433c15c752083b6d93ef0fa2e16bf4aa6ee52a6d5252c8c13a87f1eecb95",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3/__init__.py": "a7904c6946439413491b9e2b1cb80e7cf650d11d35272be0eb7fe555a8198fb0",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3/env_cfg.py": "f9498a9a3e176a7d18f65a113c295d7e841be261bef45bd237e6afb53550fbc5",
+    "docs/reference/getup_candidates_v3/motor_priors.json": "c60155c3176daf01e7c6161c37d24c8468ae68657f35ad60645aea587bfd4e3e",
+    "docs/reference/getup_candidates_v3/supine.json": "0ac39417132481852b57759385ddeabd705f4a775bccbccb6437e23bb6e792df",
+    "docs/reference/getup_candidates_v3/prone.json": "89518c7bc06abc061a714311bd3b96286cf6180ec850559c7c57a96e495c1c7c"
+  },
+  "previous_evaluation": "3c9d197478d6cdac4c65842bf5b4c4a518c617f57d2f9ace4cb5bcdd19b76f7e",
+  "mdp_sha256": "805a32533e0f1d069d1dce590d471ecd80f9c11007fbebdc8a0f12e3356c846d"
+}

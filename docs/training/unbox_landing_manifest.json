@@ -1,0 +1,31 @@
+{
+  "args": {
+    "num_envs": 6144,
+    "iterations": 200,
+    "bank": "docs/training/backflip_landing_bank.json",
+    "checkpoint": "checkpoints/q1_recovery_v3_boot_kneel_ppo.pt",
+    "run_name": "landing_direct6144_200",
+    "save_interval": 50,
+    "landing_direct": true,
+    "head_scale": 0.0,
+    "enable_cameras": false,
+    "xr": false,
+    "device": "cuda:0",
+    "cpu": false,
+    "verbose": false,
+    "info": false,
+    "rendering_mode": null,
+    "kit_args": "",
+    "anim_recording_enabled": false,
+    "anim_recording_start_time": 0,
+    "anim_recording_stop_time": 10,
+    "headless": true,
+    "hide_ui": true,
+    "create_new_stage": false,
+    "physics_gpu": 0,
+    "active_gpu": 0
+  },
+  "bank_sha256": "7a69f33204a86b63bc7fe2a9244af49cfa74aa36f152f7b27d91cd4fbe552211",
+  "resume_sha256": "da936270ee657554f39290de35b883d6a993a9c6367d7584fe6292eafb3b9dc3",
+  "controller_sha256": "6d5fae64e1264386cea16537b397c8b0e3b89f0e88c4b00a142758236b4d201c"
+}

@@ -1,0 +1,10 @@
+{
+  "activated": false,
+  "reason": "Training omitted the roller mimic used by the web plant",
+  "model50_independent": {
+    "stood": 3,
+    "stable_at_end": 2,
+    "trials": 32
+  },
+  "final_iteration": 149
+}

@@ -1,0 +1,9 @@
+{
+  "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3/mdp.py": "1657f7eb60f92f1cdcdc8f57c5dc2f15759e98f60078b772e9517e0d4e6c67d8",
+  "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3/runner_cfg.py": "12e2716393a2f78b840775576eab4a6c60c723246a28e0156659a98b182d0ed7",
+  "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3/__init__.py": "a7904c6946439413491b9e2b1cb80e7cf650d11d35272be0eb7fe555a8198fb0",
+  "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3/env_cfg.py": "9c380031c0a14a340af56f0cbdd11cddd5e3cd84bd75b1df26f261bcc39c31cb",
+  "docs/reference/getup_candidates_v3/motor_priors.json": "b017782912e33c872a4da3719329fcd860e47413a0ee8c267c8b6d69c476f17d",
+  "docs/reference/getup_candidates_v3/supine.json": "0ac39417132481852b57759385ddeabd705f4a775bccbccb6437e23bb6e792df",
+  "docs/reference/getup_candidates_v3/prone.json": "89518c7bc06abc061a714311bd3b96286cf6180ec850559c7c57a96e495c1c7c"
+}

@@ -1,0 +1,187 @@
+{
+  "models": [
+    {
+      "file": "checkpoints/backflip_arm_rest/model.pt",
+      "bytes": 5037795,
+      "sha256": "5468ff360214f8f885868c30bc0a399f939c00fc0db6344eaf494cfd40fedf57",
+      "iteration": 200,
+      "format": "rsl_rl5"
+    },
+    {
+      "file": "checkpoints/backflip_live_experiment/model_150.pt",
+      "bytes": 5037795,
+      "sha256": "813bba581eb152ac6c00e451665fca923946c820c19de561e305c5af593fb0d9",
+      "iteration": 150,
+      "format": "rsl_rl5"
+    },
+    {
+      "file": "checkpoints/backflip_v2_20k/model_19999.pt",
+      "bytes": 5037959,
+      "sha256": "1dabce59537fcbf050466a33274d46e0865ecd269b38021a06e0cc323a5935cd",
+      "iteration": 19999,
+      "format": "rsl_rl5"
+    },
+    {
+      "file": "checkpoints/q1_posture_ppo.pt",
+      "bytes": 5210165,
+      "sha256": "60b862bdd0f1c34243bb24569856aabd90843d9431b96ae55827f027009b0228",
+      "iteration": 7998,
+      "format": "legacy_actor_critic"
+    },
+    {
+      "file": "checkpoints/q1_recovery_v3_boot_kneel_ppo.pt",
+      "bytes": 5530421,
+      "sha256": "da936270ee657554f39290de35b883d6a993a9c6367d7584fe6292eafb3b9dc3",
+      "iteration": 4999,
+      "format": "rsl_rl5"
+    },
+    {
+      "file": "checkpoints/q1_recovery_v3_prone_gripper_ppo.pt",
+      "bytes": 5530421,
+      "sha256": "3c9d197478d6cdac4c65842bf5b4c4a518c617f57d2f9ace4cb5bcdd19b76f7e",
+      "iteration": 9999,
+      "format": "legacy_actor_critic"
+    },
+    {
+      "file": "checkpoints/q1_recovery_v3_prone_ppo.pt",
+      "bytes": 5530421,
+      "sha256": "01e8f695c6cd7526646130b09298497b8ae9fca92257884cb8ca79b1b3a1d934",
+      "iteration": 1800,
+      "format": "rsl_rl5"
+    },
+    {
+      "file": "checkpoints/q1_recovery_v3_prone_ppo_nofloorarm_latest.pt",
+      "bytes": 5530503,
+      "sha256": "16c5c7a54df222086d249101fda5e6bea8b6de315d2d64a5c0561e624e1ea57f",
+      "iteration": 11800,
+      "format": "rsl_rl5"
+    },
+    {
+      "file": "checkpoints/q1_recovery_v3_prone_ppo_nofloorarm_peak1800.pt",
+      "bytes": 5530421,
+      "sha256": "01e8f695c6cd7526646130b09298497b8ae9fca92257884cb8ca79b1b3a1d934",
+      "iteration": 1800,
+      "format": "rsl_rl5"
+    },
+    {
+      "file": "checkpoints/q1_recovery_v3_prone_ppo_nofloorarm_peak2600.pt",
+      "bytes": 5530421,
+      "sha256": "3557b9b93083d938a2b1a5712a1602ee7d6673e524024190336777010ac02f31",
+      "iteration": 2600,
+      "format": "rsl_rl5"
+    },
+    {
+      "file": "checkpoints/q1_recovery_v3_prone_ppo_peak2000.pt",
+      "bytes": 5530421,
+      "sha256": "afbd540f1a3dc1102bbde9cc60935941a8b0bd226fc874e9bce5aa53c664e268",
+      "iteration": 2000,
+      "format": "rsl_rl5"
+    },
+    {
+      "file": "checkpoints/q1_recovery_v3_prone_ppo_peak2600.pt",
+      "bytes": 5530421,
+      "sha256": "5a25ca8fbb1550ccf20d171647c1f3e4573de9f79b9ff799934fe1e388d2e79a",
+      "iteration": 2600,
+      "format": "rsl_rl5"
+    },
+    {
+      "file": "checkpoints/q1_recovery_v3_supine_ppo.pt",
+      "bytes": 5530503,
+      "sha256": "4a1544612bed16c02b25d1a37c040694fb02b83537b0c3d585ea855d7dc8ec5e",
+      "iteration": 13400,
+      "format": "rsl_rl5"
+    },
+    {
+      "file": "checkpoints/q1_recovery_v3_supine_ppo_final19999.pt",
+      "bytes": 5530503,
+      "sha256": "663bca5ce79e53fac87c251d8c5d445be49be1f670570779ed61b34653646349",
+      "iteration": 19999,
+      "format": "rsl_rl5"
+    },
+    {
+      "file": "checkpoints/q1_recovery_v3_supine_ppo_peak8000.pt",
+      "bytes": 5530421,
+      "sha256": "10dc050fc80e888457c2afba5e72666f5749f84d08272935e90fb5c63ddcc7c3",
+      "iteration": 8000,
+      "format": "rsl_rl5"
+    },
+    {
+      "file": "checkpoints/q1_skate_ppo.pt",
+      "bytes": 5210247,
+      "sha256": "0b36ba0a1a9198e89109a886b2812705c9bfbd2b3c8f98ea56ad3dbfa2252db0",
+      "iteration": 19999,
+      "format": "legacy_actor_critic"
+    },
+    {
+      "file": "checkpoints/q1_skate_ppo_rslrl5.pt",
+      "bytes": 5209239,
+      "sha256": "53dc0da64251c31e93382aabaad17c6342f98806dd4182c296ecfaeee90c2f31",
+      "iteration": 19999,
+      "format": "rsl_rl5"
+    },
+    {
+      "file": "checkpoints/q1_slide_ppo.pt",
+      "bytes": 5210247,
+      "sha256": "a63b7f6665c62cab27562d6969185b00f78eb600760edf75a5db1369cafea6fe",
+      "iteration": 31998,
+      "format": "legacy_actor_critic"
+    },
+    {
+      "file": "checkpoints/q1_slide_ppo_rslrl5.pt",
+      "bytes": 5209239,
+      "sha256": "51c4078f4114181bc34def48141a33f42c6e8e5c14519dcbfad8a05eee83539a",
+      "iteration": 31998,
+      "format": "rsl_rl5"
+    },
+    {
+      "file": "checkpoints/q1_unbox_landing_ppo.pt",
+      "bytes": 5530339,
+      "sha256": "8262378f5836b904de4845e6e921ecd836ad8c32ae75a3c1cba3aa0e70bd59cb",
+      "iteration": 119,
+      "format": "rsl_rl5"
+    },
+    {
+      "file": "checkpoints/q1_unbox_ppo.pt",
+      "bytes": 5210165,
+      "sha256": "97645d6e0449314b3c1ba73aa994b69dbc2e766e88b8b3fad94d197e9c83eed3",
+      "iteration": 7999,
+      "format": "legacy_actor_critic"
+    },
+    {
+      "file": "checkpoints/q1_unbox_transfer_ppo.pt",
+      "bytes": 5530339,
+      "sha256": "814968100a6738141b6e07a93200521a77d51df07e474c4e70ddc7e3f5ef653b",
+      "iteration": 199,
+      "format": "rsl_rl5"
+    },
+    {
+      "file": "checkpoints/unbox_landing_200/model_199.pt",
+      "bytes": 5530339,
+      "sha256": "c7ba2a685203040e1ba224c959db58e985924db81558fd26cedc2f9dbf8597d6",
+      "iteration": 199,
+      "format": "rsl_rl5"
+    },
+    {
+      "file": "checkpoints/unbox_landing_continue/model_149.pt",
+      "bytes": 5530339,
+      "sha256": "fbc22c2183653114a7db5a150a60abdf5f9ab9ce85e30a92cace425913adcd7d",
+      "iteration": 149,
+      "format": "rsl_rl5"
+    },
+    {
+      "file": "checkpoints/unbox_linkage_120/model_119.pt",
+      "bytes": 5530339,
+      "sha256": "8262378f5836b904de4845e6e921ecd836ad8c32ae75a3c1cba3aa0e70bd59cb",
+      "iteration": 119,
+      "format": "rsl_rl5"
+    },
+    {
+      "file": "checkpoints/unbox_transfer_200/model_199.pt",
+      "bytes": 5530339,
+      "sha256": "814968100a6738141b6e07a93200521a77d51df07e474c4e70ddc7e3f5ef653b",
+      "iteration": 199,
+      "format": "rsl_rl5"
+    }
+  ],
+  "scope": "Effective, selected peak and final historical checkpoints; intermediate save intervals remain in local logs."
+}

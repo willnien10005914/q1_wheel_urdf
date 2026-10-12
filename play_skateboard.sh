@@ -3,6 +3,9 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ ${Q1_LEGACY_PLAY:-0} != 1 ]]; then
+  exec bash "$ROOT/play_skills.sh" "$@"
+fi
 export PATH="$HOME/isaac/env_isaaclab/bin:$HOME/.local/bin:$PATH"
 export ISAACLAB_PATH="${ISAACLAB_PATH:-$HOME/isaac/IsaacLab}"
 export PYTHONPATH="$ROOT/source/wheel_humanoid_lab:${PYTHONPATH:-}"

@@ -1,0 +1,76 @@
+{
+  "supine_gripper": {
+    "seed": 4107,
+    "trials": 8,
+    "stand_successes": 0,
+    "stable_at_end": 0,
+    "best_stand_hold_s": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "max_stage": [
+      2.0,
+      3.0,
+      3.0,
+      3.0,
+      2.0,
+      2.0,
+      3.0,
+      3.0
+    ],
+    "unbroken": [
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ],
+    "no_pose_writes_at_unbox_handover": false
+  },
+  "prone_gripper": {
+    "seed": 4107,
+    "trials": 8,
+    "stand_successes": 0,
+    "stable_at_end": 0,
+    "best_stand_hold_s": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "max_stage": [
+      3.0,
+      3.0,
+      3.0,
+      1.0,
+      3.0,
+      1.0,
+      3.0,
+      3.0
+    ],
+    "unbroken": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ],
+    "no_pose_writes_at_unbox_handover": false
+  }
+}

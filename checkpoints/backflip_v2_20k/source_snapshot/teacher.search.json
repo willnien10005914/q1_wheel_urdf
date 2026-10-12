@@ -1,0 +1,182 @@
+[
+  {
+    "generation": 0,
+    "best": {
+      "score": 35.964420318603516,
+      "max_backturn_rad": 1.3985768556594849,
+      "takeoff": true,
+      "early_hop": false,
+      "illegal": false,
+      "takeoff_omega": -5.924586296081543,
+      "hold_s": 0.0,
+      "success": false,
+      "end_winding_rad": -1.6247320175170898
+    },
+    "global_score": 35.964420318603516,
+    "valid_takeoffs": 401,
+    "early_hops": 0,
+    "successes": 0
+  },
+  {
+    "generation": 1,
+    "best": {
+      "score": 47.431156158447266,
+      "max_backturn_rad": 1.8572462797164917,
+      "takeoff": true,
+      "early_hop": false,
+      "illegal": false,
+      "takeoff_omega": -1.6685819625854492,
+      "hold_s": 0.0,
+      "success": false,
+      "end_winding_rad": -1.8572462797164917
+    },
+    "global_score": 47.431156158447266,
+    "valid_takeoffs": 381,
+    "early_hops": 0,
+    "successes": 0
+  },
+  {
+    "generation": 2,
+    "best": {
+      "score": 43.26637649536133,
+      "max_backturn_rad": 1.690654993057251,
+      "takeoff": true,
+      "early_hop": false,
+      "illegal": false,
+      "takeoff_omega": -1.8705134391784668,
+      "hold_s": 0.0,
+      "success": false,
+      "end_winding_rad": -1.690654993057251
+    },
+    "global_score": 47.431156158447266,
+    "valid_takeoffs": 349,
+    "early_hops": 0,
+    "successes": 0
+  },
+  {
+    "generation": 3,
+    "best": {
+      "score": 49.31309127807617,
+      "max_backturn_rad": 1.9325236082077026,
+      "takeoff": true,
+      "early_hop": false,
+      "illegal": false,
+      "takeoff_omega": -5.379694938659668,
+      "hold_s": 0.0,
+      "success": false,
+      "end_winding_rad": -1.9325236082077026
+    },
+    "global_score": 49.31309127807617,
+    "valid_takeoffs": 335,
+    "early_hops": 0,
+    "successes": 0
+  },
+  {
+    "generation": 4,
+    "best": {
+      "score": 49.8663215637207,
+      "max_backturn_rad": 1.9546529054641724,
+      "takeoff": true,
+      "early_hop": false,
+      "illegal": false,
+      "takeoff_omega": 1.2928040027618408,
+      "hold_s": 0.0,
+      "success": false,
+      "end_winding_rad": -1.9546529054641724
+    },
+    "global_score": 49.8663215637207,
+    "valid_takeoffs": 350,
+    "early_hops": 0,
+    "successes": 0
+  },
+  {
+    "generation": 5,
+    "best": {
+      "score": 55.5018310546875,
+      "max_backturn_rad": 2.1800732612609863,
+      "takeoff": true,
+      "early_hop": false,
+      "illegal": false,
+      "takeoff_omega": 3.1398351192474365,
+      "hold_s": 0.0,
+      "success": false,
+      "end_winding_rad": -2.1800732612609863
+    },
+    "global_score": 55.5018310546875,
+    "valid_takeoffs": 372,
+    "early_hops": 0,
+    "successes": 0
+  },
+  {
+    "generation": 6,
+    "best": {
+      "score": 58.28746032714844,
+      "max_backturn_rad": 2.2914984226226807,
+      "takeoff": true,
+      "early_hop": false,
+      "illegal": false,
+      "takeoff_omega": 3.2449581623077393,
+      "hold_s": 0.0,
+      "success": false,
+      "end_winding_rad": -2.2914984226226807
+    },
+    "global_score": 58.28746032714844,
+    "valid_takeoffs": 406,
+    "early_hops": 0,
+    "successes": 0
+  },
+  {
+    "generation": 7,
+    "best": {
+      "score": 57.41291046142578,
+      "max_backturn_rad": 2.256516456604004,
+      "takeoff": true,
+      "early_hop": false,
+      "illegal": false,
+      "takeoff_omega": 4.405483245849609,
+      "hold_s": 0.0,
+      "success": false,
+      "end_winding_rad": -2.256516456604004
+    },
+    "global_score": 58.28746032714844,
+    "valid_takeoffs": 410,
+    "early_hops": 0,
+    "successes": 0
+  },
+  {
+    "generation": 8,
+    "best": {
+      "score": 58.64460754394531,
+      "max_backturn_rad": 2.305784225463867,
+      "takeoff": true,
+      "early_hop": false,
+      "illegal": false,
+      "takeoff_omega": 4.117758274078369,
+      "hold_s": 0.0,
+      "success": false,
+      "end_winding_rad": -2.305784225463867
+    },
+    "global_score": 58.64460754394531,
+    "valid_takeoffs": 429,
+    "early_hops": 0,
+    "successes": 0
+  },
+  {
+    "generation": 9,
+    "best": {
+      "score": 58.478660583496094,
+      "max_backturn_rad": 2.2991464138031006,
+      "takeoff": true,
+      "early_hop": false,
+      "illegal": false,
+      "takeoff_omega": 7.900409698486328,
+      "hold_s": 0.0,
+      "success": false,
+      "end_winding_rad": -2.2991464138031006
+    },
+    "global_score": 58.64460754394531,
+    "valid_takeoffs": 433,
+    "early_hops": 0,
+    "successes": 0
+  }
+]

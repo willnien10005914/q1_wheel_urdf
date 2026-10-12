@@ -1,0 +1,20 @@
+{
+  "checkpoint": "q1_recovery_v3_prone_gripper_ppo.pt",
+  "checkpoint_sha256": "3c9d197478d6cdac4c65842bf5b4c4a518c617f57d2f9ace4cb5bcdd19b76f7e",
+  "files_sha256": {
+    "validated_controller.json": "18ce86e1d391125d6e88373df725d0e1b96696d9986ecddbde642dde0cb54a45",
+    "controller_manifest.json": "15f86a7762185299f17474e02e7d03cf9d696dec6b7f567bab6de01fe50aa2d0",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3/mdp.py": "805a32533e0f1d069d1dce590d471ecd80f9c11007fbebdc8a0f12e3356c846d",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3/training_runner_cfg.py": "12e2716393a2f78b840775576eab4a6c60c723246a28e0156659a98b182d0ed7",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3/training_env_cfg.py": "afaf2ee87118b886434b5d5a15b3b07dc07b6c9e56586fa7e1ddfda552177813",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3/training_mdp_snapshot.py": "84b6f924e76f3fad58411562a2982760c7c5a6994b843bfd512e7eb6115f98b0",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3/runner_cfg.py": "a28e433c15c752083b6d93ef0fa2e16bf4aa6ee52a6d5252c8c13a87f1eecb95",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3/__init__.py": "a7904c6946439413491b9e2b1cb80e7cf650d11d35272be0eb7fe555a8198fb0",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3/env_cfg.py": "f9498a9a3e176a7d18f65a113c295d7e841be261bef45bd237e6afb53550fbc5",
+    "docs/reference/getup_candidates_v3/supine.json": "0ac39417132481852b57759385ddeabd705f4a775bccbccb6437e23bb6e792df",
+    "docs/reference/getup_candidates_v3/prone.json": "89518c7bc06abc061a714311bd3b96286cf6180ec850559c7c57a96e495c1c7c",
+    "docs/reference/getup_candidates_v3/motor_priors.json": "c60155c3176daf01e7c6161c37d24c8468ae68657f35ad60645aea587bfd4e3e",
+    "docs/reference/getup_candidates_v3/training_motor_priors.json": "c504ff00d0375dd0bd0199ac238516e08e30a7a25608be75580509ec2f7cf3d2"
+  },
+  "validation": "docs/training/README.md"
+}

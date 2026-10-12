@@ -1,0 +1,18 @@
+{
+  "checkpoint": "q1_recovery_v3_supine_ppo_peak8000.pt",
+  "checkpoint_sha256": "10dc050fc80e888457c2afba5e72666f5749f84d08272935e90fb5c63ddcc7c3",
+  "files_sha256": {
+    "validated_controller.json": "4c8f7d45796acfce3259508bdba40b1010a22d88df3c57d48c07ddc41897aa88",
+    "controller_manifest.json": "15f86a7762185299f17474e02e7d03cf9d696dec6b7f567bab6de01fe50aa2d0",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3/mdp.py": "6d5fae64e1264386cea16537b397c8b0e3b89f0e88c4b00a142758236b4d201c",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3/training_mdp_snapshot.py": "84b6f924e76f3fad58411562a2982760c7c5a6994b843bfd512e7eb6115f98b0",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3/historical_validated_mdp.py": "527fb5d66950a474ab106c4c758b393bf622b0919a9742a302cd41468ca37e90",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3/runner_cfg.py": "12e2716393a2f78b840775576eab4a6c60c723246a28e0156659a98b182d0ed7",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3/__init__.py": "a7904c6946439413491b9e2b1cb80e7cf650d11d35272be0eb7fe555a8198fb0",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3/env_cfg.py": "afaf2ee87118b886434b5d5a15b3b07dc07b6c9e56586fa7e1ddfda552177813",
+    "docs/reference/getup_candidates_v3/supine.json": "0ac39417132481852b57759385ddeabd705f4a775bccbccb6437e23bb6e792df",
+    "docs/reference/getup_candidates_v3/prone.json": "89518c7bc06abc061a714311bd3b96286cf6180ec850559c7c57a96e495c1c7c",
+    "docs/reference/getup_candidates_v3/motor_priors.json": "c504ff00d0375dd0bd0199ac238516e08e30a7a25608be75580509ec2f7cf3d2"
+  },
+  "validation": "docs/training/README.md"
+}

@@ -1,0 +1,15 @@
+{
+  "download_page": "https://gofile.io/d/CgycqJ4p",
+  "filename": "q1_backflip_arms_down.mp4",
+  "sha256": "1c202c0d1afcf44d7bcca0ae77098e35b519e7d6f422f38fb92536e1120090a8",
+  "checkpoint_sha256": "5468ff360214f8f885868c30bc0a399f939c00fc0db6344eaf494cfd40fedf57",
+  "seed": 4107,
+  "actual_web_controller": true,
+  "continuous_physical_simulation": true,
+  "terminal": {
+    "success": true,
+    "arms_error_rad": 0.04065018892288208,
+    "hold_s": 5.979995250701904,
+    "early_hop": false
+  }
+}

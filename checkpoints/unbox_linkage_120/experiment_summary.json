@@ -1,0 +1,17 @@
+{
+  "activated": true,
+  "reason": "Selected for matching web linkage; same fresh-reset test 7/32 stood,5 stable vs model199 6/32 stood,4 stable. Experimental; continuous chain still fails.",
+  "model40": {
+    "stood": 3,
+    "stable_at_end": 3,
+    "trials": 32
+  },
+  "model119": {
+    "stood": 7,
+    "stable_at_end": 5,
+    "trials": 32
+  },
+  "final_iteration": 119,
+  "matched_web_linkage": true,
+  "resume_archive": "checkpoints/unbox_landing_200/model_199.pt"
+}

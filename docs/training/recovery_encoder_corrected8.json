@@ -1,0 +1,150 @@
+{
+  "supine_elbow": {
+    "seed": 4107,
+    "trials": 8,
+    "stand_successes": 0,
+    "stable_at_end": 0,
+    "best_stand_hold_s": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "max_stage": [
+      2.0,
+      2.0,
+      2.0,
+      2.0,
+      2.0,
+      2.0,
+      2.0,
+      2.0
+    ],
+    "unbroken": [
+      true,
+      false,
+      true,
+      true,
+      false,
+      false,
+      false,
+      true
+    ],
+    "no_pose_writes_at_unbox_handover": false
+  },
+  "prone_elbow": {
+    "seed": 4107,
+    "trials": 8,
+    "stand_successes": 0,
+    "stable_at_end": 0,
+    "best_stand_hold_s": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "max_stage": [
+      3.0,
+      3.0,
+      3.0,
+      3.0,
+      3.0,
+      3.0,
+      3.0,
+      3.0
+    ],
+    "unbroken": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ],
+    "no_pose_writes_at_unbox_handover": false
+  },
+  "supine_gripper": {
+    "seed": 4107,
+    "trials": 8,
+    "stand_successes": 0,
+    "stable_at_end": 0,
+    "best_stand_hold_s": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "max_stage": [
+      3.0,
+      3.0,
+      2.0,
+      3.0,
+      3.0,
+      3.0,
+      3.0,
+      2.0
+    ],
+    "unbroken": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false
+    ],
+    "no_pose_writes_at_unbox_handover": false
+  },
+  "prone_gripper": {
+    "seed": 4107,
+    "trials": 8,
+    "stand_successes": 6,
+    "stable_at_end": 6,
+    "best_stand_hold_s": [
+      4.619996547698975,
+      4.299996852874756,
+      3.3999974727630615,
+      4.0199971199035645,
+      0.0,
+      4.099997043609619,
+      0.0,
+      4.419996738433838
+    ],
+    "max_stage": [
+      4.0,
+      4.0,
+      4.0,
+      4.0,
+      4.0,
+      4.0,
+      4.0,
+      4.0
+    ],
+    "unbroken": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "no_pose_writes_at_unbox_handover": false
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "controller_sha256": "6d5fae64e1264386cea16537b397c8b0e3b89f0e88c4b00a142758236b4d201c",
+  "source": "current boot-kneel controller, revalidated with supine peak8000",
+  "canonical_evaluation": "artifacts/v2/original_supine_peak8000_eval8/evaluation.json",
+  "canonical_successes": 7,
+  "trials": 8
+}

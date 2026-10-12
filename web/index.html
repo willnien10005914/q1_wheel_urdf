@@ -51,7 +51,19 @@
         <div class="preset-row pose-row">
           <button id="pose-recovery" type="button" data-pose="recovery" class="primary-pose">Recovery PPO 起身</button>
         </div>
-        <p class="pose-hint">先選正躺或趴躺讓機器人躺好，再按 Recovery PPO 起身；起身後可切 Walk / Slide 用鍵盤 WASD。</p>
+        <div class="preset-row pose-row">
+          <button type="button" data-pose="recovery_supine_elbow">正躺 Elbow PPO（實驗測試）</button>
+          <button type="button" data-pose="recovery_prone_elbow">反躺 Elbow PPO（實驗測試）</button>
+        </div>
+        <div class="preset-row pose-row">
+          <button type="button" data-pose="recovery_supine_gripper">正躺 Gripper 輔助 PPO（實驗測試）</button>
+          <button type="button" data-pose="recovery_prone_gripper">反躺 Gripper 輔助 PPO</button>
+        </div>
+        <div class="preset-row pose-row">
+          <button id="pose-backflip" type="button" data-pose="backflip" class="primary-pose">Backflip 後空翻</button>
+          <button id="pose-unbox" type="button" data-pose="unbox">Unbox 跪姿起立</button>
+        </div>
+        <p class="pose-hint">站穩後按 Backflip，收臂並平衡跪姿落地；按 Unbox 從目前跪姿起立。落地 Unbox 仍為實驗版本。正反躺先選姿勢，再選 Elbow 或 Gripper 輔助模型起身。</p>
         <div class="preset-row">
           <button data-preset="zero">Zero</button>
           <button data-preset="tpose">T-pose</button>
@@ -103,7 +115,7 @@
   </div>
   <script type="module">
     // Single bundled module (no bare "three" imports / import maps).
-    import("./app.bundle.js?v=20261001a").catch((err) => {
+    import("./app.bundle.js?v=20261011-skills").catch((err) => {
       const status = document.getElementById("load-status");
       const error = document.getElementById("error");
       const detail = (err && (err.stack || err.message)) ? (err.stack || err.message) : String(err);

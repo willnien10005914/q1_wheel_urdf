@@ -1,0 +1,15 @@
+{
+  "selected_training_iteration": 200,
+  "checkpoint_sha256": "5468ff360214f8f885868c30bc0a399f939c00fc0db6344eaf494cfd40fedf57",
+  "files_sha256": {
+    "q1_backflip/env.py": "5c2075f8ca4c36320b72725180eaf038f30e2f13bdb0d5dcb4638ed22281d1ea",
+    "q1_backflip_v2/env.py": "3e05fa753c56ef0afbb1a1fdd982fc0dcf855f8da64aa3fc07c4d0ec77878f5d",
+    "q1_backflip_v2/compact_env.py": "7c6feba17f61df6e3999a98453c3785147ba032bbed34a08301707f90143aa01",
+    "q1_backflip_v2/landing_env.py": "b9bfe93e42f406e8c07f2d2b73b3582fadb950f8a19dc9e8e683011ed4889d83",
+    "q1_backflip_v2/arm_env.py": "c8e6d58d4f87b03981498d3811d9feba8245d78e8c36b48f313018771a93c634",
+    "urdf/wheel_humanoid.urdf": "ddddc7cb0c8e5395a62f4bdd0a96e61259aae989c75e185646e9eedc92f1223c",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/assets/wheel_humanoid.py": "c3cc3a5928ca2e136defdb50284342c42b084780f754d4ad160d8c8ccdb7d60f",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/actuators/cubemars.py": "319720db20ca5de9bcba89b39968f1170065d5fedc185145359aafa482037b37"
+  },
+  "teacher_sha256": "04c1f1c57a6fa2894c102b5e3ac5801581567ae492827f62128a05d8d74127ab"
+}
