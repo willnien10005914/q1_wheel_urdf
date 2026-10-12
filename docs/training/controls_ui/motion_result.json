@@ -1,0 +1,634 @@
+{
+  "date": "2026-10-12",
+  "model_changed": false,
+  "backflip_model_sha256": "5468ff360214f8f885868c30bc0a399f939c00fc0db6344eaf494cfd40fedf57",
+  "seed": 4107,
+  "timeline_pause_resume_pass": true,
+  "cases": [
+    {
+      "name": "before",
+      "phases": [
+        {
+          "label": "idle",
+          "env_count": 8,
+          "min_height": 0.8785445690155029,
+          "min_upright": 0.9991517663002014,
+          "final_mode": "stand",
+          "final_yaw_rad": -0.00039309456590545366,
+          "backflip": {
+            "success": false,
+            "arms_error_rad": 0.5024236440658569,
+            "hold_s": 0.0,
+            "early_hop": false
+          },
+          "message": "Reset to slightly bent standing pose."
+        },
+        {
+          "label": "forward",
+          "env_count": 8,
+          "min_height": 0.06437616050243378,
+          "min_upright": -0.0949852466583252,
+          "final_mode": "skate",
+          "final_yaw_rad": 3.06505710966208,
+          "backflip": {
+            "success": false,
+            "arms_error_rad": 0.6905273199081421,
+            "hold_s": 0.0,
+            "early_hop": false
+          },
+          "message": "skate PPO active."
+        },
+        {
+          "label": "stop_forward",
+          "env_count": 8,
+          "min_height": 0.08011026680469513,
+          "min_upright": -0.12961697578430176,
+          "final_mode": "skate",
+          "final_yaw_rad": 2.9175364683703804,
+          "backflip": {
+            "success": false,
+            "arms_error_rad": 0.6267920136451721,
+            "hold_s": 0.0,
+            "early_hop": false
+          },
+          "message": "skate PPO active."
+        },
+        {
+          "label": "left",
+          "env_count": 8,
+          "min_height": 0.08142968267202377,
+          "min_upright": -0.1252884864807129,
+          "final_mode": "skate",
+          "final_yaw_rad": 2.9776399030432685,
+          "backflip": {
+            "success": false,
+            "arms_error_rad": 0.6584521532058716,
+            "hold_s": 0.0,
+            "early_hop": false
+          },
+          "message": "skate PPO active."
+        },
+        {
+          "label": "stop_left",
+          "env_count": 8,
+          "min_height": 0.08154018968343735,
+          "min_upright": -0.1263827085494995,
+          "final_mode": "skate",
+          "final_yaw_rad": 2.9804953133887198,
+          "backflip": {
+            "success": false,
+            "arms_error_rad": 0.6075345873832703,
+            "hold_s": 0.0,
+            "early_hop": false
+          },
+          "message": "skate PPO active."
+        },
+        {
+          "label": "reverse",
+          "env_count": 8,
+          "min_height": 0.08129218220710754,
+          "min_upright": -0.14132142066955566,
+          "final_mode": "skate",
+          "final_yaw_rad": 3.004240596791298,
+          "backflip": {
+            "success": false,
+            "arms_error_rad": 0.64222252368927,
+            "hold_s": 0.0,
+            "early_hop": false
+          },
+          "message": "skate PPO active."
+        },
+        {
+          "label": "stop_reverse",
+          "env_count": 8,
+          "min_height": 0.08402124792337418,
+          "min_upright": -0.13871431350708008,
+          "final_mode": "skate",
+          "final_yaw_rad": 2.902671147510958,
+          "backflip": {
+            "success": false,
+            "arms_error_rad": 0.639390230178833,
+            "hold_s": 0.0,
+            "early_hop": false
+          },
+          "message": "skate PPO active."
+        },
+        {
+          "label": "right",
+          "env_count": 8,
+          "min_height": 0.0838005393743515,
+          "min_upright": -0.14355003833770752,
+          "final_mode": "skate",
+          "final_yaw_rad": 2.8830256319376133,
+          "backflip": {
+            "success": false,
+            "arms_error_rad": 0.6200145483016968,
+            "hold_s": 0.0,
+            "early_hop": false
+          },
+          "message": "skate PPO active."
+        },
+        {
+          "label": "stop_right",
+          "env_count": 8,
+          "min_height": 0.08431088924407959,
+          "min_upright": -0.1400076150894165,
+          "final_mode": "skate",
+          "final_yaw_rad": 2.917917912700653,
+          "backflip": {
+            "success": false,
+            "arms_error_rad": 0.6362816095352173,
+            "hold_s": 0.0,
+            "early_hop": false
+          },
+          "message": "skate PPO active."
+        },
+        {
+          "label": "drive_backflip",
+          "env_count": 8,
+          "min_height": 0.08578402549028397,
+          "min_upright": -0.12866997718811035,
+          "final_mode": "skate",
+          "final_yaw_rad": 2.911577055952725,
+          "backflip": {
+            "success": false,
+            "arms_error_rad": 0.6349847912788391,
+            "hold_s": 0.0,
+            "early_hop": false
+          },
+          "message": "Backflip requires stable standing. Use Unbox from kneel first."
+        },
+        {
+          "label": "reset_idle",
+          "env_count": 8,
+          "min_height": 0.8785274028778076,
+          "min_upright": 0.9990441799163818,
+          "final_mode": "stand",
+          "final_yaw_rad": -0.0015904113700517374,
+          "backflip": {
+            "success": false,
+            "arms_error_rad": 0.5054851770401001,
+            "hold_s": 0.0,
+            "early_hop": false
+          },
+          "message": "Reset to slightly bent standing pose."
+        },
+        {
+          "label": "idle_backflip",
+          "env_count": 8,
+          "min_height": 0.8781306147575378,
+          "min_upright": 0.9981342554092407,
+          "final_mode": "stand",
+          "final_yaw_rad": -0.0031065033169521425,
+          "backflip": {
+            "success": false,
+            "arms_error_rad": 0.4984305202960968,
+            "hold_s": 0.0,
+            "early_hop": false
+          },
+          "message": "Standing preparation did not settle; Reset before retry."
+        }
+      ]
+    },
+    {
+      "name": "drive_batch8",
+      "phases": [
+        {
+          "label": "idle",
+          "env_count": 8,
+          "min_height": 0.8785445690155029,
+          "min_upright": 0.9991517663002014,
+          "final_mode": "stand",
+          "final_yaw_rad": -0.00039309456590545366,
+          "backflip": {
+            "success": false,
+            "arms_error_rad": 0.5024236440658569,
+            "hold_s": 0.0,
+            "early_hop": false
+          },
+          "message": "Reset to slightly bent standing pose."
+        },
+        {
+          "label": "forward",
+          "env_count": 8,
+          "min_height": 0.6994069218635559,
+          "min_upright": 0.9936299324035645,
+          "final_mode": "skate",
+          "final_yaw_rad": -0.0012339923982170225,
+          "backflip": {
+            "success": false,
+            "arms_error_rad": 0.6452610492706299,
+            "hold_s": 0.0,
+            "early_hop": false
+          },
+          "message": "skate PPO active."
+        },
+        {
+          "label": "stop_forward",
+          "env_count": 8,
+          "min_height": 0.7276732325553894,
+          "min_upright": 0.9895164966583252,
+          "final_mode": "skate",
+          "final_yaw_rad": -0.0002775013542113934,
+          "backflip": {
+            "success": false,
+            "arms_error_rad": 0.5186896324157715,
+            "hold_s": 0.0,
+            "early_hop": false
+          },
+          "message": "skate PPO active."
+        },
+        {
+          "label": "left",
+          "env_count": 8,
+          "min_height": 0.7428634762763977,
+          "min_upright": 0.9970694780349731,
+          "final_mode": "skate",
+          "final_yaw_rad": 0.7043437615014919,
+          "backflip": {
+            "success": false,
+            "arms_error_rad": 0.4628361165523529,
+            "hold_s": 0.0,
+            "early_hop": false
+          },
+          "message": "skate PPO active."
+        },
+        {
+          "label": "stop_left",
+          "env_count": 8,
+          "min_height": 0.7417923212051392,
+          "min_upright": 0.9969945549964905,
+          "final_mode": "skate",
+          "final_yaw_rad": 0.7990608124133125,
+          "backflip": {
+            "success": false,
+            "arms_error_rad": 0.6008097529411316,
+            "hold_s": 0.0,
+            "early_hop": false
+          },
+          "message": "skate PPO active."
+        },
+        {
+          "label": "reverse",
+          "env_count": 8,
+          "min_height": 0.7328310608863831,
+          "min_upright": 0.995474636554718,
+          "final_mode": "skate",
+          "final_yaw_rad": 0.7990325134710189,
+          "backflip": {
+            "success": false,
+            "arms_error_rad": 0.5995046496391296,
+            "hold_s": 0.0,
+            "early_hop": false
+          },
+          "message": "skate PPO active."
+        },
+        {
+          "label": "stop_reverse",
+          "env_count": 8,
+          "min_height": 0.7416247129440308,
+          "min_upright": 0.9980031251907349,
+          "final_mode": "skate",
+          "final_yaw_rad": 0.8210119364073721,
+          "backflip": {
+            "success": false,
+            "arms_error_rad": 0.520129919052124,
+            "hold_s": 0.0,
+            "early_hop": false
+          },
+          "message": "skate PPO active."
+        },
+        {
+          "label": "right",
+          "env_count": 8,
+          "min_height": 0.7428615093231201,
+          "min_upright": 0.998471736907959,
+          "final_mode": "skate",
+          "final_yaw_rad": 0.32659443412836797,
+          "backflip": {
+            "success": false,
+            "arms_error_rad": 0.584118127822876,
+            "hold_s": 0.0,
+            "early_hop": false
+          },
+          "message": "skate PPO active."
+        },
+        {
+          "label": "stop_right",
+          "env_count": 8,
+          "min_height": 0.742094099521637,
+          "min_upright": 0.9979512095451355,
+          "final_mode": "skate",
+          "final_yaw_rad": 0.32099139727521203,
+          "backflip": {
+            "success": false,
+            "arms_error_rad": 0.6155152320861816,
+            "hold_s": 0.0,
+            "early_hop": false
+          },
+          "message": "skate PPO active."
+        },
+        {
+          "label": "reset_idle",
+          "env_count": 8,
+          "min_height": 0.878621518611908,
+          "min_upright": 0.9990119338035583,
+          "final_mode": "stand",
+          "final_yaw_rad": 0.006737426431974921,
+          "backflip": {
+            "success": false,
+            "arms_error_rad": 0.5052731037139893,
+            "hold_s": 0.0,
+            "early_hop": false
+          },
+          "message": "Reset to slightly bent standing pose."
+        }
+      ]
+    },
+    {
+      "name": "drive_and_flip",
+      "phases": [
+        {
+          "label": "idle",
+          "env_count": 1,
+          "min_height": 0.8785507678985596,
+          "min_upright": 0.9994387626647949,
+          "final_mode": "stand",
+          "final_yaw_rad": -0.00040429272225921044,
+          "backflip": {
+            "success": false,
+            "arms_error_rad": 0.5024276971817017,
+            "hold_s": 0.0,
+            "early_hop": false
+          },
+          "message": "Reset to slightly bent standing pose."
+        },
+        {
+          "label": "forward",
+          "env_count": 1,
+          "min_height": 0.7148210406303406,
+          "min_upright": 0.9958472847938538,
+          "final_mode": "skate",
+          "final_yaw_rad": -0.0031281749087674485,
+          "backflip": {
+            "success": false,
+            "arms_error_rad": 0.6453352570533752,
+            "hold_s": 0.0,
+            "early_hop": false
+          },
+          "message": "skate PPO active."
+        },
+        {
+          "label": "stop_forward",
+          "env_count": 1,
+          "min_height": 0.7389473915100098,
+          "min_upright": 0.994766116142273,
+          "final_mode": "skate",
+          "final_yaw_rad": -0.000636248718208008,
+          "backflip": {
+            "success": false,
+            "arms_error_rad": 0.5202997326850891,
+            "hold_s": 0.0,
+            "early_hop": false
+          },
+          "message": "skate PPO active."
+        },
+        {
+          "label": "left",
+          "env_count": 1,
+          "min_height": 0.744219958782196,
+          "min_upright": 0.9988149404525757,
+          "final_mode": "skate",
+          "final_yaw_rad": 0.7112534169171563,
+          "backflip": {
+            "success": false,
+            "arms_error_rad": 0.5541263222694397,
+            "hold_s": 0.0,
+            "early_hop": false
+          },
+          "message": "skate PPO active."
+        },
+        {
+          "label": "stop_left",
+          "env_count": 1,
+          "min_height": 0.7436608076095581,
+          "min_upright": 0.9983127117156982,
+          "final_mode": "skate",
+          "final_yaw_rad": 0.7765724218083421,
+          "backflip": {
+            "success": false,
+            "arms_error_rad": 0.5814100503921509,
+            "hold_s": 0.0,
+            "early_hop": false
+          },
+          "message": "skate PPO active."
+        },
+        {
+          "label": "reverse",
+          "env_count": 1,
+          "min_height": 0.739902675151825,
+          "min_upright": 0.9993414878845215,
+          "final_mode": "skate",
+          "final_yaw_rad": 0.7755615483089203,
+          "backflip": {
+            "success": false,
+            "arms_error_rad": 0.5165714621543884,
+            "hold_s": 0.0,
+            "early_hop": false
+          },
+          "message": "skate PPO active."
+        },
+        {
+          "label": "stop_reverse",
+          "env_count": 1,
+          "min_height": 0.7436478137969971,
+          "min_upright": 0.9989087581634521,
+          "final_mode": "skate",
+          "final_yaw_rad": 0.7814082879690702,
+          "backflip": {
+            "success": false,
+            "arms_error_rad": 0.4902054965496063,
+            "hold_s": 0.0,
+            "early_hop": false
+          },
+          "message": "skate PPO active."
+        },
+        {
+          "label": "right",
+          "env_count": 1,
+          "min_height": 0.7460997700691223,
+          "min_upright": 0.9995301365852356,
+          "final_mode": "skate",
+          "final_yaw_rad": 0.10332515233687826,
+          "backflip": {
+            "success": false,
+            "arms_error_rad": 0.4912964999675751,
+            "hold_s": 0.0,
+            "early_hop": false
+          },
+          "message": "skate PPO active."
+        },
+        {
+          "label": "stop_right",
+          "env_count": 1,
+          "min_height": 0.7461286187171936,
+          "min_upright": 0.999788224697113,
+          "final_mode": "skate",
+          "final_yaw_rad": 0.01637781962631734,
+          "backflip": {
+            "success": false,
+            "arms_error_rad": 0.43456771969795227,
+            "hold_s": 0.0,
+            "early_hop": false
+          },
+          "message": "skate PPO active."
+        },
+        {
+          "label": "drive_backflip",
+          "env_count": 1,
+          "min_height": 0.39927881956100464,
+          "min_upright": -0.2526317834854126,
+          "final_mode": "backflip",
+          "final_yaw_rad": 1.6720741212403458,
+          "backflip": {
+            "success": true,
+            "arms_error_rad": 0.04147348180413246,
+            "hold_s": 6.1199951171875,
+            "early_hop": false
+          },
+          "message": "Backflip complete: arms down, balanced kneel. Press Unbox to stand."
+        },
+        {
+          "label": "reset_idle",
+          "env_count": 1,
+          "min_height": 0.8786733746528625,
+          "min_upright": 0.9993721842765808,
+          "final_mode": "stand",
+          "final_yaw_rad": 0.006740115577613688,
+          "backflip": {
+            "success": false,
+            "arms_error_rad": 0.5052772760391235,
+            "hold_s": 0.0,
+            "early_hop": false
+          },
+          "message": "Reset to slightly bent standing pose."
+        },
+        {
+          "label": "idle_backflip",
+          "env_count": 1,
+          "min_height": 0.8786067962646484,
+          "min_upright": 0.9986924529075623,
+          "final_mode": "stand",
+          "final_yaw_rad": -0.002943726525612792,
+          "backflip": {
+            "success": false,
+            "arms_error_rad": 0.49928775429725647,
+            "hold_s": 0.0,
+            "early_hop": false
+          },
+          "message": "Standing preparation did not settle; Reset before retry."
+        }
+      ]
+    },
+    {
+      "name": "idle_final",
+      "phases": [
+        {
+          "label": "idle",
+          "env_count": 1,
+          "min_height": 0.8785507678985596,
+          "min_upright": 0.9994387626647949,
+          "final_mode": "stand",
+          "final_yaw_rad": -0.00024179576950599904,
+          "backflip": {
+            "success": false,
+            "arms_error_rad": 0.5050435662269592,
+            "hold_s": 0.0,
+            "early_hop": false
+          },
+          "message": "Reset to slightly bent standing pose."
+        },
+        {
+          "label": "idle_backflip",
+          "env_count": 1,
+          "min_height": 0.40276727080345154,
+          "min_upright": -0.2809419631958008,
+          "final_mode": "backflip",
+          "final_yaw_rad": 1.781269040995385,
+          "backflip": {
+            "success": true,
+            "arms_error_rad": 0.04152967035770416,
+            "hold_s": 5.079996109008789,
+            "early_hop": false
+          },
+          "message": "Backflip complete: arms down, balanced kneel. Press Unbox to stand."
+        }
+      ]
+    },
+    {
+      "name": "turn_final",
+      "phases": [
+        {
+          "label": "idle",
+          "env_count": 1,
+          "min_height": 0.8785507678985596,
+          "min_upright": 0.9994387626647949,
+          "final_mode": "stand",
+          "final_yaw_rad": -0.00040429272225921044,
+          "backflip": {
+            "success": false,
+            "arms_error_rad": 0.5024276971817017,
+            "hold_s": 0.0,
+            "early_hop": false
+          },
+          "message": "Reset to slightly bent standing pose."
+        },
+        {
+          "label": "turn",
+          "env_count": 1,
+          "min_height": 0.745222806930542,
+          "min_upright": 0.9981719851493835,
+          "final_mode": "skate",
+          "final_yaw_rad": 1.3285648262224952,
+          "backflip": {
+            "success": false,
+            "arms_error_rad": 0.45474615693092346,
+            "hold_s": 0.0,
+            "early_hop": false
+          },
+          "message": "skate PPO active."
+        },
+        {
+          "label": "stop_turn",
+          "env_count": 1,
+          "min_height": 0.7438318133354187,
+          "min_upright": 0.9990233182907104,
+          "final_mode": "skate",
+          "final_yaw_rad": 1.3468906136004606,
+          "backflip": {
+            "success": false,
+            "arms_error_rad": 0.4308488070964813,
+            "hold_s": 0.0,
+            "early_hop": false
+          },
+          "message": "skate PPO active."
+        },
+        {
+          "label": "turn_backflip",
+          "env_count": 1,
+          "min_height": 0.39381444454193115,
+          "min_upright": -0.9815421104431152,
+          "final_mode": "backflip",
+          "final_yaw_rad": 2.6530070001969084,
+          "backflip": {
+            "success": true,
+            "arms_error_rad": 0.04146507382392883,
+            "hold_s": 3.319997549057007,
+            "early_hop": false
+          },
+          "message": "Backflip complete: arms down, balanced kneel. Press Unbox to stand."
+        }
+      ]
+    }
+  ]
+}

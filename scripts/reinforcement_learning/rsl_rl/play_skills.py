@@ -53,7 +53,9 @@ with torch.inference_mode():
         if name:
             state.apply_joint_msg({'release_all':True})
             env.manual_overrides={}
-            if name not in ['skate','slide']:env.command.zero_()
+            if name not in ['skate','slide']:
+                env.command.zero_();env.command_target.zero_()
+                if keyboard:keyboard.pressed.clear();keyboard.dirty=True
             accepted=env.request(name);requests.append({'step':step,'name':name,'accepted':accepted,'message':env.message})
             print('SKILL_REQUEST',json.dumps(requests[-1]),flush=True)
         with state._lock:

@@ -153,7 +153,9 @@ class Env(BaseEnv):
         self.tick=self.common_step_counter
         dq=quat_mul(self.robot.data.root_quat_w,quat_conjugate(self.prev_quat))
         dq=torch.where(dq[:,:1]<0,-dq,dq);norm=dq[:,1:].norm(dim=-1)
-        self.delta=2*torch.atan2(norm,dq[:,0])*dq[:,2]/norm.clamp_min(1.e-8)
+        axis=getattr(self,'flip_axis_w',None)
+        component=dq[:,2] if axis is None else (dq[:,1:]*axis).sum(-1)
+        self.delta=2*torch.atan2(norm,dq[:,0])*component/norm.clamp_min(1.e-8)
         self.winding+=self.delta;self.prev_quat.copy_(self.robot.data.root_quat_w)
         forces=self.contacts.data.net_forces_w_history.norm(dim=-1).amax(dim=1)
         self.wcontact=forces[:,self.wb]>5;self.rcontact=forces[:,self.rb]>5

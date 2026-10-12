@@ -32,16 +32,25 @@ class IsaacKeyboard(KeyState):
         super().__init__()
         import carb.input
         import omni.appwindow
+        import omni.kit.app
+        import omni.timeline
+        self.timeline=omni.timeline.get_timeline_interface()
+        # Isaac binds Space to pause; resume on Kit updates, including the
+        # updates inside sim.step() while waiting for a paused timeline.
+        self.timeline_subscription=omni.kit.app.get_app().get_update_event_stream().create_subscription_to_pop(self._keep_playing,name="q1-drive-timeline")
         self.carb=carb.input;self.interface=carb.input.acquire_input_interface()
         window=omni.appwindow.get_default_app_window()
         self.keyboard=window.get_keyboard()
         self.subscription=self.interface.subscribe_to_keyboard_events(self.keyboard,self._on_event)
+    def _keep_playing(self,event):
+        if not self.timeline.is_stopped() and not self.timeline.is_playing():self.timeline.play()
     def _on_event(self,event,*args):
         if event.type in [self.carb.KeyboardEventType.KEY_PRESS,self.carb.KeyboardEventType.KEY_RELEASE]:
             self.event(event.input.name,event.type==self.carb.KeyboardEventType.KEY_PRESS)
         return True
     def close(self):
         self.interface.unsubscribe_to_keyboard_events(self.keyboard,self.subscription)
+        self.timeline_subscription=None
         self.pressed.clear()
 
 def apply_drive(env,command):
@@ -53,5 +62,6 @@ def apply_drive(env,command):
     if moving and env.mode in ['stand','unbox_hold']:
         if not env.request('skate'):return False
     if env.mode not in ['stand','skate','slide']:return False
-    env.command[:,0]=values['vx'];env.command[:,1]=values['vy'];env.command[:,2]=values['yaw']
+    target=getattr(env,'command_target',env.command)
+    target[:,0]=values['vx'];target[:,1]=values['vy'];target[:,2]=values['yaw']
     return True

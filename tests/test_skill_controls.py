@@ -30,6 +30,20 @@ class ControlsTest(unittest.TestCase):
     def test_drive_does_not_override_backflip(self):
         robot=Robot('backflip');self.assertFalse(apply_drive(robot,{'vx':1.2}))
         self.assertEqual(robot.mode,'backflip');self.assertEqual(robot.requests,[])
+    def test_drive_sets_target_without_jumping_filtered_command(self):
+        robot=Robot();robot.command_target=Matrix()
+        apply_drive(robot,{'vx':1.2})
+        self.assertEqual(robot.command_target.values,[1.2,0.,0.])
+        self.assertEqual(robot.command.values,[0.,0.,0.])
+    def test_space_pause_is_resumed_on_kit_update(self):
+        k=IsaacKeyboard.__new__(IsaacKeyboard)
+        class Timeline:
+            resumed=False
+            def is_stopped(self):return False
+            def is_playing(self):return self.resumed
+            def play(self):self.resumed=True
+        k.timeline=Timeline();k._keep_playing(None)
+        self.assertTrue(k.timeline.resumed)
     def test_invalid_command_is_ignored(self):
         robot=Robot();self.assertFalse(apply_drive(robot,{'vx':float('nan')}))
         self.assertEqual(robot.requests,[])

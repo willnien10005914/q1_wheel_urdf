@@ -6,11 +6,11 @@ to explicit Reset / Lie commands; Backflip and Unbox start from the current pose
 import json,re,hashlib,math
 from pathlib import Path
 import torch
-from isaaclab.utils.math import quat_apply_inverse
+from isaaclab.utils.math import quat_apply,quat_apply_inverse
 from isaaclab.sensors import Imu,ImuCfg
 from wheel_humanoid_lab.assets import IMU_CFG,Q1_WHEEL_CUBEMARS_CFG
 from wheel_humanoid_lab.assets.wheel_humanoid import SKATE_HIP_PITCH,SKATE_KNEE
-from wheel_humanoid_lab.tasks.manager_based.skate.skate_env_cfg import _POS_ACTION_SCALE,_position_action_clip
+from wheel_humanoid_lab.tasks.manager_based.skate.skate_env_cfg import _POS_ACTION_SCALE,_position_action_clip,WHEEL_VEL_ACTION_SCALE
 from wheel_humanoid_lab.tasks.manager_based.posture.posture_env_cfg import POSTURE_POS_ACTION_SCALE
 from arm_env import Env as ArmEnv, Config
 from skills.policy import FrozenActor
@@ -38,6 +38,7 @@ class Env(ArmEnv):
         self.root=Path(root)
         self.recoveries={};self.recovery=None
         self.command=torch.zeros(self.num_envs,3,device=self.device)
+        self.command_target=torch.zeros_like(self.command)
         self.motor_wheels=torch.zeros(self.num_envs,2,device=self.device)
         self.last_skill_action=torch.zeros(self.num_envs,24,device=self.device)
         self.idle_target=self.home.expand(self.num_envs,-1).clone()
@@ -108,6 +109,9 @@ class Env(ArmEnv):
         for name in ['jumped','failed','success','lifted','has_air','prehop','landed','failed_before_air']:
             getattr(self,name).fill_(False)
         self.prev_quat.copy_(self.robot.data.root_quat_w)
+        forward=quat_apply(self.robot.data.root_quat_w,torch.tensor([1.,0.,0.],device=self.device).expand(self.num_envs,-1))
+        forward[:,2]=0.;forward=forward/forward.norm(dim=-1,keepdim=True).clamp_min(1e-6)
+        self.flip_axis_w=torch.stack((-forward[:,1],forward[:,0],torch.zeros_like(forward[:,0])),dim=-1)
         self.actions.zero_();self.previous.zero_();self.prev_target.copy_(self.idle_target)
         self.prev_prior.copy_(self.home);self.target_velocity.zero_();self.tick=-1
         self.episode_length_buf.zero_();self.updates=20000
@@ -139,7 +143,8 @@ class Env(ArmEnv):
 
     def request(self,name):
         if name=='reset':
-            self.mode='stand';super()._reset_idx(self.robot._ALL_INDICES)
+            self.mode='stand';self.command.zero_();self.command_target.zero_();super()._reset_idx(self.robot._ALL_INDICES)
+            if self.recoveries:self.recoveries['boot_kneel']._reset_observations()
             self.idle_target.copy_(self.home);self.pose_timer=0.;self.motor_wheels.zero_()
             self.stand_anchor.copy_(self.robot.data.root_pos_w)
             self.message='Reset to slightly bent standing pose.';return True
@@ -149,10 +154,11 @@ class Env(ArmEnv):
             upright=-self.robot.data.projected_gravity_b[:,2]
             height=self.robot.data.root_pos_w[:,2]-self.scene.env_origins[:,2]
             if not bool(((upright>.94)&(height>.72)&(self.robot.data.root_lin_vel_w[:,:2].norm(dim=-1)<.8)).all()):
-                self.message='Backflip requires stable standing. Use Unbox from kneel first.';return False
+                self.message='Backflip requires stable standing. Stop driving first; Reset after a fall, or Unbox from kneel.';return False
             self.mode='prepare_backflip';self.pose_timer=0.;self.prepare_hold=0.
             self.prepare_start=self.robot.data.joint_pos[:,self.pids].clone()
-            self.command.zero_()
+            self.stand_anchor.copy_(self.robot.data.root_pos_w)
+            self.command.zero_();self.command_target.zero_()
             if bool(self._launch_ready().all()):
                 self.idle_target.copy_(self.home);self._clear_flip();self.mode='backflip'
                 self.message='Backflip PPO running from the current slight knee bend.'
@@ -218,7 +224,7 @@ class Env(ArmEnv):
 
     def _launch_ready(self):
         r=self.robot.data
-        return ((r.joint_pos[:,self.pids]-self.home).abs().amax(-1)<.15)&(r.root_lin_vel_w[:,:2].norm(dim=-1)<.05)&(r.root_ang_vel_b.norm(dim=-1)<.15)&(r.projected_gravity_b[:,0].abs()<.06)
+        return ((r.joint_pos[:,self.pids]-self.home).abs().amax(-1)<.15)&(r.root_lin_vel_w[:,:2].norm(dim=-1)<.05)&(r.root_ang_vel_b.norm(dim=-1)<.15)&(r.projected_gravity_b[:,0].abs()<.06)&(r.joint_vel[:,self.wids].abs().amax(-1)<1.2)
 
     def actor_action(self):
         if self.mode=='backflip':return self.backflip_actor(self._get_observations()['policy'])
@@ -228,6 +234,14 @@ class Env(ArmEnv):
         if not self.ready:
             self.target=self.home.expand(self.num_envs,-1).clone();return
         self.pose_timer+=self.step_dt
+        accelerating=self.command_target[:,0].abs()>=self.command[:,0].abs()-1e-3
+        reverse=(self.command_target[:,0]<0)|(self.command[:,0]<0)
+        tau=torch.where(reverse,torch.where(accelerating,.10,.16),torch.where(accelerating,.08,.14))
+        alpha=1-torch.exp(-self.step_dt/tau)
+        self.command[:,0]+=(self.command_target[:,0]-self.command[:,0])*alpha
+        self.command[:,1]=self.command_target[:,1]
+        self.command[:,2]+=(self.command_target[:,2]-self.command[:,2])*(1-math.exp(-self.step_dt/.10))
+        self.command.copy_(torch.where((self.command_target-self.command).abs()<.02,self.command_target,self.command))
         if self.mode=='backflip':
             super()._pre_physics_step(actions);return
         if self.mode=='prepare_backflip':
@@ -258,7 +272,7 @@ class Env(ArmEnv):
             for i,joint in enumerate(self.names):
                 scale=next(v for p,v in scale_spec.items() if re.fullmatch(p,joint))
                 target[:,i]=(target[:,i]+scale*action[:,i]).clamp(*clip[joint])
-            self.idle_target=target;self.motor_wheels=(8*action[:,22:]).clamp(-20,20)
+            self.idle_target=target;self.motor_wheels=(WHEEL_VEL_ACTION_SCALE*action[:,22:]).clamp(-WHEEL_VEL_ACTION_SCALE,WHEEL_VEL_ACTION_SCALE)
             runtime.last_action.copy_(action)
         elif self.mode in ['supine','prone']:
             self.motor_wheels.zero_()

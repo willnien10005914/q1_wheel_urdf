@@ -1,0 +1,3762 @@
+{
+  "seed": 4107,
+  "phases": [
+    {
+      "label": "idle",
+      "samples": [
+        {
+          "step": 0,
+          "mode": "stand",
+          "z": [
+            0.8794763684272766
+          ],
+          "upright": [
+            0.9999982118606567
+          ],
+          "speed": [
+            0.03525190055370331
+          ],
+          "omega": [
+            0.14593859016895294
+          ],
+          "q_error": [
+            0.011340558528900146
+          ],
+          "message": "Reset to slightly bent standing pose.",
+          "winding": [
+            0.0
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            0.000961229729000479
+          ],
+          "joint_speed": [
+            0.7529153823852539
+          ],
+          "wheel_speed": [
+            [
+              -0.5993959903717041,
+              -0.5804205536842346
+            ]
+          ],
+          "phase": [
+            0.019999999552965164
+          ]
+        },
+        {
+          "step": 10,
+          "mode": "stand",
+          "z": [
+            0.8789817690849304
+          ],
+          "upright": [
+            0.9999927878379822
+          ],
+          "speed": [
+            0.026306480169296265
+          ],
+          "omega": [
+            0.0825694352388382
+          ],
+          "q_error": [
+            0.046382009983062744
+          ],
+          "message": "Reset to slightly bent standing pose.",
+          "winding": [
+            0.0
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            -0.0036330868024379015
+          ],
+          "joint_speed": [
+            0.39697179198265076
+          ],
+          "wheel_speed": [
+            [
+              0.06597212702035904,
+              0.1397859901189804
+            ]
+          ],
+          "phase": [
+            0.2199999988079071
+          ]
+        },
+        {
+          "step": 20,
+          "mode": "stand",
+          "z": [
+            0.8790215849876404
+          ],
+          "upright": [
+            0.9999632239341736
+          ],
+          "speed": [
+            0.008550849743187428
+          ],
+          "omega": [
+            0.0724845603108406
+          ],
+          "q_error": [
+            0.05599409341812134
+          ],
+          "message": "Reset to slightly bent standing pose.",
+          "winding": [
+            0.0
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            -0.008534622378647327
+          ],
+          "joint_speed": [
+            0.3977546989917755
+          ],
+          "wheel_speed": [
+            [
+              -0.010859191417694092,
+              0.016103941947221756
+            ]
+          ],
+          "phase": [
+            0.41999998688697815
+          ]
+        },
+        {
+          "step": 30,
+          "mode": "stand",
+          "z": [
+            0.8787913918495178
+          ],
+          "upright": [
+            0.9998084902763367
+          ],
+          "speed": [
+            0.03033330664038658
+          ],
+          "omega": [
+            0.05606221407651901
+          ],
+          "q_error": [
+            0.0496792197227478
+          ],
+          "message": "Reset to slightly bent standing pose.",
+          "winding": [
+            0.0
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            -0.019547628238797188
+          ],
+          "joint_speed": [
+            0.3979123830795288
+          ],
+          "wheel_speed": [
+            [
+              -0.0951770469546318,
+              -0.11789946258068085
+            ]
+          ],
+          "phase": [
+            0.6200000047683716
+          ]
+        },
+        {
+          "step": 40,
+          "mode": "stand",
+          "z": [
+            0.878635048866272
+          ],
+          "upright": [
+            0.9995890855789185
+          ],
+          "speed": [
+            0.07034830749034882
+          ],
+          "omega": [
+            0.08347506821155548
+          ],
+          "q_error": [
+            0.04686623811721802
+          ],
+          "message": "Reset to slightly bent standing pose.",
+          "winding": [
+            0.0
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            -0.028653955087065697
+          ],
+          "joint_speed": [
+            0.3980894982814789
+          ],
+          "wheel_speed": [
+            [
+              -0.5241034030914307,
+              -0.43086495995521545
+            ]
+          ],
+          "phase": [
+            0.8199999928474426
+          ]
+        },
+        {
+          "step": 50,
+          "mode": "stand",
+          "z": [
+            0.878576934337616
+          ],
+          "upright": [
+            0.9994690418243408
+          ],
+          "speed": [
+            0.10448990762233734
+          ],
+          "omega": [
+            0.1039498895406723
+          ],
+          "q_error": [
+            0.0492863729596138
+          ],
+          "message": "Reset to slightly bent standing pose.",
+          "winding": [
+            0.0
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            -0.03257805481553078
+          ],
+          "joint_speed": [
+            0.3980993628501892
+          ],
+          "wheel_speed": [
+            [
+              -1.027247667312622,
+              -0.9645450711250305
+            ]
+          ],
+          "phase": [
+            1.0199999809265137
+          ]
+        },
+        {
+          "step": 60,
+          "mode": "stand",
+          "z": [
+            0.8785507678985596
+          ],
+          "upright": [
+            0.9994387626647949
+          ],
+          "speed": [
+            0.14422805607318878
+          ],
+          "omega": [
+            0.1164340227842331
+          ],
+          "q_error": [
+            0.04802567511796951
+          ],
+          "message": "Reset to slightly bent standing pose.",
+          "winding": [
+            0.0
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            -0.033495351672172546
+          ],
+          "joint_speed": [
+            0.3980065584182739
+          ],
+          "wheel_speed": [
+            [
+              -1.460680603981018,
+              -1.4165562391281128
+            ]
+          ],
+          "phase": [
+            1.2200000286102295
+          ]
+        },
+        {
+          "step": 70,
+          "mode": "stand",
+          "z": [
+            0.8785695433616638
+          ],
+          "upright": [
+            0.9994955062866211
+          ],
+          "speed": [
+            0.18450066447257996
+          ],
+          "omega": [
+            0.13002930581569672
+          ],
+          "q_error": [
+            0.0470108762383461
+          ],
+          "message": "Reset to slightly bent standing pose.",
+          "winding": [
+            0.0
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            -0.03175787627696991
+          ],
+          "joint_speed": [
+            0.3980960249900818
+          ],
+          "wheel_speed": [
+            [
+              -1.9146031141281128,
+              -1.8854182958602905
+            ]
+          ],
+          "phase": [
+            1.4199999570846558
+          ]
+        },
+        {
+          "step": 80,
+          "mode": "stand",
+          "z": [
+            0.878643810749054
+          ],
+          "upright": [
+            0.9996200203895569
+          ],
+          "speed": [
+            0.2198987901210785
+          ],
+          "omega": [
+            0.139926940202713
+          ],
+          "q_error": [
+            0.046939752995967865
+          ],
+          "message": "Reset to slightly bent standing pose.",
+          "winding": [
+            0.0
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            -0.02756298892199993
+          ],
+          "joint_speed": [
+            0.3981216251850128
+          ],
+          "wheel_speed": [
+            [
+              -2.287590742111206,
+              -2.2698302268981934
+            ]
+          ],
+          "phase": [
+            1.6200000047683716
+          ]
+        },
+        {
+          "step": 90,
+          "mode": "stand",
+          "z": [
+            0.8787295818328857
+          ],
+          "upright": [
+            0.9997559785842896
+          ],
+          "speed": [
+            0.24875125288963318
+          ],
+          "omega": [
+            0.14374728500843048
+          ],
+          "q_error": [
+            0.046778321266174316
+          ],
+          "message": "Reset to slightly bent standing pose.",
+          "winding": [
+            0.0
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            -0.022088341414928436
+          ],
+          "joint_speed": [
+            0.3980770707130432
+          ],
+          "wheel_speed": [
+            [
+              -2.611229419708252,
+              -2.6005144119262695
+            ]
+          ],
+          "phase": [
+            1.8199999332427979
+          ]
+        },
+        {
+          "step": 100,
+          "mode": "stand",
+          "z": [
+            0.8788123726844788
+          ],
+          "upright": [
+            0.999876081943512
+          ],
+          "speed": [
+            0.2720392942428589
+          ],
+          "omega": [
+            0.1482561230659485
+          ],
+          "q_error": [
+            0.047352492809295654
+          ],
+          "message": "Reset to slightly bent standing pose.",
+          "winding": [
+            0.0
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            -0.01574123091995716
+          ],
+          "joint_speed": [
+            0.3980744183063507
+          ],
+          "wheel_speed": [
+            [
+              -2.851243495941162,
+              -2.845968008041382
+            ]
+          ],
+          "phase": [
+            2.0199999809265137
+          ]
+        },
+        {
+          "step": 110,
+          "mode": "stand",
+          "z": [
+            0.878891110420227
+          ],
+          "upright": [
+            0.9999609589576721
+          ],
+          "speed": [
+            0.28785866498947144
+          ],
+          "omega": [
+            0.1493101269006729
+          ],
+          "q_error": [
+            0.04833519458770752
+          ],
+          "message": "Reset to slightly bent standing pose.",
+          "winding": [
+            0.0
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            -0.008836457505822182
+          ],
+          "joint_speed": [
+            0.3980790674686432
+          ],
+          "wheel_speed": [
+            [
+              -3.01179575920105,
+              -3.010066032409668
+            ]
+          ],
+          "phase": [
+            2.2200000286102295
+          ]
+        },
+        {
+          "step": 120,
+          "mode": "stand",
+          "z": [
+            0.8789559602737427
+          ],
+          "upright": [
+            0.9999983906745911
+          ],
+          "speed": [
+            0.2957358956336975
+          ],
+          "omega": [
+            0.14955198764801025
+          ],
+          "q_error": [
+            0.04965353012084961
+          ],
+          "message": "Reset to slightly bent standing pose.",
+          "winding": [
+            0.0
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            -0.001766728819347918
+          ],
+          "joint_speed": [
+            0.398041307926178
+          ],
+          "wheel_speed": [
+            [
+              -3.086979866027832,
+              -3.0916712284088135
+            ]
+          ],
+          "phase": [
+            2.419999837875366
+          ]
+        },
+        {
+          "step": 130,
+          "mode": "stand",
+          "z": [
+            0.8790025115013123
+          ],
+          "upright": [
+            0.999987006187439
+          ],
+          "speed": [
+            0.29620617628097534
+          ],
+          "omega": [
+            0.14744190871715546
+          ],
+          "q_error": [
+            0.050661325454711914
+          ],
+          "message": "Reset to slightly bent standing pose.",
+          "winding": [
+            0.0
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            0.005088890437036753
+          ],
+          "joint_speed": [
+            0.3980681002140045
+          ],
+          "wheel_speed": [
+            [
+              -3.0812034606933594,
+              -3.089926242828369
+            ]
+          ],
+          "phase": [
+            2.619999885559082
+          ]
+        },
+        {
+          "step": 140,
+          "mode": "stand",
+          "z": [
+            0.8790318369865417
+          ],
+          "upright": [
+            0.9999336004257202
+          ],
+          "speed": [
+            0.2896660268306732
+          ],
+          "omega": [
+            0.14505375921726227
+          ],
+          "q_error": [
+            0.0515788197517395
+          ],
+          "message": "Reset to slightly bent standing pose.",
+          "winding": [
+            0.0
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            0.01152358390390873
+          ],
+          "joint_speed": [
+            0.39800676703453064
+          ],
+          "wheel_speed": [
+            [
+              -3.0036942958831787,
+              -3.0129027366638184
+            ]
+          ],
+          "phase": [
+            2.819999933242798
+          ]
+        },
+        {
+          "step": 150,
+          "mode": "stand",
+          "z": [
+            0.8790478110313416
+          ],
+          "upright": [
+            0.9998494982719421
+          ],
+          "speed": [
+            0.27649304270744324
+          ],
+          "omega": [
+            0.14135687053203583
+          ],
+          "q_error": [
+            0.05251717567443848
+          ],
+          "message": "Reset to slightly bent standing pose.",
+          "winding": [
+            0.0
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            0.017346341162919998
+          ],
+          "joint_speed": [
+            0.39796900749206543
+          ],
+          "wheel_speed": [
+            [
+              -2.854645013809204,
+              -2.8651320934295654
+            ]
+          ],
+          "phase": [
+            3.0199999809265137
+          ]
+        },
+        {
+          "step": 160,
+          "mode": "stand",
+          "z": [
+            0.8790525794029236
+          ],
+          "upright": [
+            0.9997491240501404
+          ],
+          "speed": [
+            0.25755399465560913
+          ],
+          "omega": [
+            0.1373259276151657
+          ],
+          "q_error": [
+            0.05331313610076904
+          ],
+          "message": "Reset to slightly bent standing pose.",
+          "winding": [
+            0.0
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            0.02239813096821308
+          ],
+          "joint_speed": [
+            0.39796239137649536
+          ],
+          "wheel_speed": [
+            [
+              -2.6467537879943848,
+              -2.657423496246338
+            ]
+          ],
+          "phase": [
+            3.2200000286102295
+          ]
+        },
+        {
+          "step": 170,
+          "mode": "stand",
+          "z": [
+            0.8790510296821594
+          ],
+          "upright": [
+            0.9996463060379028
+          ],
+          "speed": [
+            0.23381054401397705
+          ],
+          "omega": [
+            0.13273723423480988
+          ],
+          "q_error": [
+            0.05393970012664795
+          ],
+          "message": "Reset to slightly bent standing pose.",
+          "winding": [
+            0.0
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            0.026592949405312538
+          ],
+          "joint_speed": [
+            0.39795824885368347
+          ],
+          "wheel_speed": [
+            [
+              -2.3876147270202637,
+              -2.3981382846832275
+            ]
+          ],
+          "phase": [
+            3.419999837875366
+          ]
+        },
+        {
+          "step": 180,
+          "mode": "stand",
+          "z": [
+            0.8790466785430908
+          ],
+          "upright": [
+            0.9995541572570801
+          ],
+          "speed": [
+            0.20614168047904968
+          ],
+          "omega": [
+            0.1279994398355484
+          ],
+          "q_error": [
+            0.05445241928100586
+          ],
+          "message": "Reset to slightly bent standing pose.",
+          "winding": [
+            0.0
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            0.029857134446501732
+          ],
+          "joint_speed": [
+            0.39793506264686584
+          ],
+          "wheel_speed": [
+            [
+              -2.0901730060577393,
+              -2.1007282733917236
+            ]
+          ],
+          "phase": [
+            3.619999885559082
+          ]
+        },
+        {
+          "step": 190,
+          "mode": "stand",
+          "z": [
+            0.8790426254272461
+          ],
+          "upright": [
+            0.9994821548461914
+          ],
+          "speed": [
+            0.17562898993492126
+          ],
+          "omega": [
+            0.12325040996074677
+          ],
+          "q_error": [
+            0.054827749729156494
+          ],
+          "message": "Reset to slightly bent standing pose.",
+          "winding": [
+            0.0
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            0.0321773998439312
+          ],
+          "joint_speed": [
+            0.39793795347213745
+          ],
+          "wheel_speed": [
+            [
+              -1.7627766132354736,
+              -1.7726303339004517
+            ]
+          ],
+          "phase": [
+            3.819999933242798
+          ]
+        }
+      ],
+      "final": {
+        "ok": true,
+        "pose": "stand",
+        "message": "Reset to slightly bent standing pose.",
+        "manual_control_available": true,
+        "cmd": {
+          "vx": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        "base": {
+          "qw": 0.9998599886894226,
+          "qx": 0.00011904437997145578,
+          "qy": 0.016730258241295815,
+          "qz": -0.00012283904652576894,
+          "z": 0.8790407180786133,
+          "x": -0.7177807688713074,
+          "y": 0.004747449886053801,
+          "lin_vel_w": [
+            -0.14654971659183502,
+            -0.00062117277411744,
+            -0.002581225708127022
+          ],
+          "ang_vel_b": [
+            0.002076362958177924,
+            0.11898629367351532,
+            -0.002231795573607087
+          ]
+        },
+        "joints": {
+          "l_hip_pitch_joint": {
+            "pos": -0.15926122665405273,
+            "vel": -0.15225909650325775,
+            "torque": -4.762298107147217
+          },
+          "r_hip_pitch_joint": {
+            "pos": -0.15880964696407318,
+            "vel": -0.15925587713718414,
+            "torque": -4.967543601989746
+          },
+          "waist_yaw_joint": {
+            "pos": -0.00041601102566346526,
+            "vel": -0.0035832482390105724,
+            "torque": -0.04349546879529953
+          },
+          "l_hip_roll_joint": {
+            "pos": -0.0010384481865912676,
+            "vel": -0.0014528505271300673,
+            "torque": 0.22040392458438873
+          },
+          "r_hip_roll_joint": {
+            "pos": 0.000608394795563072,
+            "vel": -0.0014594374224543571,
+            "torque": -0.19478636980056763
+          },
+          "waist_roll_joint": {
+            "pos": -0.00036496741813607514,
+            "vel": -0.009492273442447186,
+            "torque": -0.16448205709457397
+          },
+          "l_knee_joint": {
+            "pos": 0.29826346039772034,
+            "vel": 0.04687414690852165,
+            "torque": -7.164900302886963
+          },
+          "l_knee_roller_joint": {
+            "pos": 0.13385416567325592,
+            "vel": -0.11037521064281464,
+            "torque": -0.10327392816543579
+          },
+          "r_knee_joint": {
+            "pos": 0.299376517534256,
+            "vel": 0.06003347039222717,
+            "torque": -7.320150375366211
+          },
+          "r_knee_roller_joint": {
+            "pos": 0.13445183634757996,
+            "vel": -0.12049082666635513,
+            "torque": -0.1223863810300827
+          },
+          "waist_pitch_joint": {
+            "pos": 0.13022248446941376,
+            "vel": -0.15888375043869019,
+            "torque": 5.035892486572266
+          },
+          "l_wheel_joint": {
+            "pos": 5.15015172958374,
+            "vel": -1.4521143436431885,
+            "torque": 0.35696154832839966
+          },
+          "r_wheel_joint": {
+            "pos": 5.243804931640625,
+            "vel": -1.4640790224075317,
+            "torque": 0.3504420220851898
+          },
+          "l_shoulder_pitch_joint": {
+            "pos": 0.6050435900688171,
+            "vel": 0.08038441836833954,
+            "torque": 6.6017231941223145
+          },
+          "neck_joint": {
+            "pos": -0.00017176111578010023,
+            "vel": -0.06869450956583023,
+            "torque": -0.6494749188423157
+          },
+          "r_shoulder_pitch_joint": {
+            "pos": 0.6043623089790344,
+            "vel": 0.0151375662535429,
+            "torque": 6.065112590789795
+          },
+          "l_shoulder_roll_joint": {
+            "pos": 0.21562737226486206,
+            "vel": -0.01858653873205185,
+            "torque": 1.4473505020141602
+          },
+          "r_shoulder_roll_joint": {
+            "pos": -0.2156643271446228,
+            "vel": 0.024288635700941086,
+            "torque": -1.4045028686523438
+          },
+          "l_shoulder_yaw_joint": {
+            "pos": 0.004126972518861294,
+            "vel": 0.14254499971866608,
+            "torque": 1.1792151927947998
+          },
+          "r_shoulder_yaw_joint": {
+            "pos": -0.004175699781626463,
+            "vel": -0.15833860635757446,
+            "torque": -1.1961932182312012
+          },
+          "l_elbow_joint": {
+            "pos": -0.4945729970932007,
+            "vel": -0.09283235669136047,
+            "torque": -0.23699212074279785
+          },
+          "r_elbow_joint": {
+            "pos": -0.4941904544830322,
+            "vel": 0.07505109906196594,
+            "torque": 1.206275224685669
+          },
+          "l_wrist_joint": {
+            "pos": 0.0008014910854399204,
+            "vel": 0.3206098973751068,
+            "torque": 0.23739397525787354
+          },
+          "r_wrist_joint": {
+            "pos": 0.0009941322496160865,
+            "vel": 0.3979390561580658,
+            "torque": 0.2693859934806824
+          },
+          "l_gripper_joint": {
+            "pos": 2.579440661065746e-05,
+            "vel": 0.005153658799827099,
+            "torque": 2.6315945433452725e-05
+          },
+          "r_gripper_joint": {
+            "pos": 1.2281387462564908e-08,
+            "vel": -2.7416590455686674e-06,
+            "torque": -0.014016242697834969
+          }
+        },
+        "policies": {
+          "backflip": true,
+          "unbox": true,
+          "recovery": true,
+          "recovery_supine": true,
+          "recovery_prone": true,
+          "supine_elbow": true,
+          "prone_elbow": true,
+          "supine_gripper": true,
+          "prone_gripper": true,
+          "boot_kneel": true,
+          "landing_rise": true
+        },
+        "models": {
+          "supine_elbow": {
+            "checkpoint": "/home/will/Documents/Codex/2026-10-08/projects-q1-wheel-urdf-cursor-kneel/integrated_q1/checkpoints/q1_recovery_v3_supine_ppo.pt",
+            "sha256": "4a1544612bed16c02b25d1a37c040694fb02b83537b0c3d585ea855d7dc8ec5e",
+            "iteration": 13400
+          },
+          "prone_elbow": {
+            "checkpoint": "/home/will/Documents/Codex/2026-10-08/projects-q1-wheel-urdf-cursor-kneel/integrated_q1/checkpoints/q1_recovery_v3_prone_ppo.pt",
+            "sha256": "01e8f695c6cd7526646130b09298497b8ae9fca92257884cb8ca79b1b3a1d934",
+            "iteration": 1800
+          },
+          "supine_gripper": {
+            "checkpoint": "/home/will/Documents/Codex/2026-10-08/projects-q1-wheel-urdf-cursor-kneel/integrated_q1/checkpoints/q1_recovery_v3_supine_ppo_peak8000.pt",
+            "sha256": "10dc050fc80e888457c2afba5e72666f5749f84d08272935e90fb5c63ddcc7c3",
+            "iteration": 8000
+          },
+          "prone_gripper": {
+            "checkpoint": "/home/will/Documents/Codex/2026-10-08/projects-q1-wheel-urdf-cursor-kneel/integrated_q1/checkpoints/q1_recovery_v3_prone_gripper_ppo.pt",
+            "sha256": "3c9d197478d6cdac4c65842bf5b4c4a518c617f57d2f9ace4cb5bcdd19b76f7e",
+            "iteration": 9999
+          },
+          "boot_kneel": {
+            "checkpoint": "/home/will/Documents/Codex/2026-10-08/projects-q1-wheel-urdf-cursor-kneel/integrated_q1/checkpoints/q1_unbox_transfer_ppo.pt",
+            "sha256": "814968100a6738141b6e07a93200521a77d51df07e474c4e70ddc7e3f5ef653b",
+            "iteration": 199
+          },
+          "landing_rise": {
+            "checkpoint": "/home/will/Documents/Codex/2026-10-08/projects-q1-wheel-urdf-cursor-kneel/integrated_q1/checkpoints/q1_unbox_landing_ppo.pt",
+            "sha256": "8262378f5836b904de4845e6e921ecd836ad8c32ae75a3c1cba3aa0e70bd59cb",
+            "iteration": 119
+          },
+          "skate": {
+            "checkpoint": "/home/will/Documents/Codex/2026-10-08/projects-q1-wheel-urdf-cursor-kneel/integrated_q1/checkpoints/q1_skate_ppo.pt",
+            "sha256": "0b36ba0a1a9198e89109a886b2812705c9bfbd2b3c8f98ea56ad3dbfa2252db0",
+            "iteration": 19999
+          },
+          "slide": {
+            "checkpoint": "/home/will/Documents/Codex/2026-10-08/projects-q1-wheel-urdf-cursor-kneel/integrated_q1/checkpoints/q1_slide_ppo.pt",
+            "sha256": "a63b7f6665c62cab27562d6969185b00f78eb600760edf75a5db1369cafea6fe",
+            "iteration": 31998
+          },
+          "posture": {
+            "checkpoint": "/home/will/Documents/Codex/2026-10-08/projects-q1-wheel-urdf-cursor-kneel/integrated_q1/checkpoints/q1_posture_ppo.pt",
+            "sha256": "60b862bdd0f1c34243bb24569856aabd90843d9431b96ae55827f027009b0228",
+            "iteration": 7998
+          },
+          "backflip": {
+            "checkpoint": "/home/will/Documents/Codex/2026-10-08/projects-q1-wheel-urdf-cursor-kneel/integrated_q1/checkpoints/backflip_arm_rest/model.pt",
+            "sha256": "5468ff360214f8f885868c30bc0a399f939c00fc0db6344eaf494cfd40fedf57",
+            "iteration": 200
+          }
+        },
+        "backflip": {
+          "success": false,
+          "arms_error_rad": 0.5050435662269592,
+          "hold_s": 0.0,
+          "early_hop": false
+        }
+      }
+    },
+    {
+      "label": "idle_backflip",
+      "samples": [
+        {
+          "step": 0,
+          "mode": "prepare_backflip",
+          "z": [
+            0.8790532350540161
+          ],
+          "upright": [
+            0.9994010925292969
+          ],
+          "speed": [
+            0.13625554740428925
+          ],
+          "omega": [
+            0.15148916840553284
+          ],
+          "q_error": [
+            0.057928264141082764
+          ],
+          "message": "Moving smoothly to the trained slight knee bend.",
+          "winding": [
+            0.0
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            0.03460328280925751
+          ],
+          "joint_speed": [
+            0.41132667660713196
+          ],
+          "wheel_speed": [
+            [
+              -1.061200499534607,
+              -1.0735560655593872
+            ]
+          ],
+          "phase": [
+            4.019999980926514
+          ]
+        },
+        {
+          "step": 10,
+          "mode": "prepare_backflip",
+          "z": [
+            0.8791588544845581
+          ],
+          "upright": [
+            0.9998112916946411
+          ],
+          "speed": [
+            0.12883546948432922
+          ],
+          "omega": [
+            0.03581125661730766
+          ],
+          "q_error": [
+            0.10844701528549194
+          ],
+          "message": "Moving smoothly to the trained slight knee bend.",
+          "winding": [
+            0.0
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            0.019423674792051315
+          ],
+          "joint_speed": [
+            0.3964070677757263
+          ],
+          "wheel_speed": [
+            [
+              -1.1276602745056152,
+              -1.1381878852844238
+            ]
+          ],
+          "phase": [
+            4.21999979019165
+          ]
+        },
+        {
+          "step": 20,
+          "mode": "prepare_backflip",
+          "z": [
+            0.8792268633842468
+          ],
+          "upright": [
+            0.9999632835388184
+          ],
+          "speed": [
+            0.10003525018692017
+          ],
+          "omega": [
+            0.0444425493478775
+          ],
+          "q_error": [
+            0.11230814456939697
+          ],
+          "message": "Moving smoothly to the trained slight knee bend.",
+          "winding": [
+            0.0
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            0.00856068916618824
+          ],
+          "joint_speed": [
+            0.39796531200408936
+          ],
+          "wheel_speed": [
+            [
+              -0.7843733429908752,
+              -0.7918545007705688
+            ]
+          ],
+          "phase": [
+            4.420000076293945
+          ]
+        },
+        {
+          "step": 30,
+          "mode": "prepare_backflip",
+          "z": [
+            0.878995418548584
+          ],
+          "upright": [
+            0.9999964833259583
+          ],
+          "speed": [
+            0.12835323810577393
+          ],
+          "omega": [
+            0.0665825605392456
+          ],
+          "q_error": [
+            0.09187108278274536
+          ],
+          "message": "Moving smoothly to the trained slight knee bend.",
+          "winding": [
+            0.0
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            -0.0026345623191446066
+          ],
+          "joint_speed": [
+            0.39729684591293335
+          ],
+          "wheel_speed": [
+            [
+              -0.8533865809440613,
+              -0.8585346341133118
+            ]
+          ],
+          "phase": [
+            4.619999885559082
+          ]
+        },
+        {
+          "step": 40,
+          "mode": "prepare_backflip",
+          "z": [
+            0.878867506980896
+          ],
+          "upright": [
+            0.9999387264251709
+          ],
+          "speed": [
+            0.13883507251739502
+          ],
+          "omega": [
+            0.0801716297864914
+          ],
+          "q_error": [
+            0.07423651218414307
+          ],
+          "message": "Moving smoothly to the trained slight knee bend.",
+          "winding": [
+            0.0
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            -0.011063802056014538
+          ],
+          "joint_speed": [
+            0.3974553346633911
+          ],
+          "wheel_speed": [
+            [
+              -1.4116337299346924,
+              -1.415004849433899
+            ]
+          ],
+          "phase": [
+            4.819999694824219
+          ]
+        },
+        {
+          "step": 50,
+          "mode": "prepare_backflip",
+          "z": [
+            0.8788554072380066
+          ],
+          "upright": [
+            0.9999025464057922
+          ],
+          "speed": [
+            0.16265109181404114
+          ],
+          "omega": [
+            0.10502678155899048
+          ],
+          "q_error": [
+            0.06413644552230835
+          ],
+          "message": "Moving smoothly to the trained slight knee bend.",
+          "winding": [
+            0.0
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            -0.013956374488770962
+          ],
+          "joint_speed": [
+            0.39764076471328735
+          ],
+          "wheel_speed": [
+            [
+              -1.499639868736267,
+              -1.5000994205474854
+            ]
+          ],
+          "phase": [
+            5.019999980926514
+          ]
+        },
+        {
+          "step": 60,
+          "mode": "prepare_backflip",
+          "z": [
+            0.8788217902183533
+          ],
+          "upright": [
+            0.9998765587806702
+          ],
+          "speed": [
+            0.18049739301204681
+          ],
+          "omega": [
+            0.10608603805303574
+          ],
+          "q_error": [
+            0.05594801902770996
+          ],
+          "message": "Moving smoothly to the trained slight knee bend.",
+          "winding": [
+            0.0
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            -0.015708815306425095
+          ],
+          "joint_speed": [
+            0.39809900522232056
+          ],
+          "wheel_speed": [
+            [
+              -1.841702938079834,
+              -1.8450456857681274
+            ]
+          ],
+          "phase": [
+            5.21999979019165
+          ]
+        },
+        {
+          "step": 70,
+          "mode": "prepare_backflip",
+          "z": [
+            0.8788242340087891
+          ],
+          "upright": [
+            0.9998940229415894
+          ],
+          "speed": [
+            0.20507246255874634
+          ],
+          "omega": [
+            0.12966161966323853
+          ],
+          "q_error": [
+            0.051461756229400635
+          ],
+          "message": "Moving smoothly to the trained slight knee bend.",
+          "winding": [
+            0.0
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            -0.014554481022059917
+          ],
+          "joint_speed": [
+            0.3980666995048523
+          ],
+          "wheel_speed": [
+            [
+              -2.0377132892608643,
+              -2.041398525238037
+            ]
+          ],
+          "phase": [
+            5.420000076293945
+          ]
+        },
+        {
+          "step": 80,
+          "mode": "prepare_backflip",
+          "z": [
+            0.8788741827011108
+          ],
+          "upright": [
+            0.9999324083328247
+          ],
+          "speed": [
+            0.22091472148895264
+          ],
+          "omega": [
+            0.1286255419254303
+          ],
+          "q_error": [
+            0.049836695194244385
+          ],
+          "message": "Moving smoothly to the trained slight knee bend.",
+          "winding": [
+            0.0
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            -0.011623525992035866
+          ],
+          "joint_speed": [
+            0.39803266525268555
+          ],
+          "wheel_speed": [
+            [
+              -2.2573304176330566,
+              -2.263030767440796
+            ]
+          ],
+          "phase": [
+            5.619999885559082
+          ]
+        },
+        {
+          "step": 90,
+          "mode": "prepare_backflip",
+          "z": [
+            0.8789077401161194
+          ],
+          "upright": [
+            0.9999695420265198
+          ],
+          "speed": [
+            0.2335822433233261
+          ],
+          "omega": [
+            0.13722902536392212
+          ],
+          "q_error": [
+            0.04948502779006958
+          ],
+          "message": "Moving smoothly to the trained slight knee bend.",
+          "winding": [
+            0.0
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            -0.007801130414009094
+          ],
+          "joint_speed": [
+            0.3980388939380646
+          ],
+          "wheel_speed": [
+            [
+              -2.4168331623077393,
+              -2.42415452003479
+            ]
+          ],
+          "phase": [
+            5.819999694824219
+          ]
+        },
+        {
+          "step": 100,
+          "mode": "prepare_backflip",
+          "z": [
+            0.8789443969726562
+          ],
+          "upright": [
+            0.9999943375587463
+          ],
+          "speed": [
+            0.2435193806886673
+          ],
+          "omega": [
+            0.13655760884284973
+          ],
+          "q_error": [
+            0.04909157752990723
+          ],
+          "message": "Moving smoothly to the trained slight knee bend.",
+          "winding": [
+            0.0
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            -0.0033665073569864035
+          ],
+          "joint_speed": [
+            0.39802810549736023
+          ],
+          "wheel_speed": [
+            [
+              -2.5041940212249756,
+              -2.5132977962493896
+            ]
+          ],
+          "phase": [
+            5.980000019073486
+          ]
+        },
+        {
+          "step": 110,
+          "mode": "prepare_backflip",
+          "z": [
+            0.8789817094802856
+          ],
+          "upright": [
+            0.9999987483024597
+          ],
+          "speed": [
+            0.24720442295074463
+          ],
+          "omega": [
+            0.14051783084869385
+          ],
+          "q_error": [
+            0.04996722936630249
+          ],
+          "message": "Moving smoothly to the trained slight knee bend.",
+          "winding": [
+            0.0
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            0.0015750689199194312
+          ],
+          "joint_speed": [
+            0.39803236722946167
+          ],
+          "wheel_speed": [
+            [
+              -2.557990074157715,
+              -2.5672688484191895
+            ]
+          ],
+          "phase": [
+            5.980000019073486
+          ]
+        },
+        {
+          "step": 120,
+          "mode": "prepare_backflip",
+          "z": [
+            0.8790154457092285
+          ],
+          "upright": [
+            0.9999783039093018
+          ],
+          "speed": [
+            0.2452458292245865
+          ],
+          "omega": [
+            0.13805674016475677
+          ],
+          "q_error": [
+            0.05112046003341675
+          ],
+          "message": "Moving smoothly to the trained slight knee bend.",
+          "winding": [
+            0.0
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            0.006580691318958998
+          ],
+          "joint_speed": [
+            0.39803072810173035
+          ],
+          "wheel_speed": [
+            [
+              -2.5264527797698975,
+              -2.5360946655273438
+            ]
+          ],
+          "phase": [
+            5.980000019073486
+          ]
+        },
+        {
+          "step": 130,
+          "mode": "prepare_backflip",
+          "z": [
+            0.8790328502655029
+          ],
+          "upright": [
+            0.9999365210533142
+          ],
+          "speed": [
+            0.2382144033908844
+          ],
+          "omega": [
+            0.13717351853847504
+          ],
+          "q_error": [
+            0.051631808280944824
+          ],
+          "message": "Moving smoothly to the trained slight knee bend.",
+          "winding": [
+            0.0
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            0.01126783061772585
+          ],
+          "joint_speed": [
+            0.398019015789032
+          ],
+          "wheel_speed": [
+            [
+              -2.457883834838867,
+              -2.468179225921631
+            ]
+          ],
+          "phase": [
+            5.980000019073486
+          ]
+        },
+        {
+          "step": 140,
+          "mode": "prepare_backflip",
+          "z": [
+            0.8790469169616699
+          ],
+          "upright": [
+            0.9998776912689209
+          ],
+          "speed": [
+            0.22665606439113617
+          ],
+          "omega": [
+            0.13475190103054047
+          ],
+          "q_error": [
+            0.05220520496368408
+          ],
+          "message": "Moving smoothly to the trained slight knee bend.",
+          "winding": [
+            0.0
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            0.01563871093094349
+          ],
+          "joint_speed": [
+            0.3980158865451813
+          ],
+          "wheel_speed": [
+            [
+              -2.322026491165161,
+              -2.3324527740478516
+            ]
+          ],
+          "phase": [
+            5.980000019073486
+          ]
+        },
+        {
+          "step": 150,
+          "mode": "prepare_backflip",
+          "z": [
+            0.8790541887283325
+          ],
+          "upright": [
+            0.9998106956481934
+          ],
+          "speed": [
+            0.21030253171920776
+          ],
+          "omega": [
+            0.13171760737895966
+          ],
+          "q_error": [
+            0.05291891098022461
+          ],
+          "message": "Moving smoothly to the trained slight knee bend.",
+          "winding": [
+            0.0
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            0.01945526711642742
+          ],
+          "joint_speed": [
+            0.39800840616226196
+          ],
+          "wheel_speed": [
+            [
+              -2.151013135910034,
+              -2.1613807678222656
+            ]
+          ],
+          "phase": [
+            5.980000019073486
+          ]
+        },
+        {
+          "step": 160,
+          "mode": "prepare_backflip",
+          "z": [
+            0.8790568113327026
+          ],
+          "upright": [
+            0.9997437000274658
+          ],
+          "speed": [
+            0.19045516848564148
+          ],
+          "omega": [
+            0.12831954658031464
+          ],
+          "q_error": [
+            0.05341535806655884
+          ],
+          "message": "Moving smoothly to the trained slight knee bend.",
+          "winding": [
+            0.0
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            0.022639403119683266
+          ],
+          "joint_speed": [
+            0.39800503849983215
+          ],
+          "wheel_speed": [
+            [
+              -1.9339460134506226,
+              -1.9439024925231934
+            ]
+          ],
+          "phase": [
+            5.980000019073486
+          ]
+        },
+        {
+          "step": 170,
+          "mode": "prepare_backflip",
+          "z": [
+            0.8790569305419922
+          ],
+          "upright": [
+            0.9996846914291382
+          ],
+          "speed": [
+            0.1676381230354309
+          ],
+          "omega": [
+            0.12461358308792114
+          ],
+          "q_error": [
+            0.053748130798339844
+          ],
+          "message": "Moving smoothly to the trained slight knee bend.",
+          "winding": [
+            0.0
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            0.025108693167567253
+          ],
+          "joint_speed": [
+            0.3980121314525604
+          ],
+          "wheel_speed": [
+            [
+              -1.6921197175979614,
+              -1.7016692161560059
+            ]
+          ],
+          "phase": [
+            5.980000019073486
+          ]
+        },
+        {
+          "step": 180,
+          "mode": "prepare_backflip",
+          "z": [
+            0.8790572881698608
+          ],
+          "upright": [
+            0.9996392130851746
+          ],
+          "speed": [
+            0.14266280829906464
+          ],
+          "omega": [
+            0.1210412010550499
+          ],
+          "q_error": [
+            0.05405426025390625
+          ],
+          "message": "Moving smoothly to the trained slight knee bend.",
+          "winding": [
+            0.0
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            0.026858694851398468
+          ],
+          "joint_speed": [
+            0.39799776673316956
+          ],
+          "wheel_speed": [
+            [
+              -1.4237620830535889,
+              -1.432981252670288
+            ]
+          ],
+          "phase": [
+            5.980000019073486
+          ]
+        },
+        {
+          "step": 190,
+          "mode": "prepare_backflip",
+          "z": [
+            0.8790581226348877
+          ],
+          "upright": [
+            0.9996115565299988
+          ],
+          "speed": [
+            0.1162579357624054
+          ],
+          "omega": [
+            0.11728397756814957
+          ],
+          "q_error": [
+            0.05423593521118164
+          ],
+          "message": "Moving smoothly to the trained slight knee bend.",
+          "winding": [
+            0.0
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            0.027868499979376793
+          ],
+          "joint_speed": [
+            0.39801156520843506
+          ],
+          "wheel_speed": [
+            [
+              -1.1449358463287354,
+              -1.153650164604187
+            ]
+          ],
+          "phase": [
+            5.980000019073486
+          ]
+        },
+        {
+          "step": 200,
+          "mode": "prepare_backflip",
+          "z": [
+            0.8790601491928101
+          ],
+          "upright": [
+            0.9996031522750854
+          ],
+          "speed": [
+            0.08929803222417831
+          ],
+          "omega": [
+            0.11393101513385773
+          ],
+          "q_error": [
+            0.0542941689491272
+          ],
+          "message": "Moving smoothly to the trained slight knee bend.",
+          "winding": [
+            0.0
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            0.028168179094791412
+          ],
+          "joint_speed": [
+            0.3980000913143158
+          ],
+          "wheel_speed": [
+            [
+              -0.8595142364501953,
+              -0.8681905269622803
+            ]
+          ],
+          "phase": [
+            5.980000019073486
+          ]
+        },
+        {
+          "step": 210,
+          "mode": "prepare_backflip",
+          "z": [
+            0.8790634870529175
+          ],
+          "upright": [
+            0.9996134638786316
+          ],
+          "speed": [
+            0.06245617941021919
+          ],
+          "omega": [
+            0.11064881086349487
+          ],
+          "q_error": [
+            0.05425620079040527
+          ],
+          "message": "Moving smoothly to the trained slight knee bend.",
+          "winding": [
+            0.0
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            0.02780078537762165
+          ],
+          "joint_speed": [
+            0.39799606800079346
+          ],
+          "wheel_speed": [
+            [
+              -0.576675295829773,
+              -0.5853920578956604
+            ]
+          ],
+          "phase": [
+            5.980000019073486
+          ]
+        },
+        {
+          "step": 220,
+          "mode": "backflip",
+          "z": [
+            0.8762249946594238
+          ],
+          "upright": [
+            0.9999842047691345
+          ],
+          "speed": [
+            0.01426337007433176
+          ],
+          "omega": [
+            0.258804053068161
+          ],
+          "q_error": [
+            0.07130015641450882
+          ],
+          "message": "Backflip PPO running.",
+          "winding": [
+            -0.03290269523859024
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            -0.005616881884634495
+          ],
+          "joint_speed": [
+            0.4802390933036804
+          ],
+          "wheel_speed": [
+            [
+              -0.6619236469268799,
+              -0.7065050005912781
+            ]
+          ],
+          "phase": [
+            0.07999999821186066
+          ]
+        },
+        {
+          "step": 230,
+          "mode": "backflip",
+          "z": [
+            0.8746513724327087
+          ],
+          "upright": [
+            0.9998589158058167
+          ],
+          "speed": [
+            0.01654926687479019
+          ],
+          "omega": [
+            0.056992057710886
+          ],
+          "q_error": [
+            0.07630708813667297
+          ],
+          "message": "Backflip PPO running.",
+          "winding": [
+            -0.04406623914837837
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            -0.016779853031039238
+          ],
+          "joint_speed": [
+            0.40011849999427795
+          ],
+          "wheel_speed": [
+            [
+              -0.3162442743778229,
+              -0.366458535194397
+            ]
+          ],
+          "phase": [
+            0.2800000011920929
+          ]
+        },
+        {
+          "step": 240,
+          "mode": "backflip",
+          "z": [
+            0.8666088581085205
+          ],
+          "upright": [
+            0.9990792870521545
+          ],
+          "speed": [
+            0.24911506474018097
+          ],
+          "omega": [
+            1.8853622674942017
+          ],
+          "q_error": [
+            0.2579116225242615
+          ],
+          "message": "Backflip PPO running.",
+          "winding": [
+            -0.011449105106294155
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            0.01599639654159546
+          ],
+          "joint_speed": [
+            5.149331092834473
+          ],
+          "wheel_speed": [
+            [
+              -3.4783544540405273,
+              -1.5917949676513672
+            ]
+          ],
+          "phase": [
+            0.47999998927116394
+          ]
+        },
+        {
+          "step": 250,
+          "mode": "backflip",
+          "z": [
+            0.5293499231338501
+          ],
+          "upright": [
+            0.9795721769332886
+          ],
+          "speed": [
+            0.33545854687690735
+          ],
+          "omega": [
+            0.6265718936920166
+          ],
+          "q_error": [
+            1.9734251499176025
+          ],
+          "message": "Backflip PPO running.",
+          "winding": [
+            0.1352071464061737
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            0.15795977413654327
+          ],
+          "joint_speed": [
+            9.794049263000488
+          ],
+          "wheel_speed": [
+            [
+              -0.18691831827163696,
+              3.5786728858947754
+            ]
+          ],
+          "phase": [
+            0.6800000071525574
+          ]
+        },
+        {
+          "step": 260,
+          "mode": "backflip",
+          "z": [
+            0.5433948636054993
+          ],
+          "upright": [
+            0.8171812295913696
+          ],
+          "speed": [
+            2.674891233444214
+          ],
+          "omega": [
+            7.752768039703369
+          ],
+          "q_error": [
+            2.2556939125061035
+          ],
+          "message": "Backflip PPO running.",
+          "winding": [
+            -0.640367329120636
+          ],
+          "max_progress": [
+            0.0
+          ],
+          "pitch": [
+            -0.5763422846794128
+          ],
+          "joint_speed": [
+            23.60169792175293
+          ],
+          "wheel_speed": [
+            [
+              30.12908172607422,
+              28.7552547454834
+            ]
+          ],
+          "phase": [
+            0.8799999952316284
+          ]
+        },
+        {
+          "step": 270,
+          "mode": "backflip",
+          "z": [
+            1.1972407102584839
+          ],
+          "upright": [
+            -0.2809419631958008
+          ],
+          "speed": [
+            0.9800898432731628
+          ],
+          "omega": [
+            15.21871566772461
+          ],
+          "q_error": [
+            2.07453989982605
+          ],
+          "message": "Backflip PPO running.",
+          "winding": [
+            -1.8775252103805542
+          ],
+          "max_progress": [
+            1.8775252103805542
+          ],
+          "pitch": [
+            -0.9593921899795532
+          ],
+          "joint_speed": [
+            25.05103874206543
+          ],
+          "wheel_speed": [
+            [
+              1.7518190145492554,
+              2.751748561859131
+            ]
+          ],
+          "phase": [
+            1.0799999237060547
+          ]
+        },
+        {
+          "step": 280,
+          "mode": "backflip",
+          "z": [
+            1.203954815864563
+          ],
+          "upright": [
+            -0.10846471786499023
+          ],
+          "speed": [
+            1.7921862602233887
+          ],
+          "omega": [
+            12.784433364868164
+          ],
+          "q_error": [
+            2.1003482341766357
+          ],
+          "message": "Backflip PPO running.",
+          "winding": [
+            -4.61670446395874
+          ],
+          "max_progress": [
+            4.61670446395874
+          ],
+          "pitch": [
+            0.9940013885498047
+          ],
+          "joint_speed": [
+            15.34373664855957
+          ],
+          "wheel_speed": [
+            [
+              3.7456583976745605,
+              4.15426778793335
+            ]
+          ],
+          "phase": [
+            1.2799999713897705
+          ]
+        },
+        {
+          "step": 290,
+          "mode": "backflip",
+          "z": [
+            0.9469391703605652
+          ],
+          "upright": [
+            0.9833576083183289
+          ],
+          "speed": [
+            2.388707399368286
+          ],
+          "omega": [
+            9.928682327270508
+          ],
+          "q_error": [
+            2.272458076477051
+          ],
+          "message": "Backflip PPO running.",
+          "winding": [
+            -6.348888874053955
+          ],
+          "max_progress": [
+            6.348888874053955
+          ],
+          "pitch": [
+            -0.12240981310606003
+          ],
+          "joint_speed": [
+            15.616602897644043
+          ],
+          "wheel_speed": [
+            [
+              0.3576260805130005,
+              0.8600566983222961
+            ]
+          ],
+          "phase": [
+            1.4800000190734863
+          ]
+        },
+        {
+          "step": 300,
+          "mode": "backflip",
+          "z": [
+            0.45572787523269653
+          ],
+          "upright": [
+            0.9981957077980042
+          ],
+          "speed": [
+            1.375617504119873
+          ],
+          "omega": [
+            2.6597707271575928
+          ],
+          "q_error": [
+            2.112910032272339
+          ],
+          "message": "Backflip PPO running.",
+          "winding": [
+            -6.251036643981934
+          ],
+          "max_progress": [
+            6.511872291564941
+          ],
+          "pitch": [
+            0.03577331081032753
+          ],
+          "joint_speed": [
+            15.506507873535156
+          ],
+          "wheel_speed": [
+            [
+              -1.4676302671432495,
+              -5.126265048980713
+            ]
+          ],
+          "phase": [
+            1.6799999475479126
+          ]
+        },
+        {
+          "step": 310,
+          "mode": "backflip",
+          "z": [
+            0.40276727080345154
+          ],
+          "upright": [
+            0.9991509914398193
+          ],
+          "speed": [
+            0.022854626178741455
+          ],
+          "omega": [
+            0.3254154324531555
+          ],
+          "q_error": [
+            2.3000128269195557
+          ],
+          "message": "Backflip PPO running.",
+          "winding": [
+            -6.326698303222656
+          ],
+          "max_progress": [
+            6.511872291564941
+          ],
+          "pitch": [
+            -0.006984282284975052
+          ],
+          "joint_speed": [
+            2.886892080307007
+          ],
+          "wheel_speed": [
+            [
+              -1.119459867477417,
+              -2.0188183784484863
+            ]
+          ],
+          "phase": [
+            1.8799999952316284
+          ]
+        },
+        {
+          "step": 320,
+          "mode": "backflip",
+          "z": [
+            0.4044688045978546
+          ],
+          "upright": [
+            0.9980678558349609
+          ],
+          "speed": [
+            0.4537489414215088
+          ],
+          "omega": [
+            0.7773239612579346
+          ],
+          "q_error": [
+            2.299943447113037
+          ],
+          "message": "Backflip PPO running.",
+          "winding": [
+            -6.3579277992248535
+          ],
+          "max_progress": [
+            6.511872291564941
+          ],
+          "pitch": [
+            -0.03604080155491829
+          ],
+          "joint_speed": [
+            3.617211103439331
+          ],
+          "wheel_speed": [
+            [
+              -5.414844036102295,
+              -3.7355923652648926
+            ]
+          ],
+          "phase": [
+            2.0799999237060547
+          ]
+        },
+        {
+          "step": 330,
+          "mode": "backflip",
+          "z": [
+            0.408546507358551
+          ],
+          "upright": [
+            0.9956164956092834
+          ],
+          "speed": [
+            0.28146234154701233
+          ],
+          "omega": [
+            0.5816130638122559
+          ],
+          "q_error": [
+            2.3000259399414062
+          ],
+          "message": "Backflip PPO running.",
+          "winding": [
+            -6.384711742401123
+          ],
+          "max_progress": [
+            6.511872291564941
+          ],
+          "pitch": [
+            -0.051965128630399704
+          ],
+          "joint_speed": [
+            2.8751628398895264
+          ],
+          "wheel_speed": [
+            [
+              -3.617159843444824,
+              -6.4099321365356445
+            ]
+          ],
+          "phase": [
+            2.2799999713897705
+          ]
+        },
+        {
+          "step": 340,
+          "mode": "backflip",
+          "z": [
+            0.4105018377304077
+          ],
+          "upright": [
+            0.9894043803215027
+          ],
+          "speed": [
+            0.24533945322036743
+          ],
+          "omega": [
+            0.5434667468070984
+          ],
+          "q_error": [
+            2.300004720687866
+          ],
+          "message": "Backflip PPO running.",
+          "winding": [
+            -6.442204475402832
+          ],
+          "max_progress": [
+            6.511872291564941
+          ],
+          "pitch": [
+            -0.11115512251853943
+          ],
+          "joint_speed": [
+            0.9156633615493774
+          ],
+          "wheel_speed": [
+            [
+              -2.9584691524505615,
+              -7.7810587882995605
+            ]
+          ],
+          "phase": [
+            2.4800000190734863
+          ]
+        },
+        {
+          "step": 350,
+          "mode": "backflip",
+          "z": [
+            0.4112490713596344
+          ],
+          "upright": [
+            0.986830472946167
+          ],
+          "speed": [
+            0.2600802481174469
+          ],
+          "omega": [
+            0.462248831987381
+          ],
+          "q_error": [
+            2.300013780593872
+          ],
+          "message": "Backflip PPO running.",
+          "winding": [
+            -6.4587483406066895
+          ],
+          "max_progress": [
+            6.511872291564941
+          ],
+          "pitch": [
+            -0.12794551253318787
+          ],
+          "joint_speed": [
+            0.6665397882461548
+          ],
+          "wheel_speed": [
+            [
+              -3.99031925201416,
+              -9.227084159851074
+            ]
+          ],
+          "phase": [
+            2.679999828338623
+          ]
+        },
+        {
+          "step": 360,
+          "mode": "backflip",
+          "z": [
+            0.41180723905563354
+          ],
+          "upright": [
+            0.9854318499565125
+          ],
+          "speed": [
+            0.2391762137413025
+          ],
+          "omega": [
+            0.41591402888298035
+          ],
+          "q_error": [
+            2.3000190258026123
+          ],
+          "message": "Backflip PPO running.",
+          "winding": [
+            -6.466907978057861
+          ],
+          "max_progress": [
+            6.511872291564941
+          ],
+          "pitch": [
+            -0.13467752933502197
+          ],
+          "joint_speed": [
+            0.4018627405166626
+          ],
+          "wheel_speed": [
+            [
+              -3.202225923538208,
+              -8.745551109313965
+            ]
+          ],
+          "phase": [
+            2.879999876022339
+          ]
+        },
+        {
+          "step": 370,
+          "mode": "backflip",
+          "z": [
+            0.4116588234901428
+          ],
+          "upright": [
+            0.9840953350067139
+          ],
+          "speed": [
+            0.2555171549320221
+          ],
+          "omega": [
+            0.21960808336734772
+          ],
+          "q_error": [
+            2.3000175952911377
+          ],
+          "message": "Backflip PPO running.",
+          "winding": [
+            -6.472471714019775
+          ],
+          "max_progress": [
+            6.511872291564941
+          ],
+          "pitch": [
+            -0.14416444301605225
+          ],
+          "joint_speed": [
+            0.5149919986724854
+          ],
+          "wheel_speed": [
+            [
+              -3.7435832023620605,
+              -9.74274730682373
+            ]
+          ],
+          "phase": [
+            3.0799999237060547
+          ]
+        },
+        {
+          "step": 380,
+          "mode": "backflip",
+          "z": [
+            0.41167551279067993
+          ],
+          "upright": [
+            0.9831511974334717
+          ],
+          "speed": [
+            0.2322349101305008
+          ],
+          "omega": [
+            0.4145348072052002
+          ],
+          "q_error": [
+            2.3000433444976807
+          ],
+          "message": "Backflip PPO running.",
+          "winding": [
+            -6.476024150848389
+          ],
+          "max_progress": [
+            6.511872291564941
+          ],
+          "pitch": [
+            -0.15004371106624603
+          ],
+          "joint_speed": [
+            0.4332464635372162
+          ],
+          "wheel_speed": [
+            [
+              -3.303145170211792,
+              -10.051615715026855
+            ]
+          ],
+          "phase": [
+            3.2799999713897705
+          ]
+        },
+        {
+          "step": 390,
+          "mode": "backflip",
+          "z": [
+            0.4115715026855469
+          ],
+          "upright": [
+            0.9819926023483276
+          ],
+          "speed": [
+            0.2598271667957306
+          ],
+          "omega": [
+            0.14913444221019745
+          ],
+          "q_error": [
+            2.300022602081299
+          ],
+          "message": "Backflip PPO running.",
+          "winding": [
+            -6.4800028800964355
+          ],
+          "max_progress": [
+            6.511872291564941
+          ],
+          "pitch": [
+            -0.15700897574424744
+          ],
+          "joint_speed": [
+            0.40808427333831787
+          ],
+          "wheel_speed": [
+            [
+              -3.313157796859741,
+              -9.642094612121582
+            ]
+          ],
+          "phase": [
+            3.4800000190734863
+          ]
+        },
+        {
+          "step": 400,
+          "mode": "backflip",
+          "z": [
+            0.41134124994277954
+          ],
+          "upright": [
+            0.9816768169403076
+          ],
+          "speed": [
+            0.21146909892559052
+          ],
+          "omega": [
+            0.11783215403556824
+          ],
+          "q_error": [
+            2.299995183944702
+          ],
+          "message": "Backflip PPO running.",
+          "winding": [
+            -6.479800701141357
+          ],
+          "max_progress": [
+            6.511872291564941
+          ],
+          "pitch": [
+            -0.16008640825748444
+          ],
+          "joint_speed": [
+            0.7651231288909912
+          ],
+          "wheel_speed": [
+            [
+              -2.287515878677368,
+              -4.8175506591796875
+            ]
+          ],
+          "phase": [
+            3.679999828338623
+          ]
+        },
+        {
+          "step": 410,
+          "mode": "backflip",
+          "z": [
+            0.41075581312179565
+          ],
+          "upright": [
+            0.9815670847892761
+          ],
+          "speed": [
+            0.2063554972410202
+          ],
+          "omega": [
+            0.21164470911026
+          ],
+          "q_error": [
+            2.300044298171997
+          ],
+          "message": "Backflip PPO running.",
+          "winding": [
+            -6.477265357971191
+          ],
+          "max_progress": [
+            6.511872291564941
+          ],
+          "pitch": [
+            -0.16336141526699066
+          ],
+          "joint_speed": [
+            0.41841086745262146
+          ],
+          "wheel_speed": [
+            [
+              -2.603147029876709,
+              -9.568410873413086
+            ]
+          ],
+          "phase": [
+            3.879999876022339
+          ]
+        },
+        {
+          "step": 420,
+          "mode": "backflip",
+          "z": [
+            0.41031670570373535
+          ],
+          "upright": [
+            0.9822471737861633
+          ],
+          "speed": [
+            0.20408429205417633
+          ],
+          "omega": [
+            0.12895818054676056
+          ],
+          "q_error": [
+            2.2999274730682373
+          ],
+          "message": "Backflip PPO running.",
+          "winding": [
+            -6.47307014465332
+          ],
+          "max_progress": [
+            6.511872291564941
+          ],
+          "pitch": [
+            -0.1614902764558792
+          ],
+          "joint_speed": [
+            0.8516526818275452
+          ],
+          "wheel_speed": [
+            [
+              -2.489326000213623,
+              -3.9375267028808594
+            ]
+          ],
+          "phase": [
+            4.079999923706055
+          ]
+        },
+        {
+          "step": 430,
+          "mode": "backflip",
+          "z": [
+            0.4092744290828705
+          ],
+          "upright": [
+            0.9843068718910217
+          ],
+          "speed": [
+            0.20805571973323822
+          ],
+          "omega": [
+            0.3238043487071991
+          ],
+          "q_error": [
+            2.3000433444976807
+          ],
+          "message": "Backflip PPO running.",
+          "winding": [
+            -6.461993217468262
+          ],
+          "max_progress": [
+            6.511872291564941
+          ],
+          "pitch": [
+            -0.15368089079856873
+          ],
+          "joint_speed": [
+            0.5640413165092468
+          ],
+          "wheel_speed": [
+            [
+              -2.4557735919952393,
+              -6.458878517150879
+            ]
+          ],
+          "phase": [
+            4.279999732971191
+          ]
+        },
+        {
+          "step": 440,
+          "mode": "backflip",
+          "z": [
+            0.4071044325828552
+          ],
+          "upright": [
+            0.9857872724533081
+          ],
+          "speed": [
+            0.24751883745193481
+          ],
+          "omega": [
+            0.27489757537841797
+          ],
+          "q_error": [
+            2.30003023147583
+          ],
+          "message": "Backflip PPO running.",
+          "winding": [
+            -6.446511745452881
+          ],
+          "max_progress": [
+            6.511872291564941
+          ],
+          "pitch": [
+            -0.1523694097995758
+          ],
+          "joint_speed": [
+            0.7153218984603882
+          ],
+          "wheel_speed": [
+            [
+              -2.9804439544677734,
+              -9.684895515441895
+            ]
+          ],
+          "phase": [
+            4.480000019073486
+          ]
+        },
+        {
+          "step": 450,
+          "mode": "backflip",
+          "z": [
+            0.4052881598472595
+          ],
+          "upright": [
+            0.9893537163734436
+          ],
+          "speed": [
+            0.26222968101501465
+          ],
+          "omega": [
+            0.16378699243068695
+          ],
+          "q_error": [
+            2.3000097274780273
+          ],
+          "message": "Backflip complete: arms down, balanced kneel. Press Unbox to stand.",
+          "winding": [
+            -6.425819396972656
+          ],
+          "max_progress": [
+            6.511872291564941
+          ],
+          "pitch": [
+            -0.13447296619415283
+          ],
+          "joint_speed": [
+            0.3996489346027374
+          ],
+          "wheel_speed": [
+            [
+              -3.040741443634033,
+              -5.770288467407227
+            ]
+          ],
+          "phase": [
+            4.599999904632568
+          ]
+        },
+        {
+          "step": 460,
+          "mode": "backflip",
+          "z": [
+            0.4042724072933197
+          ],
+          "upright": [
+            0.9901791214942932
+          ],
+          "speed": [
+            0.23086576163768768
+          ],
+          "omega": [
+            0.19827906787395477
+          ],
+          "q_error": [
+            2.3000049591064453
+          ],
+          "message": "Backflip complete: arms down, balanced kneel. Press Unbox to stand.",
+          "winding": [
+            -6.417847633361816
+          ],
+          "max_progress": [
+            6.511872291564941
+          ],
+          "pitch": [
+            -0.1311257779598236
+          ],
+          "joint_speed": [
+            0.4284891188144684
+          ],
+          "wheel_speed": [
+            [
+              -2.676020383834839,
+              -4.677440166473389
+            ]
+          ],
+          "phase": [
+            4.599999904632568
+          ]
+        },
+        {
+          "step": 470,
+          "mode": "backflip",
+          "z": [
+            0.4040142893791199
+          ],
+          "upright": [
+            0.9900681972503662
+          ],
+          "speed": [
+            0.26508474349975586
+          ],
+          "omega": [
+            0.23851919174194336
+          ],
+          "q_error": [
+            2.300025701522827
+          ],
+          "message": "Backflip complete: arms down, balanced kneel. Press Unbox to stand.",
+          "winding": [
+            -6.416823387145996
+          ],
+          "max_progress": [
+            6.511872291564941
+          ],
+          "pitch": [
+            -0.13251756131649017
+          ],
+          "joint_speed": [
+            0.4040859639644623
+          ],
+          "wheel_speed": [
+            [
+              -3.114078998565674,
+              -5.844814300537109
+            ]
+          ],
+          "phase": [
+            4.599999904632568
+          ]
+        },
+        {
+          "step": 480,
+          "mode": "backflip",
+          "z": [
+            0.4038933515548706
+          ],
+          "upright": [
+            0.9899615049362183
+          ],
+          "speed": [
+            0.2530917823314667
+          ],
+          "omega": [
+            0.17156855762004852
+          ],
+          "q_error": [
+            2.300039291381836
+          ],
+          "message": "Backflip complete: arms down, balanced kneel. Press Unbox to stand.",
+          "winding": [
+            -6.416450500488281
+          ],
+          "max_progress": [
+            6.511872291564941
+          ],
+          "pitch": [
+            -0.13354437053203583
+          ],
+          "joint_speed": [
+            0.4046271741390228
+          ],
+          "wheel_speed": [
+            [
+              -3.1260805130004883,
+              -5.836906909942627
+            ]
+          ],
+          "phase": [
+            4.599999904632568
+          ]
+        },
+        {
+          "step": 490,
+          "mode": "backflip",
+          "z": [
+            0.40395286679267883
+          ],
+          "upright": [
+            0.9901238083839417
+          ],
+          "speed": [
+            0.2202090471982956
+          ],
+          "omega": [
+            0.11728828400373459
+          ],
+          "q_error": [
+            2.299942970275879
+          ],
+          "message": "Backflip complete: arms down, balanced kneel. Press Unbox to stand.",
+          "winding": [
+            -6.416704177856445
+          ],
+          "max_progress": [
+            6.511872291564941
+          ],
+          "pitch": [
+            -0.13213025033473969
+          ],
+          "joint_speed": [
+            0.6871560215950012
+          ],
+          "wheel_speed": [
+            [
+              -2.670144557952881,
+              -2.798353672027588
+            ]
+          ],
+          "phase": [
+            4.599999904632568
+          ]
+        },
+        {
+          "step": 500,
+          "mode": "backflip",
+          "z": [
+            0.4038028120994568
+          ],
+          "upright": [
+            0.9896707534790039
+          ],
+          "speed": [
+            0.19254663586616516
+          ],
+          "omega": [
+            0.1268608123064041
+          ],
+          "q_error": [
+            2.2999908924102783
+          ],
+          "message": "Backflip complete: arms down, balanced kneel. Press Unbox to stand.",
+          "winding": [
+            -6.416524410247803
+          ],
+          "max_progress": [
+            6.511872291564941
+          ],
+          "pitch": [
+            -0.13580605387687683
+          ],
+          "joint_speed": [
+            0.46665269136428833
+          ],
+          "wheel_speed": [
+            [
+              -2.862456798553467,
+              -5.093366622924805
+            ]
+          ],
+          "phase": [
+            4.599999904632568
+          ]
+        },
+        {
+          "step": 510,
+          "mode": "backflip",
+          "z": [
+            0.4038398861885071
+          ],
+          "upright": [
+            0.9898920059204102
+          ],
+          "speed": [
+            0.1852688044309616
+          ],
+          "omega": [
+            0.1455567479133606
+          ],
+          "q_error": [
+            2.3000292778015137
+          ],
+          "message": "Backflip complete: arms down, balanced kneel. Press Unbox to stand.",
+          "winding": [
+            -6.416157245635986
+          ],
+          "max_progress": [
+            6.511872291564941
+          ],
+          "pitch": [
+            -0.13421903550624847
+          ],
+          "joint_speed": [
+            0.4032750725746155
+          ],
+          "wheel_speed": [
+            [
+              -2.5490381717681885,
+              -5.527101516723633
+            ]
+          ],
+          "phase": [
+            4.599999904632568
+          ]
+        },
+        {
+          "step": 520,
+          "mode": "backflip",
+          "z": [
+            0.40375572443008423
+          ],
+          "upright": [
+            0.9897433519363403
+          ],
+          "speed": [
+            0.21213515102863312
+          ],
+          "omega": [
+            0.11808684468269348
+          ],
+          "q_error": [
+            2.2999491691589355
+          ],
+          "message": "Backflip complete: arms down, balanced kneel. Press Unbox to stand.",
+          "winding": [
+            -6.415860176086426
+          ],
+          "max_progress": [
+            6.511872291564941
+          ],
+          "pitch": [
+            -0.13547171652317047
+          ],
+          "joint_speed": [
+            0.6011924743652344
+          ],
+          "wheel_speed": [
+            [
+              -2.8354880809783936,
+              -3.052809953689575
+            ]
+          ],
+          "phase": [
+            4.599999904632568
+          ]
+        },
+        {
+          "step": 530,
+          "mode": "backflip",
+          "z": [
+            0.40368783473968506
+          ],
+          "upright": [
+            0.9896138906478882
+          ],
+          "speed": [
+            0.2410229742527008
+          ],
+          "omega": [
+            0.09775657951831818
+          ],
+          "q_error": [
+            2.3000245094299316
+          ],
+          "message": "Backflip complete: arms down, balanced kneel. Press Unbox to stand.",
+          "winding": [
+            -6.416101455688477
+          ],
+          "max_progress": [
+            6.511872291564941
+          ],
+          "pitch": [
+            -0.13637256622314453
+          ],
+          "joint_speed": [
+            0.42586350440979004
+          ],
+          "wheel_speed": [
+            [
+              -3.3996758460998535,
+              -5.960536003112793
+            ]
+          ],
+          "phase": [
+            4.599999904632568
+          ]
+        },
+        {
+          "step": 540,
+          "mode": "backflip",
+          "z": [
+            0.4037758409976959
+          ],
+          "upright": [
+            0.9898070693016052
+          ],
+          "speed": [
+            0.2796100676059723
+          ],
+          "omega": [
+            0.1715947538614273
+          ],
+          "q_error": [
+            2.300004720687866
+          ],
+          "message": "Backflip complete: arms down, balanced kneel. Press Unbox to stand.",
+          "winding": [
+            -6.416329383850098
+          ],
+          "max_progress": [
+            6.511872291564941
+          ],
+          "pitch": [
+            -0.13485565781593323
+          ],
+          "joint_speed": [
+            0.41191133856773376
+          ],
+          "wheel_speed": [
+            [
+              -2.9043021202087402,
+              -6.067941188812256
+            ]
+          ],
+          "phase": [
+            4.599999904632568
+          ]
+        },
+        {
+          "step": 550,
+          "mode": "backflip",
+          "z": [
+            0.403825581073761
+          ],
+          "upright": [
+            0.9897812604904175
+          ],
+          "speed": [
+            0.20461562275886536
+          ],
+          "omega": [
+            0.10874813050031662
+          ],
+          "q_error": [
+            2.299980401992798
+          ],
+          "message": "Backflip complete: arms down, balanced kneel. Press Unbox to stand.",
+          "winding": [
+            -6.416786193847656
+          ],
+          "max_progress": [
+            6.511872291564941
+          ],
+          "pitch": [
+            -0.13487398624420166
+          ],
+          "joint_speed": [
+            0.8113025426864624
+          ],
+          "wheel_speed": [
+            [
+              -2.556873321533203,
+              -3.376936674118042
+            ]
+          ],
+          "phase": [
+            4.599999904632568
+          ]
+        },
+        {
+          "step": 560,
+          "mode": "backflip",
+          "z": [
+            0.4039773643016815
+          ],
+          "upright": [
+            0.989882230758667
+          ],
+          "speed": [
+            0.22966434061527252
+          ],
+          "omega": [
+            0.14422006905078888
+          ],
+          "q_error": [
+            2.2999894618988037
+          ],
+          "message": "Backflip complete: arms down, balanced kneel. Press Unbox to stand.",
+          "winding": [
+            -6.417338848114014
+          ],
+          "max_progress": [
+            6.511872291564941
+          ],
+          "pitch": [
+            -0.13394275307655334
+          ],
+          "joint_speed": [
+            0.39413130283355713
+          ],
+          "wheel_speed": [
+            [
+              -2.5200557708740234,
+              -5.948597431182861
+            ]
+          ],
+          "phase": [
+            4.599999904632568
+          ]
+        },
+        {
+          "step": 570,
+          "mode": "backflip",
+          "z": [
+            0.40401700139045715
+          ],
+          "upright": [
+            0.990126371383667
+          ],
+          "speed": [
+            0.26576703786849976
+          ],
+          "omega": [
+            0.19712871313095093
+          ],
+          "q_error": [
+            2.3000006675720215
+          ],
+          "message": "Backflip complete: arms down, balanced kneel. Press Unbox to stand.",
+          "winding": [
+            -6.417516231536865
+          ],
+          "max_progress": [
+            6.511872291564941
+          ],
+          "pitch": [
+            -0.13210509717464447
+          ],
+          "joint_speed": [
+            0.41181451082229614
+          ],
+          "wheel_speed": [
+            [
+              -3.3262581825256348,
+              -5.8138651847839355
+            ]
+          ],
+          "phase": [
+            4.599999904632568
+          ]
+        },
+        {
+          "step": 580,
+          "mode": "backflip",
+          "z": [
+            0.40396344661712646
+          ],
+          "upright": [
+            0.9902482032775879
+          ],
+          "speed": [
+            0.27116838097572327
+          ],
+          "omega": [
+            0.15324926376342773
+          ],
+          "q_error": [
+            2.3000121116638184
+          ],
+          "message": "Backflip complete: arms down, balanced kneel. Press Unbox to stand.",
+          "winding": [
+            -6.417961597442627
+          ],
+          "max_progress": [
+            6.511872291564941
+          ],
+          "pitch": [
+            -0.13107119500637054
+          ],
+          "joint_speed": [
+            0.39898741245269775
+          ],
+          "wheel_speed": [
+            [
+              -3.589021682739258,
+              -6.126349925994873
+            ]
+          ],
+          "phase": [
+            4.599999904632568
+          ]
+        },
+        {
+          "step": 590,
+          "mode": "backflip",
+          "z": [
+            0.4040244221687317
+          ],
+          "upright": [
+            0.990249514579773
+          ],
+          "speed": [
+            0.26746687293052673
+          ],
+          "omega": [
+            0.1428288221359253
+          ],
+          "q_error": [
+            2.3000173568725586
+          ],
+          "message": "Backflip complete: arms down, balanced kneel. Press Unbox to stand.",
+          "winding": [
+            -6.418461799621582
+          ],
+          "max_progress": [
+            6.511872291564941
+          ],
+          "pitch": [
+            -0.13090386986732483
+          ],
+          "joint_speed": [
+            0.41197794675827026
+          ],
+          "wheel_speed": [
+            [
+              -3.518195629119873,
+              -5.7836480140686035
+            ]
+          ],
+          "phase": [
+            4.599999904632568
+          ]
+        }
+      ],
+      "final": {
+        "ok": true,
+        "pose": "backflip",
+        "message": "Backflip complete: arms down, balanced kneel. Press Unbox to stand.",
+        "manual_control_available": false,
+        "cmd": {
+          "vx": 0.0,
+          "vy": 0.0,
+          "yaw": 0.0
+        },
+        "base": {
+          "qw": -0.6285416483879089,
+          "qx": -0.037888601422309875,
+          "qy": 0.06098448857665062,
+          "qz": -0.7744551301002502,
+          "z": 0.4038842022418976,
+          "x": -1.0626965761184692,
+          "y": -1.1848645210266113,
+          "lin_vel_w": [
+            -0.03548279404640198,
+            -0.21489804983139038,
+            0.005248184781521559
+          ],
+          "ang_vel_b": [
+            0.09239038079977036,
+            -0.08189721405506134,
+            0.1023927628993988
+          ]
+        },
+        "joints": {
+          "l_hip_pitch_joint": {
+            "pos": -0.8955373167991638,
+            "vel": 0.3392065167427063,
+            "torque": -4.577292442321777
+          },
+          "r_hip_pitch_joint": {
+            "pos": -0.6060883402824402,
+            "vel": 0.1630454659461975,
+            "torque": 10.781489372253418
+          },
+          "waist_yaw_joint": {
+            "pos": -0.017924468964338303,
+            "vel": 0.06520767509937286,
+            "torque": 1.729683518409729
+          },
+          "l_hip_roll_joint": {
+            "pos": -0.3190225064754486,
+            "vel": 0.3230149745941162,
+            "torque": 2.6192688941955566
+          },
+          "r_hip_roll_joint": {
+            "pos": -0.8000691533088684,
+            "vel": -0.0037766844034194946,
+            "torque": 7.119525909423828
+          },
+          "waist_roll_joint": {
+            "pos": 0.005738032981753349,
+            "vel": -0.08328026533126831,
+            "torque": -0.07644414901733398
+          },
+          "l_knee_joint": {
+            "pos": 2.600045680999756,
+            "vel": -0.12122655659914017,
+            "torque": -11.175786018371582
+          },
+          "l_knee_roller_joint": {
+            "pos": 0.9834226965904236,
+            "vel": 12.006229400634766,
+            "torque": 45.97688293457031
+          },
+          "r_knee_joint": {
+            "pos": 2.5037825107574463,
+            "vel": -0.09011930972337723,
+            "torque": -16.68429946899414
+          },
+          "r_knee_roller_joint": {
+            "pos": 0.9463319778442383,
+            "vel": 4.307765960693359,
+            "torque": -1.0296688079833984
+          },
+          "waist_pitch_joint": {
+            "pos": 0.5200109481811523,
+            "vel": 0.02392888441681862,
+            "torque": 2.578286647796631
+          },
+          "l_wheel_joint": {
+            "pos": 2.120495557785034,
+            "vel": -2.993736982345581,
+            "torque": -8.417630195617676
+          },
+          "r_wheel_joint": {
+            "pos": -3.029387950897217,
+            "vel": -6.047552585601807,
+            "torque": -4.40411376953125
+          },
+          "l_shoulder_pitch_joint": {
+            "pos": 0.10959717631340027,
+            "vel": -0.002818342298269272,
+            "torque": 4.695583820343018
+          },
+          "neck_joint": {
+            "pos": -0.0002616533311083913,
+            "vel": -0.06850149482488632,
+            "torque": -0.6495993137359619
+          },
+          "r_shoulder_pitch_joint": {
+            "pos": 0.1201649159193039,
+            "vel": 0.013913225382566452,
+            "torque": 4.283146381378174
+          },
+          "l_shoulder_roll_joint": {
+            "pos": 0.11047742515802383,
+            "vel": 0.010931521654129028,
+            "torque": 0.747689962387085
+          },
+          "r_shoulder_roll_joint": {
+            "pos": -0.08817573636770248,
+            "vel": 0.023574424907565117,
+            "torque": -1.4164479970932007
+          },
+          "l_shoulder_yaw_joint": {
+            "pos": 0.04152967035770416,
+            "vel": 0.152641162276268,
+            "torque": 1.1341966390609741
+          },
+          "r_shoulder_yaw_joint": {
+            "pos": 0.040452077984809875,
+            "vel": 0.13824157416820526,
+            "torque": 0.6534571051597595
+          },
+          "l_elbow_joint": {
+            "pos": -0.36620083451271057,
+            "vel": 0.04933059215545654,
+            "torque": 1.0615711212158203
+          },
+          "r_elbow_joint": {
+            "pos": -0.38625675439834595,
+            "vel": 0.11134950071573257,
+            "torque": 0.9302074909210205
+          },
+          "l_wrist_joint": {
+            "pos": 0.0006545409560203552,
+            "vel": 0.30519363284111023,
+            "torque": 0.22910170257091522
+          },
+          "r_wrist_joint": {
+            "pos": -0.001290671294555068,
+            "vel": -0.3954787850379944,
+            "torque": -0.27130720019340515
+          },
+          "l_gripper_joint": {
+            "pos": 1.86949250746693e-07,
+            "vel": -0.00029647117480635643,
+            "torque": -0.02434047870337963
+          },
+          "r_gripper_joint": {
+            "pos": -1.187549258929721e-07,
+            "vel": -0.0002935040683951229,
+            "torque": -0.011019750498235226
+          }
+        },
+        "policies": {
+          "backflip": true,
+          "unbox": true,
+          "recovery": true,
+          "recovery_supine": true,
+          "recovery_prone": true,
+          "supine_elbow": true,
+          "prone_elbow": true,
+          "supine_gripper": true,
+          "prone_gripper": true,
+          "boot_kneel": true,
+          "landing_rise": true
+        },
+        "models": {
+          "supine_elbow": {
+            "checkpoint": "/home/will/Documents/Codex/2026-10-08/projects-q1-wheel-urdf-cursor-kneel/integrated_q1/checkpoints/q1_recovery_v3_supine_ppo.pt",
+            "sha256": "4a1544612bed16c02b25d1a37c040694fb02b83537b0c3d585ea855d7dc8ec5e",
+            "iteration": 13400
+          },
+          "prone_elbow": {
+            "checkpoint": "/home/will/Documents/Codex/2026-10-08/projects-q1-wheel-urdf-cursor-kneel/integrated_q1/checkpoints/q1_recovery_v3_prone_ppo.pt",
+            "sha256": "01e8f695c6cd7526646130b09298497b8ae9fca92257884cb8ca79b1b3a1d934",
+            "iteration": 1800
+          },
+          "supine_gripper": {
+            "checkpoint": "/home/will/Documents/Codex/2026-10-08/projects-q1-wheel-urdf-cursor-kneel/integrated_q1/checkpoints/q1_recovery_v3_supine_ppo_peak8000.pt",
+            "sha256": "10dc050fc80e888457c2afba5e72666f5749f84d08272935e90fb5c63ddcc7c3",
+            "iteration": 8000
+          },
+          "prone_gripper": {
+            "checkpoint": "/home/will/Documents/Codex/2026-10-08/projects-q1-wheel-urdf-cursor-kneel/integrated_q1/checkpoints/q1_recovery_v3_prone_gripper_ppo.pt",
+            "sha256": "3c9d197478d6cdac4c65842bf5b4c4a518c617f57d2f9ace4cb5bcdd19b76f7e",
+            "iteration": 9999
+          },
+          "boot_kneel": {
+            "checkpoint": "/home/will/Documents/Codex/2026-10-08/projects-q1-wheel-urdf-cursor-kneel/integrated_q1/checkpoints/q1_unbox_transfer_ppo.pt",
+            "sha256": "814968100a6738141b6e07a93200521a77d51df07e474c4e70ddc7e3f5ef653b",
+            "iteration": 199
+          },
+          "landing_rise": {
+            "checkpoint": "/home/will/Documents/Codex/2026-10-08/projects-q1-wheel-urdf-cursor-kneel/integrated_q1/checkpoints/q1_unbox_landing_ppo.pt",
+            "sha256": "8262378f5836b904de4845e6e921ecd836ad8c32ae75a3c1cba3aa0e70bd59cb",
+            "iteration": 119
+          },
+          "skate": {
+            "checkpoint": "/home/will/Documents/Codex/2026-10-08/projects-q1-wheel-urdf-cursor-kneel/integrated_q1/checkpoints/q1_skate_ppo.pt",
+            "sha256": "0b36ba0a1a9198e89109a886b2812705c9bfbd2b3c8f98ea56ad3dbfa2252db0",
+            "iteration": 19999
+          },
+          "slide": {
+            "checkpoint": "/home/will/Documents/Codex/2026-10-08/projects-q1-wheel-urdf-cursor-kneel/integrated_q1/checkpoints/q1_slide_ppo.pt",
+            "sha256": "a63b7f6665c62cab27562d6969185b00f78eb600760edf75a5db1369cafea6fe",
+            "iteration": 31998
+          },
+          "posture": {
+            "checkpoint": "/home/will/Documents/Codex/2026-10-08/projects-q1-wheel-urdf-cursor-kneel/integrated_q1/checkpoints/q1_posture_ppo.pt",
+            "sha256": "60b862bdd0f1c34243bb24569856aabd90843d9431b96ae55827f027009b0228",
+            "iteration": 7998
+          },
+          "backflip": {
+            "checkpoint": "/home/will/Documents/Codex/2026-10-08/projects-q1-wheel-urdf-cursor-kneel/integrated_q1/checkpoints/backflip_arm_rest/model.pt",
+            "sha256": "5468ff360214f8f885868c30bc0a399f939c00fc0db6344eaf494cfd40fedf57",
+            "iteration": 200
+          }
+        },
+        "backflip": {
+          "success": true,
+          "arms_error_rad": 0.04152967035770416,
+          "hold_s": 5.079996109008789,
+          "early_hop": false
+        }
+      }
+    }
+  ],
+  "backflip_accepted": true
+}
