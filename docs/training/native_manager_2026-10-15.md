@@ -23,7 +23,7 @@
 | 動作驗證 | 預演僅 Stand 通過短時間驗證；其餘三個技能尚未收斂，沒有發布為已驗證模型 |
 | 最終站立先驗 | Native Web manager：2 env、2000 steps（40 s），upright fraction 1.0、0 termination、0 nonfinite、最低 root 高度 0.8368 m |
 | 真實 Web / 瀏覽器 | 實際新 URDF/STL、27 sliders、4 mimic、23/90 API 契約、無 browser page error |
-| 佇列回歸測試 | 5 tests：迭代排序、不完整／新儲存檔排除、預覽與驗證模型分開、驗證中斷後不重做 PPO、續跑不重複儲存的迭代索引 |
+| 佇列回歸測試 | 6 tests：迭代排序、不完整／新儲存檔排除、預覽與驗證模型分開、驗證中斷後不重做 PPO、續跑不重複儲存的迭代索引、失敗重試耗盡後服務重啟也不重跑 |
 | RSL-RL / CUDA | GB10 CUDA 運算、manager registration audit 與 RSL-RL CPU 相容測試通過 |
 
 40 秒的穩定結果是零殘差的平衡先驗測試，不表示新 PPO 已完成大量訓練。瀏覽器測試驗證模型、API 與操作路徑，也不代表早期 PPO 的動作成功。原始紀錄在本機 `outputs/native_manager/`，摘要見 [native_manager_validation.json](native_manager_validation.json)。
@@ -67,3 +67,11 @@ systemctl --user stop q1-native-training
 ```
 
 Web：http://127.0.0.1:8875/web/。訓練與 Web 使用相同原生任務；Web 僅一個環境，會顯示本機佇列進度與模型驗證狀態。Git 保留程式、計畫與驗證摘要，大量中間模型留在本機 `checkpoints/native_manager/`、`logs/`。
+
+## 常駐啟動修正
+
+2026-10-15 23:24 UTC 檢查發現，16:14 啟動的 user systemd 服務缺少互動式 shell 的 ARM `LD_PRELOAD`。Isaac Sim 在 bootstrap 即退出，因此該次正式佇列完成 updates 為 **0**；先前的互動式短測試結果仍有效。服務重啟繞過了 supervisor 的重試上限，形成重啟循環。已停止這兩個 Q1 服務，原失敗狀態與 log 留在本機供追查。
+
+共同入口現在在 Linux ARM 自行偵測並預載 Isaac Sim checker 所需的系統／PyTorch OpenMP library，保留既有值、不重複加入，也不修改系統或 venv。清除 `LD_PRELOAD` 後實測 `import isaacsim` 成功；模擬 x86 分支不加入預載，既有預載亦保留。
+
+Supervisor 的耗盡重試與設定錯誤改用 terminal exit 78，systemd 設定 `RestartPreventExitStatus=78`；重啟 supervisor 也會先檢查已耗盡預算。兩個服務另外限制五分鐘內最多三次啟動。只有成功完成訓練段落才清零連續失敗計數。

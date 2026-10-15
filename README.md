@@ -50,6 +50,8 @@ systemctl --user stop q1-native-training
 
 `outputs/native_manager/queue/status.json` 保存階段、進度、PID、log、驗證狀態與來源 SHA-256。保存中的不完整 checkpoint 不會被選用。若來源控制器改變，既有實驗會停止並要求新的 state 路徑，避免無聲混用不同物理設定。GPU 記憶體不足時會降低環境數並有限次重試。
 
+連續失敗超過重試預算會以 exit 78 結束，systemd 不會重啟該失敗實驗；重新執行也會保留重試上限。檢查 log、修正原因後，使用新的 `--state` 路徑開始新實驗。Web 服務啟動亦有次數限制。
+
 完成更新預算但沒有通過驗證會標為 `completed_with_unvalidated_skills`，不會冒充技能完成。後翻驗證要求實際離地、完整後轉與穩定落地，沒有 root pose／速度輔助。
 
 ## Checkpoints 與進度
@@ -79,6 +81,8 @@ NUM_ENVS=1024 MAX_ITERS=20000 ./train_native.sh walk
 ## Runtime 與物理
 
 支援 pip Isaac Sim Python 及 binary `python.sh`，也會偵測有效的 X display（包含 Spark `:1`）。可設定 `ISAAC_PYTHON`、`ISAACLAB_PATH`、`ISAAC_SIM_PATH` 或 `ISAAC_VENV` 指定既有安裝；不會自動替換你的 CUDA／Isaac 套件。
+
+Linux ARM 入口會依 Isaac Sim 的需求，為子程序預載系統與 PyTorch 的 `libgomp`；保留既有 `LD_PRELOAD` 且不重複加入，讓 user systemd 與互動式啟動一致。x86 RTX 不加 ARM 預載設定。
 
 主要馬達為 CubeMars **explicit actuator**（電壓／電流限制、齒輪、摩擦、延遲），mimic 使用 implicit servo；Direct／Manager 是環境組織方式，與 actuator 的 explicit／implicit 分類不同。慣量 converter 明確要求匯入來源 tensor，來源與 PhysX 已逐連桿核對。mimic servo 與凸包碰撞為模擬近似，自碰撞目前關閉。
 

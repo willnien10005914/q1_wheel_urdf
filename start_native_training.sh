@@ -13,5 +13,7 @@ fi
 exec systemd-run --user --unit=q1-native-training --collect \
   --description="Q1 native manager sequential PPO training" \
   --property=Restart=on-failure --property=RestartSec=60 --property=Nice=5 \
+  --property=RestartPreventExitStatus=78 \
+  --property=StartLimitIntervalSec=300 --property=StartLimitBurst=3 \
   --property=KillMode=control-group --working-directory="$ROOT" \
   /usr/bin/python3 -u "$ROOT/tools/native_training_queue.py" "$@"

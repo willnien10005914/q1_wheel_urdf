@@ -8,5 +8,6 @@ fi
 exec systemd-run --user --unit=q1-native-web --collect \
   --description="Q1 native CAD manager Web player" \
   --property=Restart=on-failure --property=RestartSec=10 --property=Nice=5 \
+  --property=StartLimitIntervalSec=300 --property=StartLimitBurst=3 \
   --property=KillMode=control-group --working-directory="$ROOT" \
   "$ROOT/play_skateboard.sh" --headless --no-browser --no-keyboard --web-port 8875 "$@"

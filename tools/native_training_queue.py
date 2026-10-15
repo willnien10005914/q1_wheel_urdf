@@ -25,6 +25,7 @@ STOP=False
 CHILD=None
 STATE_PATH=None
 CHECKPOINT_CACHE={}
+TERMINAL_FAILURE=78  # systemd must not restart exhausted retries/config errors.
 
 
 def atomic_json(path,value):
@@ -150,6 +151,10 @@ def main():
             done=record["completed_iterations"]
             pending_evaluation=done>record.get("last_evaluated_iteration",0)
             if done>=stage["iterations"] and not pending_evaluation:break
+            if not pending_evaluation and record["attempts"]>plan["max_retries"]:
+                status["status"]="failed"
+                status["error"]=f"Retry budget exhausted for {name}; inspect logs before starting a new experiment"
+                atomic_json(args.state,status);return TERMINAL_FAILURE
             count=min(plan["chunk_iterations"],stage["iterations"]-done)
             log=ROOT/"logs/native_manager_queue"/status["run_id"]/f"{name}_{done:06d}.log"
             status["current"]=dict(index=index,skill=name,task=stage["task"],phase="training",
@@ -176,8 +181,9 @@ def main():
                     if "out of memory" in text:status["effective_num_envs"]=max(64,status["effective_num_envs"]//2)
                     if record["attempts"]>plan["max_retries"]:
                         status["status"]="failed";status["error"]=f"Training failed: {log.relative_to(ROOT)}"
-                        atomic_json(args.state,status);return 1
+                        atomic_json(args.state,status);return TERMINAL_FAILURE
                     continue
+                record["attempts"]=0
                 time.sleep(2.1)
                 checkpoint=latest_checkpoint(directory,prefix)
                 if checkpoint is None:raise RuntimeError("Trainer exited without a valid checkpoint")
@@ -213,5 +219,7 @@ if __name__=="__main__":
         if STATE_PATH and STATE_PATH.exists():
             status=json.loads(STATE_PATH.read_text());status["status"]="failed";status["error"]=str(error)
             atomic_json(STATE_PATH,status)
-        raise
+        import traceback
+        traceback.print_exc()
+        code=TERMINAL_FAILURE
     raise SystemExit(code)

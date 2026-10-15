@@ -103,5 +103,22 @@ class NativeQueueTest(unittest.TestCase):
         self.assertEqual(training,[0,1])
         self.assertEqual(json.loads(state.read_text())["stages"]["stand"]["completed_iterations"],2)
 
+    def test_exhausted_retries_stay_terminal_after_supervisor_restart(self):
+        plan=dict(contract=queue.CONTRACT,num_envs=4,chunk_iterations=1,seed=42,evaluation_envs=2,evaluation_steps=4,
+                  max_retries=2,stages=[dict(skill="stand",task="Isaac-Q1-Native-Stand-v0",iterations=2)])
+        config=self.root/"plan.json";config.write_text(json.dumps(plan));state=self.root/"state/status.json"
+        argv=["queue","--config",str(config),"--state",str(state),"--models",str(self.root/"models")]
+        def failed_child(command,log,*args):
+            log.parent.mkdir(parents=True,exist_ok=True);log.write_text("startup failed")
+            return 1
+        with patch.object(sys,"argv",argv),patch.object(queue,"source_manifest",return_value={}), \
+             patch.object(queue,"run_child",side_effect=failed_child) as child, \
+             patch.object(queue.signal,"signal"),patch.object(queue.fcntl,"flock"):
+            self.assertEqual(queue.main(),queue.TERMINAL_FAILURE)
+            self.assertEqual(child.call_count,3)
+            self.assertEqual(queue.main(),queue.TERMINAL_FAILURE)
+            self.assertEqual(child.call_count,3)
+        self.assertEqual(json.loads(state.read_text())["status"],"failed")
+
 
 if __name__=="__main__":unittest.main()

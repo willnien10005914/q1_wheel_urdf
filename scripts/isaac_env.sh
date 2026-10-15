@@ -69,6 +69,25 @@ else
   ISAAC_VENV="${ISAAC_VENV:-$(dirname "$(dirname "$ISAAC_PYTHON")")}"
 fi
 
+# Isaac Sim's Linux ARM bootstrap requires OpenMP preloaded even for headless
+# runs. A systemd user service does not inherit the interactive shell's preload.
+# Discover the same system/PyTorch libraries as the installed Isaac Sim checker;
+# keep this process-local and leave x86 RTX environments untouched.
+case "$(uname -sm)" in
+  "Linux aarch64"|"Linux arm64")
+    _q1_torch_omp="$("$ISAAC_PYTHON" -c 'import glob, importlib.util; s=importlib.util.find_spec("torch"); print("\n".join(p for root in (s.submodule_search_locations if s else []) for p in glob.glob(root + ".libs/libgomp*")))')"
+    while IFS= read -r _q1_omp; do
+      [[ -f "$_q1_omp" ]] || continue
+      _q1_preloads="${LD_PRELOAD:-}"
+      case ":${_q1_preloads// /:}:" in
+        *":${_q1_omp}:"*) ;;
+        *) export LD_PRELOAD="${LD_PRELOAD:+${LD_PRELOAD}:}${_q1_omp}" ;;
+      esac
+    done < <(printf '%s\n' /lib/*/libgomp.so.1 "$_q1_torch_omp")
+    unset _q1_torch_omp _q1_omp _q1_preloads
+    ;;
+esac
+
 _Q1_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 _ISAAC_SRC_PATH=""
 for _pkg in isaaclab isaaclab_tasks isaaclab_rl isaaclab_assets isaaclab_mimic isaaclab_contrib; do
