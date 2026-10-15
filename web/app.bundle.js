@@ -1,4 +1,40 @@
-import { updateActionButtons, animateButton } from "./button_feedback.mjs?v=20261012-actions";
+// button_feedback.mjs?v=20261012-actions
+function actionStatus(action, state) {
+  const pose = state.pose;
+  if (action === "stand") return pose === "stand" ? "\u7AD9\u7ACB\u4E2D" : "";
+  if (action === "kneel") return ["prepare_kneel", "kneeling"].includes(pose) ? "\u57F7\u884C\u4E2D" : pose === "kneel" ? "\u5DF2\u8DEA\u7A69" : "";
+  if (action === "unbox") return pose === "prepare_unbox" ? "\u6E96\u5099\u4E2D" : pose === "unbox" ? "\u57F7\u884C\u4E2D" : pose === "unbox_hold" ? "\u5DF2\u7AD9\u7A69" : "";
+  if (action === "backflip") return pose === "prepare_backflip" ? "\u6E96\u5099\u4E2D" : pose === "backflip" ? state.backflip?.success ? "\u5DF2\u5B8C\u6210" : "\u57F7\u884C\u4E2D" : "";
+  if (["skate", "slide"].includes(action)) return pose === action ? "\u57F7\u884C\u4E2D" : "";
+  if (action.startsWith("recovery_")) return pose === action ? "\u57F7\u884C\u4E2D" : "";
+  if (["supine", "prone"].includes(action)) return pose === action ? "\u76EE\u524D\u59FF\u52E2" : "";
+  return "";
+}
+function updateActionButtons(state = {}, root = document) {
+  root.querySelectorAll("[data-pose]").forEach((button) => {
+    const action = button.dataset.pose;
+    const pending = button.dataset.pending === "true";
+    const status = pending ? "\u9001\u51FA\u4E2D" : actionStatus(action, state);
+    const running = ["\u57F7\u884C\u4E2D", "\u6E96\u5099\u4E2D"].includes(status);
+    const unavailable = state.supported_actions?.[action] === false || (action === "backflip" ? !state.policies?.backflip : action === "unbox" ? state.policies?.unbox === false : action.startsWith("recovery_") ? !state.policies?.[action.slice(9)] : false);
+    button.disabled = pending || unavailable || running && !["skate", "slide"].includes(action);
+    button.dataset.actionState = status;
+    button.classList.remove("active-pose");
+    button.classList.toggle("action-running", running);
+    button.classList.toggle("action-pending", pending);
+    button.setAttribute("aria-busy", String(pending || running));
+  });
+}
+function animateButton(button) {
+  if (!button || button.disabled) return;
+  button.classList.remove("press-feedback");
+  void button.offsetWidth;
+  button.classList.add("press-feedback");
+  clearTimeout(button._pressFeedbackTimer);
+  button._pressFeedbackTimer = setTimeout(() => button.classList.remove("press-feedback"), 360);
+}
+document.addEventListener("click", (event) => animateButton(event.target.closest?.("button, .file-btn")), true);
+
 // vendor/three/three.module.js
 var REVISION = "170";
 var MOUSE = { LEFT: 0, MIDDLE: 1, RIGHT: 2, ROTATE: 0, DOLLY: 1, PAN: 2 };
@@ -22210,8 +22246,8 @@ No loader available`);
 };
 
 // app.js
-var URDF_URL = new URL("../urdf/wheel_humanoid_web.urdf", import.meta.url).href;
-var WHEEL_OFFSET = 0.8867;
+var URDF_URL = new URL("../urdf/q1_inertia/quanta_robot_wheeled.urdf", import.meta.url).href;
+var WHEEL_OFFSET = 0.848686;
 var RAD2DEG2 = 180 / Math.PI;
 var DEG2RAD2 = Math.PI / 180;
 var ZUP_TO_YUP = new Quaternion().setFromEuler(new Euler(-Math.PI / 2, 0, 0));
@@ -22220,117 +22256,137 @@ var GROUPS = [
   {
     id: "waist",
     title: "Waist",
-    joints: ["waist_yaw_joint", "waist_roll_joint", "waist_pitch_joint", "neck_joint"]
+    joints: ["center_waist_Yaw_joint", "center_waist_Roll_joint", "center_waist_Pitch_joint"]
   },
   {
     id: "larm",
     title: "Left arm",
     joints: [
-      "l_shoulder_pitch_joint",
-      "l_shoulder_roll_joint",
-      "l_shoulder_yaw_joint",
-      "l_elbow_joint",
-      "l_wrist_joint",
-      "l_gripper_joint"
+      "left_shoulder_Pitch_joint",
+      "left_shoulder_Roll_joint",
+      "left_shoulder_Yaw_joint",
+      "left_elbow_Pitch_joint",
+      "left_wrist_Yaw_joint",
+      "left_finger_1_Roll_joint"
     ]
   },
   {
     id: "rarm",
     title: "Right arm",
     joints: [
-      "r_shoulder_pitch_joint",
-      "r_shoulder_roll_joint",
-      "r_shoulder_yaw_joint",
-      "r_elbow_joint",
-      "r_wrist_joint",
-      "r_gripper_joint"
+      "right_shoulder_Pitch_joint",
+      "right_shoulder_Roll_joint",
+      "right_shoulder_Yaw_joint",
+      "right_elbow_Pitch_joint",
+      "right_wrist_Yaw_joint",
+      "right_finger_1_Roll_joint"
     ]
   },
   {
     id: "lleg",
     title: "Left leg",
-    joints: ["l_hip_pitch_joint", "l_hip_roll_joint", "l_knee_joint", "l_wheel_joint"]
+    joints: ["left_hip_Pitch_joint", "left_hip_Roll_joint", "left_knee_1_Pitch_joint", "left_wheel_Pitch_joint"]
   },
   {
     id: "rleg",
     title: "Right leg",
-    joints: ["r_hip_pitch_joint", "r_hip_roll_joint", "r_knee_joint", "r_wheel_joint"]
+    joints: ["right_hip_Pitch_joint", "right_hip_Roll_joint", "right_knee_1_Pitch_joint", "right_wheel_Pitch_joint"]
   },
   {
     id: "mimic",
-    title: "Knee rollers (mimic)",
-    joints: ["l_knee_roller_joint", "r_knee_roller_joint"]
+    title: "Knees / fingers (mimic)",
+    joints: ["left_knee_2_Pitch_joint", "right_knee_2_Pitch_joint", "left_finger_2_Roll_joint", "right_finger_2_Roll_joint"]
   }
 ];
 var LABELS = {
-  waist_yaw_joint: "Yaw",
-  waist_roll_joint: "Roll",
-  waist_pitch_joint: "Pitch",
-  l_shoulder_pitch_joint: "Shoulder pitch",
-  l_shoulder_roll_joint: "Shoulder roll",
-  l_shoulder_yaw_joint: "Shoulder yaw",
-  neck_joint: "Neck",
-  l_elbow_joint: "Elbow",
-  l_wrist_joint: "Wrist",
-  l_gripper_joint: "Gripper",
-  r_shoulder_pitch_joint: "Shoulder pitch",
-  r_shoulder_roll_joint: "Shoulder roll",
-  r_shoulder_yaw_joint: "Shoulder yaw",
-  r_elbow_joint: "Elbow",
-  r_wrist_joint: "Wrist",
-  r_gripper_joint: "Gripper",
-  l_hip_pitch_joint: "Hip pitch",
-  l_hip_roll_joint: "Hip roll",
-  l_knee_joint: "Knee",
-  l_wheel_joint: "Wheel",
-  r_hip_pitch_joint: "Hip pitch",
-  r_hip_roll_joint: "Hip roll",
-  r_knee_joint: "Knee",
-  r_wheel_joint: "Wheel",
-  l_knee_roller_joint: "Left knee roller",
-  r_knee_roller_joint: "Right knee roller"
+  center_waist_Yaw_joint: "Yaw",
+  center_waist_Roll_joint: "Roll",
+  center_waist_Pitch_joint: "Pitch",
+  left_shoulder_Pitch_joint: "Shoulder pitch",
+  left_shoulder_Roll_joint: "Shoulder roll",
+  left_shoulder_Yaw_joint: "Shoulder yaw",
+  left_elbow_Pitch_joint: "Elbow",
+  left_wrist_Yaw_joint: "Wrist",
+  left_finger_1_Roll_joint: "Gripper",
+  right_shoulder_Pitch_joint: "Shoulder pitch",
+  right_shoulder_Roll_joint: "Shoulder roll",
+  right_shoulder_Yaw_joint: "Shoulder yaw",
+  right_elbow_Pitch_joint: "Elbow",
+  right_wrist_Yaw_joint: "Wrist",
+  right_finger_1_Roll_joint: "Gripper",
+  left_hip_Pitch_joint: "Hip pitch",
+  left_hip_Roll_joint: "Hip roll",
+  left_knee_1_Pitch_joint: "Knee",
+  left_wheel_Pitch_joint: "Wheel",
+  right_hip_Pitch_joint: "Hip pitch",
+  right_hip_Roll_joint: "Hip roll",
+  right_knee_1_Pitch_joint: "Knee",
+  right_wheel_Pitch_joint: "Wheel",
+  left_knee_2_Pitch_joint: "Left knee roller",
+  right_knee_2_Pitch_joint: "Right knee roller"
 };
 var MIRROR = {
-  l_shoulder_pitch_joint: "r_shoulder_pitch_joint",
-  l_shoulder_roll_joint: "r_shoulder_roll_joint",
-  l_shoulder_yaw_joint: "r_shoulder_yaw_joint",
-  l_elbow_joint: "r_elbow_joint",
-  l_hip_pitch_joint: "r_hip_pitch_joint",
-  l_hip_roll_joint: "r_hip_roll_joint",
-  l_knee_joint: "r_knee_joint",
-  l_wheel_joint: "r_wheel_joint"
+  left_shoulder_Pitch_joint: "right_shoulder_Pitch_joint",
+  left_shoulder_Roll_joint: "right_shoulder_Roll_joint",
+  left_shoulder_Yaw_joint: "right_shoulder_Yaw_joint",
+  left_elbow_Pitch_joint: "right_elbow_Pitch_joint",
+  left_hip_Pitch_joint: "right_hip_Pitch_joint",
+  left_hip_Roll_joint: "right_hip_Roll_joint",
+  left_knee_1_Pitch_joint: "right_knee_1_Pitch_joint",
+  left_wheel_Pitch_joint: "right_wheel_Pitch_joint"
 };
 var NEGATE_ON_MIRROR = /* @__PURE__ */ new Set([
-  "l_shoulder_roll_joint",
-  "r_shoulder_roll_joint",
-  "l_hip_roll_joint",
-  "r_hip_roll_joint"
+  "left_shoulder_Pitch_joint",
+  "right_shoulder_Pitch_joint",
+  "left_shoulder_Roll_joint",
+  "right_shoulder_Roll_joint",
+  "left_shoulder_Yaw_joint",
+  "right_shoulder_Yaw_joint",
+  "left_elbow_Pitch_joint",
+  "right_elbow_Pitch_joint",
+  "left_hip_Pitch_joint",
+  "right_hip_Pitch_joint",
+  "left_hip_Roll_joint",
+  "right_hip_Roll_joint",
+  "left_knee_1_Pitch_joint",
+  "right_knee_1_Pitch_joint",
+  "left_wheel_Pitch_joint",
+  "right_wheel_Pitch_joint"
 ]);
 Object.entries(MIRROR).forEach(([left, right]) => {
   MIRROR[right] = left;
 });
+var NATIVE_HOME = {
+  center_waist_Pitch_joint: 0.1,
+  left_hip_Pitch_joint: 0.35,
+  right_hip_Pitch_joint: -0.35,
+  left_knee_1_Pitch_joint: -0.7,
+  right_knee_1_Pitch_joint: 0.7,
+  left_shoulder_Pitch_joint: 0.35,
+  right_shoulder_Pitch_joint: -0.35,
+  left_shoulder_Roll_joint: 0.2,
+  right_shoulder_Roll_joint: -0.2,
+  left_elbow_Pitch_joint: -0.5,
+  right_elbow_Pitch_joint: 0.5
+};
 var PRESETS = {
   zero: {},
+  stand: NATIVE_HOME,
   kneel: {
-    l_hip_pitch_joint: -1.35,
-    r_hip_pitch_joint: -1.35,
-    l_knee_joint: 1.55,
-    r_knee_joint: 1.55,
-    l_elbow_joint: -0.6,
-    r_elbow_joint: -0.6,
-    l_shoulder_pitch_joint: 0.25,
-    r_shoulder_pitch_joint: 0.25
+    ...NATIVE_HOME,
+    left_hip_Pitch_joint: 1.02,
+    right_hip_Pitch_joint: -1.02,
+    left_knee_1_Pitch_joint: -2.36,
+    right_knee_1_Pitch_joint: 2.36,
+    center_waist_Pitch_joint: 0.3
   },
-  tpose: {
-    l_shoulder_roll_joint: 1.57,
-    r_shoulder_roll_joint: -1.57
-  },
+  tpose: { left_shoulder_Roll_joint: 1.57, right_shoulder_Roll_joint: -1.57 },
   reach: {
-    l_shoulder_pitch_joint: -1.2,
-    r_shoulder_pitch_joint: -1.2,
-    l_elbow_joint: -0.4,
-    r_elbow_joint: -0.4,
-    waist_pitch_joint: 0.25
+    left_shoulder_Pitch_joint: -1,
+    right_shoulder_Pitch_joint: 1,
+    left_elbow_Pitch_joint: -0.4,
+    right_elbow_Pitch_joint: 0.4,
+    center_waist_Pitch_joint: 0.25
   }
 };
 var API = new URLSearchParams(location.search).get("api") ?? "";
@@ -22430,7 +22486,7 @@ function fmtMotor(name, pos, vel, tau) {
   return `${fmtDeg(pos)} \xB7 \u03C4 ${num(tau).toFixed(2)}`;
 }
 function isWheel(name) {
-  return name.endsWith("_wheel_joint");
+  return name.endsWith("_wheel_Pitch_joint");
 }
 function setConnected(on) {
   isaacConnected = on;
@@ -22499,6 +22555,15 @@ function applyIsaacRoot(base) {
 }
 function applyIsaacState(state) {
   lastIsaac = state;
+  const training = document.getElementById("training-readout");
+  if (training) {
+    const current = state.training?.current;
+    training.textContent = current ? `\u8A13\u7DF4 ${current.skill} \xB7 ${current.completed_iterations ?? 0}/${current.total_iterations ?? "--"} updates \xB7 ${state.training.status}` : "\u8A13\u7DF4\u4F47\u5217\u5C1A\u672A\u555F\u52D5";
+  }
+  if (state.contract && state.contract !== "q1-native-manager-v2-23x90") {
+    els.pose.textContent = "\u8ACB\u555F\u52D5\u65B0\u7248 Q1 Manager \u64AD\u653E\u5668";
+    return;
+  }
   if (els.cmd && state.cmd) {
     els.cmd.textContent = `vx ${num(state.cmd.vx).toFixed(2)} \xB7 yaw ${num(state.cmd.yaw).toFixed(2)} \xB7 z ${Number.isFinite(state.base?.z) ? state.base.z.toFixed(2) : "--"} m`;
   }
@@ -22515,7 +22580,9 @@ function applyIsaacState(state) {
   }
   updateActionButtons(state);
   const manualAvailable = state.manual_control_available !== false;
-  document.querySelectorAll("[data-preset]").forEach((btn) => { btn.disabled = !manualAvailable; });
+  document.querySelectorAll("[data-preset]").forEach((btn) => {
+    btn.disabled = !manualAvailable;
+  });
   Object.entries(sliderEls).forEach(([name, input]) => {
     input.disabled = Boolean(robot?.joints[name]?.mimicJoint) || !manualAvailable;
   });
@@ -22763,7 +22830,6 @@ async function requestPose(name) {
     updateActionButtons(lastIsaac || {});
   }
 }
-
 document.querySelectorAll("[data-pose]").forEach((btn) => {
   btn.addEventListener("click", () => requestPose(btn.dataset.pose));
 });
@@ -22898,19 +22964,19 @@ function buildRecordingDoc() {
     keyframes,
     isaac_knots: keyframes.map((k) => {
       const joints = k.joints || {};
-      const hip = 0.5 * (num(joints.l_hip_pitch_joint) + num(joints.r_hip_pitch_joint));
-      const knee = 0.5 * (num(joints.l_knee_joint) + num(joints.r_knee_joint));
-      const sh = 0.5 * (num(joints.l_shoulder_pitch_joint) + num(joints.r_shoulder_pitch_joint));
-      const el = 0.5 * (num(joints.l_elbow_joint) + num(joints.r_elbow_joint));
+      const hip = 0.5 * (num(joints.left_hip_Pitch_joint) + num(joints.right_hip_Pitch_joint));
+      const knee = 0.5 * (num(joints.left_knee_1_Pitch_joint) + num(joints.right_knee_1_Pitch_joint));
+      const sh = 0.5 * (num(joints.left_shoulder_Pitch_joint) + num(joints.right_shoulder_Pitch_joint));
+      const el = 0.5 * (num(joints.left_elbow_Pitch_joint) + num(joints.right_elbow_Pitch_joint));
       const pose = {
         ".*_hip_pitch_joint": Number(hip.toFixed(4)),
         ".*_hip_roll_joint": 0,
         ".*_knee_joint": Number(knee.toFixed(4)),
         ".*_knee_roller_joint": Number((knee * 0.444444).toFixed(4)),
-        waist_pitch_joint: Number(num(joints.waist_pitch_joint).toFixed(4)),
+        center_waist_Pitch_joint: Number(num(joints.center_waist_Pitch_joint).toFixed(4)),
         ".*_shoulder_pitch_joint": Number(sh.toFixed(4)),
-        l_shoulder_roll_joint: Number(num(joints.l_shoulder_roll_joint, 0.2).toFixed(4)),
-        r_shoulder_roll_joint: Number(num(joints.r_shoulder_roll_joint, -0.2).toFixed(4)),
+        left_shoulder_Roll_joint: Number(num(joints.left_shoulder_Roll_joint, 0.2).toFixed(4)),
+        right_shoulder_Roll_joint: Number(num(joints.right_shoulder_Roll_joint, -0.2).toFixed(4)),
         ".*_elbow_joint": Number(el.toFixed(4))
       };
       return [k.phase, pose, k.pelvis_z ?? 0.3];
@@ -23097,6 +23163,7 @@ function loadRobot() {
       scene.add(robot);
       try {
         buildSliders();
+        Object.entries(NATIVE_HOME).forEach(([name, value]) => setJoint(name, value, { mirrored: true }));
         refreshJson();
       } catch (err) {
         els.error.style.display = "block";
@@ -23118,7 +23185,7 @@ function loop(now) {
   const dt = Math.min(0.05, (now - last) / 1e3);
   last = now;
   if (robot && els.spin.checked && !isaacConnected) {
-    ["l_wheel_joint", "r_wheel_joint"].forEach((name) => {
+    ["left_wheel_Pitch_joint", "right_wheel_Pitch_joint"].forEach((name) => {
       const cur = robot.joints[name].angle || 0;
       let next = cur + dt * 2.4;
       if (next > Math.PI) next -= Math.PI * 2;
@@ -23134,27 +23201,23 @@ resize();
 loadRobot();
 setInterval(pollIsaac, 50);
 requestAnimationFrame(loop);
-/**
- * @license
- * Copyright 2010-2024 Three.js Authors
- * SPDX-License-Identifier: MIT
- */
-
-// Keyboard commands use the same origin as the live model snapshots.
-const browserDriveKeys = new Set();
-const browserDriveCodes = new Set(["KeyW", "KeyS", "KeyA", "KeyD", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]);
+var browserDriveKeys = /* @__PURE__ */ new Set();
+var browserDriveCodes = /* @__PURE__ */ new Set(["KeyW", "KeyS", "KeyA", "KeyD", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]);
 function browserDriveCommand() {
   const keys = browserDriveKeys;
   return {
     vx: 1.2 * Number(keys.has("KeyW") || keys.has("ArrowUp")) - 0.55 * Number(keys.has("KeyS") || keys.has("ArrowDown")),
     vy: 0,
-    yaw: 0.45 * (Number(keys.has("KeyA") || keys.has("ArrowLeft")) - Number(keys.has("KeyD") || keys.has("ArrowRight"))),
+    yaw: 0.45 * (Number(keys.has("KeyA") || keys.has("ArrowLeft")) - Number(keys.has("KeyD") || keys.has("ArrowRight")))
   };
 }
 async function sendBrowserDrive() {
   if (!isaacConnected) return;
-  try { await postJson("/api/command", browserDriveCommand()); }
-  catch (err) { if (els.pose) els.pose.textContent = `Drive command failed: ${err.message}`; }
+  try {
+    await postJson("/api/command", browserDriveCommand());
+  } catch (err) {
+    if (els.pose) els.pose.textContent = `Drive command failed: ${err.message}`;
+  }
 }
 function stopBrowserDrive() {
   browserDriveKeys.clear();
@@ -23164,18 +23227,43 @@ document.addEventListener("keydown", (event) => {
   if (event.target.closest?.("input, textarea, select, [contenteditable='true']") || event.ctrlKey || event.metaKey || event.altKey) return;
   if (browserDriveCodes.has(event.code)) {
     event.preventDefault();
-    if (!browserDriveKeys.has(event.code)) { browserDriveKeys.add(event.code); sendBrowserDrive(); }
+    if (!browserDriveKeys.has(event.code)) {
+      browserDriveKeys.add(event.code);
+      sendBrowserDrive();
+    }
     return;
   }
-  if (event.code === "Space") { event.preventDefault(); stopBrowserDrive(); return; }
+  if (event.code === "Space") {
+    event.preventDefault();
+    stopBrowserDrive();
+    return;
+  }
   if (event.repeat) return;
-  const poses = {KeyK: "kneel", KeyU: "unbox", KeyB: "backflip", KeyP: lastIsaac?.pose === "slide" ? "skate" : "slide"};
-  if (event.code === "KeyR") { event.preventDefault(); document.getElementById("reset-sim").click(); }
-  else if (poses[event.code]) { event.preventDefault(); stopBrowserDrive(); requestPose(poses[event.code]); }
+  const poses = { KeyK: "kneel", KeyU: "unbox", KeyB: "backflip", KeyP: lastIsaac?.pose === "slide" ? "skate" : "slide" };
+  if (event.code === "KeyR") {
+    event.preventDefault();
+    document.getElementById("reset-sim").click();
+  } else if (poses[event.code]) {
+    event.preventDefault();
+    stopBrowserDrive();
+    requestPose(poses[event.code]);
+  }
 });
 document.addEventListener("keyup", (event) => {
-  if (browserDriveKeys.delete(event.code)) { event.preventDefault(); sendBrowserDrive(); }
+  if (browserDriveKeys.delete(event.code)) {
+    event.preventDefault();
+    sendBrowserDrive();
+  }
 });
 window.addEventListener("blur", stopBrowserDrive);
-document.addEventListener("visibilitychange", () => { if (document.hidden) stopBrowserDrive(); });
-setInterval(() => { if (browserDriveKeys.size) sendBrowserDrive(); }, 150);
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) stopBrowserDrive();
+});
+setInterval(() => {
+  if (browserDriveKeys.size) sendBrowserDrive();
+}, 150);
+/**
+ * @license
+ * Copyright 2010-2024 Three.js Authors
+ * SPDX-License-Identifier: MIT
+ */

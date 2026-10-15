@@ -3,6 +3,6 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$ROOT/scripts/isaac_env.sh"
 export WHEEL_HUMANOID_ROOT="$ROOT"
-export PYTHONPATH="$ROOT:$ROOT/q1_backflip_v2:${PYTHONPATH:-}"
+export PYTHONPATH="$ROOT:${PYTHONPATH:-}"
 cd "$ROOT"
-exec "$ISAAC_PYTHON" -u scripts/reinforcement_learning/rsl_rl/play_skills.py --real-time "$@"
+exec "$ISAAC_PYTHON" -u scripts/reinforcement_learning/rsl_rl/play_native_web.py --real-time "$@"

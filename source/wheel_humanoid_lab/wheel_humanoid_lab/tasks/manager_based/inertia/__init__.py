@@ -15,3 +15,14 @@ for _task_id, _env_cfg in (
             "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:Q1InertiaSkatePPORunnerCfg",
         },
     )
+
+for _name in ("Stand", "Walk", "Standup", "Backflip", "Web"):
+    gym.register(
+        id=f"Isaac-Q1-Native-{_name}-v0",
+        entry_point="isaaclab.envs:ManagerBasedRLEnv",
+        disable_env_checker=True,
+        kwargs={
+            "env_cfg_entry_point": f"{__name__}.native_env_cfg:Native{_name}EnvCfg",
+            "rsl_rl_cfg_entry_point": f"{agents.__name__}.native_ppo_cfg:NativePPORunnerCfg",
+        },
+    )

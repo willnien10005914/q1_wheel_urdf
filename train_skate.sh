@@ -1,35 +1,5 @@
-#!/bin/bash
-# Train the Q1 Wheel inline-skate policy (CubeMars plant) with Isaac Lab + RSL-RL PPO.
-#   ./train_skate.sh                          # headless, 4096 envs, 20k iters
-#   NUM_ENVS=64 MAX_ITERS=5 ./train_skate.sh  # smoke test
-#   RESUME=1 CHECKPOINT=logs/rsl_rl/q1_skate_cubemars/<run>/model_1500.pt START_ITER=1500 ./train_skate.sh
+#!/usr/bin/env bash
+# Native URDF manager training.
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$ROOT/scripts/isaac_env.sh"
-cd "$ROOT"
-
-MODE="${1:-headless}"
-if [[ "${1:-}" == "gui" || "${1:-}" == "headless" ]]; then shift || true; fi
-
-NUM_ENVS="${NUM_ENVS:-4096}"
-MAX_ITERS="${MAX_ITERS:-20000}"
-RUN_NAME="${RUN_NAME:-skate_${NUM_ENVS}envs}"
-START_ITER="${START_ITER:-0}"   # curriculum iteration offset when resuming
-
-COMMON=(
-  --task Isaac-Q1-Skate-v0
-  --num_envs "$NUM_ENVS"
-  --max_iterations "$MAX_ITERS"
-  --seed 42
-  --run_name "$RUN_NAME"
-  "env.curriculum.stage.params.start_iter=$START_ITER"
-  "env.curriculum.action_rate.params.start_iter=$START_ITER"
-)
-if [[ "${RESUME:-}" == "1" || "${RESUME:-}" == "true" ]]; then
-  COMMON+=(--resume --checkpoint "${CHECKPOINT:?set CHECKPOINT=path/to/model.pt}")
-fi
-
-case "$MODE" in
-  gui) exec "$ISAAC_PYTHON" -u scripts/reinforcement_learning/rsl_rl/train.py "${COMMON[@]}" "$@" ;;
-  *)   exec "$ISAAC_PYTHON" -u scripts/reinforcement_learning/rsl_rl/train.py "${COMMON[@]}" --headless "$@" ;;
-esac
+exec "$ROOT/train_native.sh" walk "$@"

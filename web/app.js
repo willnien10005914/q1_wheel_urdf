@@ -3,8 +3,8 @@ import * as THREE from "./vendor/three/three.module.js";
 import { OrbitControls } from "./vendor/three/examples/jsm/controls/OrbitControls.js";
 import URDFLoader from "./vendor/urdf-loader/URDFLoader.js";
 
-const URDF_URL = new URL("../urdf/wheel_humanoid_web.urdf", import.meta.url).href;
-const WHEEL_OFFSET = 0.8867;
+const URDF_URL = new URL("../urdf/q1_inertia/quanta_robot_wheeled.urdf", import.meta.url).href;
+const WHEEL_OFFSET = 0.848686;
 const RAD2DEG = 180 / Math.PI;
 const DEG2RAD = Math.PI / 180;
 /** URDF/Isaac Z-up → Three.js Y-up (same as robot.rotation.x = -π/2). */
@@ -15,123 +15,119 @@ const GROUPS = [
   {
     id: "waist",
     title: "Waist",
-    joints: ["waist_yaw_joint", "waist_roll_joint", "waist_pitch_joint", "neck_joint"],
+    joints: ["center_waist_Yaw_joint", "center_waist_Roll_joint", "center_waist_Pitch_joint"],
   },
   {
     id: "larm",
     title: "Left arm",
     joints: [
-      "l_shoulder_pitch_joint",
-      "l_shoulder_roll_joint",
-      "l_shoulder_yaw_joint",
-      "l_elbow_joint",
-      "l_wrist_joint",
-      "l_gripper_joint",
+      "left_shoulder_Pitch_joint",
+      "left_shoulder_Roll_joint",
+      "left_shoulder_Yaw_joint",
+      "left_elbow_Pitch_joint",
+      "left_wrist_Yaw_joint",
+      "left_finger_1_Roll_joint",
     ],
   },
   {
     id: "rarm",
     title: "Right arm",
     joints: [
-      "r_shoulder_pitch_joint",
-      "r_shoulder_roll_joint",
-      "r_shoulder_yaw_joint",
-      "r_elbow_joint",
-      "r_wrist_joint",
-      "r_gripper_joint",
+      "right_shoulder_Pitch_joint",
+      "right_shoulder_Roll_joint",
+      "right_shoulder_Yaw_joint",
+      "right_elbow_Pitch_joint",
+      "right_wrist_Yaw_joint",
+      "right_finger_1_Roll_joint",
     ],
   },
   {
     id: "lleg",
     title: "Left leg",
-    joints: ["l_hip_pitch_joint", "l_hip_roll_joint", "l_knee_joint", "l_wheel_joint"],
+    joints: ["left_hip_Pitch_joint", "left_hip_Roll_joint", "left_knee_1_Pitch_joint", "left_wheel_Pitch_joint"],
   },
   {
     id: "rleg",
     title: "Right leg",
-    joints: ["r_hip_pitch_joint", "r_hip_roll_joint", "r_knee_joint", "r_wheel_joint"],
+    joints: ["right_hip_Pitch_joint", "right_hip_Roll_joint", "right_knee_1_Pitch_joint", "right_wheel_Pitch_joint"],
   },
   {
     id: "mimic",
-    title: "Knee rollers (mimic)",
-    joints: ["l_knee_roller_joint", "r_knee_roller_joint"],
+    title: "Knees / fingers (mimic)",
+    joints: ["left_knee_2_Pitch_joint", "right_knee_2_Pitch_joint", "left_finger_2_Roll_joint", "right_finger_2_Roll_joint"],
   },
 ];
 
 const LABELS = {
-  waist_yaw_joint: "Yaw",
-  waist_roll_joint: "Roll",
-  waist_pitch_joint: "Pitch",
-  l_shoulder_pitch_joint: "Shoulder pitch",
-  l_shoulder_roll_joint: "Shoulder roll",
-  l_shoulder_yaw_joint: "Shoulder yaw",
-  neck_joint: "Neck",
-  l_elbow_joint: "Elbow",
-  l_wrist_joint: "Wrist",
-  l_gripper_joint: "Gripper",
-  r_shoulder_pitch_joint: "Shoulder pitch",
-  r_shoulder_roll_joint: "Shoulder roll",
-  r_shoulder_yaw_joint: "Shoulder yaw",
-  r_elbow_joint: "Elbow",
-  r_wrist_joint: "Wrist",
-  r_gripper_joint: "Gripper",
-  l_hip_pitch_joint: "Hip pitch",
-  l_hip_roll_joint: "Hip roll",
-  l_knee_joint: "Knee",
-  l_wheel_joint: "Wheel",
-  r_hip_pitch_joint: "Hip pitch",
-  r_hip_roll_joint: "Hip roll",
-  r_knee_joint: "Knee",
-  r_wheel_joint: "Wheel",
-  l_knee_roller_joint: "Left knee roller",
-  r_knee_roller_joint: "Right knee roller",
+  center_waist_Yaw_joint: "Yaw",
+  center_waist_Roll_joint: "Roll",
+  center_waist_Pitch_joint: "Pitch",
+  left_shoulder_Pitch_joint: "Shoulder pitch",
+  left_shoulder_Roll_joint: "Shoulder roll",
+  left_shoulder_Yaw_joint: "Shoulder yaw",
+  left_elbow_Pitch_joint: "Elbow",
+  left_wrist_Yaw_joint: "Wrist",
+  left_finger_1_Roll_joint: "Gripper",
+  right_shoulder_Pitch_joint: "Shoulder pitch",
+  right_shoulder_Roll_joint: "Shoulder roll",
+  right_shoulder_Yaw_joint: "Shoulder yaw",
+  right_elbow_Pitch_joint: "Elbow",
+  right_wrist_Yaw_joint: "Wrist",
+  right_finger_1_Roll_joint: "Gripper",
+  left_hip_Pitch_joint: "Hip pitch",
+  left_hip_Roll_joint: "Hip roll",
+  left_knee_1_Pitch_joint: "Knee",
+  left_wheel_Pitch_joint: "Wheel",
+  right_hip_Pitch_joint: "Hip pitch",
+  right_hip_Roll_joint: "Hip roll",
+  right_knee_1_Pitch_joint: "Knee",
+  right_wheel_Pitch_joint: "Wheel",
+  left_knee_2_Pitch_joint: "Left knee roller",
+  right_knee_2_Pitch_joint: "Right knee roller",
 };
 
 const MIRROR = {
-  l_shoulder_pitch_joint: "r_shoulder_pitch_joint",
-  l_shoulder_roll_joint: "r_shoulder_roll_joint",
-  l_shoulder_yaw_joint: "r_shoulder_yaw_joint",
-  l_elbow_joint: "r_elbow_joint",
-  l_hip_pitch_joint: "r_hip_pitch_joint",
-  l_hip_roll_joint: "r_hip_roll_joint",
-  l_knee_joint: "r_knee_joint",
-  l_wheel_joint: "r_wheel_joint",
+  left_shoulder_Pitch_joint: "right_shoulder_Pitch_joint",
+  left_shoulder_Roll_joint: "right_shoulder_Roll_joint",
+  left_shoulder_Yaw_joint: "right_shoulder_Yaw_joint",
+  left_elbow_Pitch_joint: "right_elbow_Pitch_joint",
+  left_hip_Pitch_joint: "right_hip_Pitch_joint",
+  left_hip_Roll_joint: "right_hip_Roll_joint",
+  left_knee_1_Pitch_joint: "right_knee_1_Pitch_joint",
+  left_wheel_Pitch_joint: "right_wheel_Pitch_joint",
 };
 
 const NEGATE_ON_MIRROR = new Set([
-  "l_shoulder_roll_joint",
-  "r_shoulder_roll_joint",
-  "l_hip_roll_joint",
-  "r_hip_roll_joint",
+  "left_shoulder_Pitch_joint", "right_shoulder_Pitch_joint",
+  "left_shoulder_Roll_joint", "right_shoulder_Roll_joint",
+  "left_shoulder_Yaw_joint", "right_shoulder_Yaw_joint",
+  "left_elbow_Pitch_joint", "right_elbow_Pitch_joint",
+  "left_hip_Pitch_joint", "right_hip_Pitch_joint",
+  "left_hip_Roll_joint", "right_hip_Roll_joint",
+  "left_knee_1_Pitch_joint", "right_knee_1_Pitch_joint",
+  "left_wheel_Pitch_joint", "right_wheel_Pitch_joint",
 ]);
 
 Object.entries(MIRROR).forEach(([left, right]) => {
   MIRROR[right] = left;
 });
 
+const NATIVE_HOME = {
+  center_waist_Pitch_joint: .10,
+  left_hip_Pitch_joint: .35, right_hip_Pitch_joint: -.35,
+  left_knee_1_Pitch_joint: -.70, right_knee_1_Pitch_joint: .70,
+  left_shoulder_Pitch_joint: .35, right_shoulder_Pitch_joint: -.35,
+  left_shoulder_Roll_joint: .20, right_shoulder_Roll_joint: -.20,
+  left_elbow_Pitch_joint: -.50, right_elbow_Pitch_joint: .50,
+};
 const PRESETS = {
   zero: {},
-  kneel: {
-    l_hip_pitch_joint: -1.35,
-    r_hip_pitch_joint: -1.35,
-    l_knee_joint: 1.55,
-    r_knee_joint: 1.55,
-    l_elbow_joint: -0.6,
-    r_elbow_joint: -0.6,
-    l_shoulder_pitch_joint: 0.25,
-    r_shoulder_pitch_joint: 0.25,
-  },
-  tpose: {
-    l_shoulder_roll_joint: 1.57,
-    r_shoulder_roll_joint: -1.57,
-  },
-  reach: {
-    l_shoulder_pitch_joint: -1.2,
-    r_shoulder_pitch_joint: -1.2,
-    l_elbow_joint: -0.4,
-    r_elbow_joint: -0.4,
-    waist_pitch_joint: 0.25,
-  },
+  stand: NATIVE_HOME,
+  kneel: {...NATIVE_HOME, left_hip_Pitch_joint:1.02, right_hip_Pitch_joint:-1.02,
+    left_knee_1_Pitch_joint:-2.36, right_knee_1_Pitch_joint:2.36, center_waist_Pitch_joint:.30},
+  tpose: {left_shoulder_Roll_joint:1.57,right_shoulder_Roll_joint:-1.57},
+  reach: {left_shoulder_Pitch_joint:-1.0,right_shoulder_Pitch_joint:1.0,
+    left_elbow_Pitch_joint:-.4,right_elbow_Pitch_joint:.4,center_waist_Pitch_joint:.25},
 };
 
 const API =
@@ -247,7 +243,7 @@ function fmtMotor(name, pos, vel, tau) {
 }
 
 function isWheel(name) {
-  return name.endsWith("_wheel_joint");
+  return name.endsWith("_wheel_Pitch_joint");
 }
 
 function setConnected(on) {
@@ -330,6 +326,15 @@ function applyIsaacRoot(base) {
 
 function applyIsaacState(state) {
   lastIsaac = state;
+  const training = document.getElementById("training-readout");
+  if (training) {
+    const current = state.training?.current;
+    training.textContent = current ? `訓練 ${current.skill} · ${current.completed_iterations ?? 0}/${current.total_iterations ?? "--"} updates · ${state.training.status}` : "訓練佇列尚未啟動";
+  }
+  if (state.contract && state.contract !== "q1-native-manager-v2-23x90") {
+    els.pose.textContent = "請啟動新版 Q1 Manager 播放器";
+    return;
+  }
   if (els.cmd && state.cmd) {
     els.cmd.textContent = `vx ${num(state.cmd.vx).toFixed(2)} · yaw ${num(state.cmd.yaw).toFixed(2)} · z ${
       Number.isFinite(state.base?.z) ? state.base.z.toFixed(2) : "--"
@@ -765,19 +770,19 @@ function buildRecordingDoc() {
     keyframes,
     isaac_knots: keyframes.map((k) => {
       const joints = k.joints || {};
-      const hip = 0.5 * (num(joints.l_hip_pitch_joint) + num(joints.r_hip_pitch_joint));
-      const knee = 0.5 * (num(joints.l_knee_joint) + num(joints.r_knee_joint));
-      const sh = 0.5 * (num(joints.l_shoulder_pitch_joint) + num(joints.r_shoulder_pitch_joint));
-      const el = 0.5 * (num(joints.l_elbow_joint) + num(joints.r_elbow_joint));
+      const hip = 0.5 * (num(joints.left_hip_Pitch_joint) + num(joints.right_hip_Pitch_joint));
+      const knee = 0.5 * (num(joints.left_knee_1_Pitch_joint) + num(joints.right_knee_1_Pitch_joint));
+      const sh = 0.5 * (num(joints.left_shoulder_Pitch_joint) + num(joints.right_shoulder_Pitch_joint));
+      const el = 0.5 * (num(joints.left_elbow_Pitch_joint) + num(joints.right_elbow_Pitch_joint));
       const pose = {
         ".*_hip_pitch_joint": Number(hip.toFixed(4)),
         ".*_hip_roll_joint": 0.0,
         ".*_knee_joint": Number(knee.toFixed(4)),
         ".*_knee_roller_joint": Number((knee * 0.444444).toFixed(4)),
-        waist_pitch_joint: Number(num(joints.waist_pitch_joint).toFixed(4)),
+        center_waist_Pitch_joint: Number(num(joints.center_waist_Pitch_joint).toFixed(4)),
         ".*_shoulder_pitch_joint": Number(sh.toFixed(4)),
-        l_shoulder_roll_joint: Number(num(joints.l_shoulder_roll_joint, 0.2).toFixed(4)),
-        r_shoulder_roll_joint: Number(num(joints.r_shoulder_roll_joint, -0.2).toFixed(4)),
+        left_shoulder_Roll_joint: Number(num(joints.left_shoulder_Roll_joint, 0.2).toFixed(4)),
+        right_shoulder_Roll_joint: Number(num(joints.right_shoulder_Roll_joint, -0.2).toFixed(4)),
         ".*_elbow_joint": Number(el.toFixed(4)),
       };
       return [k.phase, pose, k.pelvis_z ?? 0.3];
@@ -977,6 +982,7 @@ function loadRobot() {
       scene.add(robot);
       try {
         buildSliders();
+        Object.entries(NATIVE_HOME).forEach(([name, value]) => setJoint(name, value, {mirrored: true}));
         refreshJson();
       } catch (err) {
         els.error.style.display = "block";
@@ -999,7 +1005,7 @@ function loop(now) {
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
   if (robot && els.spin.checked && !isaacConnected) {
-    ["l_wheel_joint", "r_wheel_joint"].forEach((name) => {
+    ["left_wheel_Pitch_joint", "right_wheel_Pitch_joint"].forEach((name) => {
       const cur = robot.joints[name].angle || 0;
       let next = cur + dt * 2.4;
       if (next > Math.PI) next -= Math.PI * 2;

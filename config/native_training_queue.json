@@ -1,0 +1,15 @@
+{
+  "contract": "q1-native-manager-v2-23x90",
+  "num_envs": 1024,
+  "chunk_iterations": 1000,
+  "seed": 42,
+  "evaluation_envs": 16,
+  "evaluation_steps": 500,
+  "max_retries": 2,
+  "stages": [
+    {"skill": "stand", "task": "Isaac-Q1-Native-Stand-v0", "iterations": 5000},
+    {"skill": "walk", "task": "Isaac-Q1-Native-Walk-v0", "iterations": 20000, "warm_from": "stand"},
+    {"skill": "standup", "task": "Isaac-Q1-Native-Standup-v0", "iterations": 20000, "warm_from": "stand"},
+    {"skill": "backflip", "task": "Isaac-Q1-Native-Backflip-v0", "iterations": 40000, "warm_from": "stand"}
+  ]
+}

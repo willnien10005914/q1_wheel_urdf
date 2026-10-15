@@ -1,268 +1,96 @@
-# Q1 Wheel（BI2 Wheel）URDF + Isaac Lab PPO
+# Q1 / BU10 輪式人形：新版 URDF、Manager-based PPO 與 Web
 
-2026-10-15：整合 DGX Spark 顯示、pip／binary Isaac Sim 啟動與 RSL-RL 3／5 權重相容；保留既有 Web 起身／後翻技能。新增 BU10 最新輪式 URDF 的獨立 **Manager-based** PPO 任務。操作方式與實測結果見 [Spark／新版 URDF 整合紀錄](docs/training/spark_inertia_2026-10-15.md)。
+目前主要 Web、播放與技能訓練均使用 `urdf/q1_inertia/quanta_robot_wheeled.urdf`，由 Isaac Lab `ManagerBasedRLEnv` 執行。來源為 `~/will/q1_inertia/BU10_robot_Assets.zip` 的輪式模型；總重約 **41.0523 kg**，23 個主動關節加 4 個 mimic 關節。沒有虛擬頸部軸，也沒有使用 legged `qn1.py`。
 
-2026-10-12：新增後翻收臂模型、實際落地姿態 Unbox 微調與四種正反躺 recovery 測試按鈕。最新驗證與模型來源見 [整合訓練紀錄](docs/training/README.md)。
+新的共同策略契約為 **23 action / 90 actor observation / 90 critic observation**，物理 200 Hz、策略 50 Hz。Stand、Walk、Standup、Backflip 與 Web 共用相同資產、馬達模型、manager action 及 observation。舊 24 維 PPO 不會自動套用到新機器人。
 
-廣達 Q1 / BI2 輪式人形：約 1.4 m、**40 kg**、24 顆 CubeMars 準直驅關節、雙 Ø200 mm 驅動輪、骨盆 Xsens MTi-630 IMU。在 Isaac Lab（Isaac Sim 5.1 / PhysX、RSL-RL PPO）訓練站立滑行、側滑、蹲跪／站起，以及正躺／趴躺起身。
-
-英文版說明見 [`README.en.md`](README.en.md)。
-
----
-
-## 快速開始（別台 Ubuntu）
-
-### 1. 系統前提
-
-- Ubuntu 22.04 / 24.04，NVIDIA 驅動可用
-- 已安裝 [Isaac Lab 2.3](https://isaac-sim.github.io/IsaacLab/)（預設路徑 `~/isaac/IsaacLab`，venv `~/isaac/env_isaaclab`）
-- Git、curl、Python ≥ 3.10
-
-Spark（aarch64）與 RTX 桌機（x86_64）共用啟動器，會自動尋找現有 Isaac runtime 與可用的 X display（包括 Spark 的 `:1`）。如需指定安裝位置：
+## Web
 
 ```bash
-export ISAACLAB_PATH="$HOME/IsaacLab"
-export ISAAC_PYTHON="$HOME/env_isaaclab/bin/python"  # pip 安裝，或指定 binary 的 python.sh
-./run_isaac.sh tools/check_runtime.py --out outputs/runtime.json
-```
-
-請使用適合各平台／GPU 的 Isaac Sim、PyTorch CUDA 安裝。GB10 已在本機實測；RTX 4090／5080／5090 使用同一程式入口，硬體實測範圍與版本資訊詳見整合紀錄。
-
-### 2. 一鍵安裝（uv）
-
-```bash
-git clone git@github.com:willnien10005914/q1_wheel_urdf.git
-cd q1_wheel_urdf
-./install.sh
-```
-
-`install.sh` 會：
-
-1. 安裝 [uv](https://github.com/astral-sh/uv)（若尚未安裝）
-2. 用 uv 建立 `.venv`，安裝本倉庫 Python 套件（`wheel_humanoid_lab`、網頁／工具依賴）
-3. 在 Isaac Lab venv 內可編輯安裝 `source/wheel_humanoid_lab`（若偵測到 `~/isaac/env_isaaclab`）
-
-僅裝 Python 工具、不碰 Isaac：
-
-```bash
-./install.sh --tools-only
-```
-
-### 3. 播放（Isaac Sim + 網頁）
-
-```bash
-./stop_isaac.sh
 ./play_skateboard.sh
-# 瀏覽器：http://127.0.0.1:8765/web/
-# 結束：./stop_isaac.sh
+# http://127.0.0.1:8875/web/
 ```
 
-更新後請重新啟動播放器，並在網頁按 **Ctrl+Shift+R** 清除舊版程式快取。網頁 API 使用同一網址與埠號；可用 `?api=http://主機:埠號` 指定其他後端。
+頁面顯示原生 27 關節模型，4 個 mimic 為唯讀。可選 Stand、Walk、Kneel、Stand up、Backflip；W/S 前後、A/D 轉向、空白停止、R 重設。動作切換只改控制器目標，不寫入模擬姿態；只有明確 Reset 會重設機器人。
 
-Isaac 視窗先點模擬畫面取得焦點；網頁則點空白處，避免輸入欄取得焦點。兩者皆可用 **W/S 前後、A/D 轉向、空白停止、R 重設、K 跪下、U 起立、B 後翻、P 切換滑行**。站立待命時按 WASD 會自動啟動 Walk 策略。無頭模式僅支援網頁鍵盤，`--no-keyboard` 可停用 Isaac 鍵盤。
+策略尚未訓練完成時，頁面會顯示平衡／姿態控制或訓練中的 PPO。後空翻必須已有原生 checkpoint 才能使用。預覽模型和通過驗證的模型分別標示，訓練更新不代表技能已成功。
 
-後翻前先放開 WASD 或按空白停止。Backflip 會先調整到訓練用站姿，等身體與輪子停穩再起跳；請留意上方狀態文字。若已倒下，先按 **Reset sim / R**。
-
-右側面板可垂直捲動；窄畫面則整頁往下捲。關節滑桿僅在站立待命時啟用，mimic 關節唯讀；**Release all → PPO** 清除手動覆蓋。
-
-僅開網頁（無 Isaac、無 PPO）：
+無頭常駐 Web：
 
 ```bash
-uv run python web/serve.py
-# http://127.0.0.1:8765/web/
+./start_native_web.sh
+systemctl --user status q1-native-web
+systemctl --user stop q1-native-web
 ```
 
----
-
-## 已訓練 PPO（最後有效 checkpoint）
-
-倉庫保留已訓練權重、有效 peak checkpoint 與後翻歷史版本。Backflip／Unbox 以獨立驗證決定模型；recovery 按鈕包含實驗測試版本，詳見最新整合紀錄。
-
-| 動作 | Checkpoint | Gym task | 說明 |
-|---|---|---|---|
-| **Walk / 滑行** | `checkpoints/q1_skate_ppo.pt` | `Isaac-Q1-Skate-v0` | 雙輪站立、前傾、手臂後擺、WASD 追蹤 twist |
-| **Slide / 側滑** | `checkpoints/q1_slide_ppo.pt` | `Isaac-Q1-Slide-v0` | 前後腳交替微抬腳滑行（X2 風格） |
-| **Stand / 站起** | `checkpoints/q1_posture_ppo.pt` | `Isaac-Q1-Posture-v0` | 四輪跪姿 ↔ 站立（再切到 skate） |
-| **Sit / 跪坐** | 同上 `q1_posture_ppo.pt`（Kneel） | `Isaac-Q1-Posture-v0` | 從站立蹲成四輪跪姿 |
-| **舊版地板 → 跪**（開箱鏈） | `checkpoints/q1_unbox_ppo.pt` | `Isaac-Q1-Unbox-v0` | 正躺開箱 → 仰臥起坐 → 穩定跪姿 |
-| **正躺 Elbow 測試** | `checkpoints/q1_recovery_v3_supine_ppo.pt` | `Isaac-Q1-RecoveryV3-Supine-v0` | 新 checkpoint，完整起立尚未通過網頁驗證 |
-| **反躺 Elbow 測試** | `checkpoints/q1_recovery_v3_prone_ppo.pt` | `Isaac-Q1-RecoveryV3-Prone-v0` | 新 checkpoint，完整起立尚未通過網頁驗證 |
-| **Backflip 收臂後翻** | `checkpoints/backflip_arm_rest/model.pt` | shared physical web environment | 落地收臂，雙腳輪＋膝輪跪姿平衡 |
-| **Unbox 標準跪姿起立** | `checkpoints/q1_unbox_transfer_ppo.pt` | shared physical web environment | 新 iter199；Kneel接Unbox及20秒站穩已驗證 |
-| **Unbox 後翻落地實驗** | `checkpoints/q1_unbox_landing_ppo.pt` | shared physical web environment | 新連動 iter119；7/32起立、5/32結束仍穩定，實驗測試 |
-| **正躺 Gripper 輔助** | `checkpoints/q1_recovery_v3_supine_ppo_peak8000.pt` | shared physical web environment | 歷史 peak 模型；共用網頁尚未通過完整起立 |
-| **反躺 Gripper 輔助** | `checkpoints/q1_recovery_v3_prone_gripper_ppo.pt` | shared physical web environment | 歷史有效模型，對應控制器快照 |
-
-ONNX / TorchScript（skate，含 observation normalizer）：
-
-- `checkpoints/exported/q1_skate_policy.onnx`（輸入 `obs[1,92]` → `actions[1,24]`）
-- `checkpoints/exported/q1_skate_policy.pt`
-
-**不建議使用（已淘汰，不在倉庫追蹤）：** `skateboard_ppo.pt`（舊 ideal-PD）、`q1_getup_ppo.pt`、`q1_recovery_reference_v2_ppo.pt`、混合 `q1_recovery_contact_v3_ppo.pt`（已由分拆 supine/prone 取代）。
-
-### 示範影片（已上傳）↔ PPO 位置
-
-下列影片為歷史模型示範；最新 recovery 權重已更新，不能把歷史影片當成新模型驗證。最新結果見 [整合訓練紀錄](docs/training/README.md)。
-
-完整索引見 **[`docs/demos/`](docs/demos/README.md)**。重點如下：
-
-| 動作 | 影片 | PPO |
-|------|------|-----|
-| 正躺起身 | [`split_supine/recovery_eval_supine.mp4`](docs/reference/review_recovery_v3/split_supine/recovery_eval_supine.mp4) · [gofile](https://gofile.io/d/z9w7axZf) | `checkpoints/q1_recovery_v3_supine_ppo.pt` |
-| 趴躺起身 | [`split_prone/recovery_eval_prone.mp4`](docs/reference/review_recovery_v3/split_prone/recovery_eval_prone.mp4) · [gofile](https://gofile.io/d/hwX7CfTN) | `checkpoints/q1_recovery_v3_prone_ppo.pt` |
-| 站立滑行 skate | [`q1_skate_cubemars_iter3800.mp4`](docs/results/q1_skate_cubemars_iter3800.mp4) · [gofile](https://gofile.io/d/Oh6jh3Qd) | `checkpoints/q1_skate_ppo.pt` |
-| 側滑 · **左右腳前後** | [`q1_slide_foreaft_iter32000.mp4`](docs/results/q1_slide_foreaft_iter32000.mp4) · [gofile](https://gofile.io/d/FEl7B5IT) | `checkpoints/q1_slide_ppo.pt` |
-| 側滑 · 抬腳 / 跨步 | [`passlift`](docs/results/q1_slide_passlift_iter42000.mp4) · [`stride`](docs/results/q1_slide_stride_iter32000.mp4) | 同上 `q1_slide_ppo.pt` |
-
-Raw（本分支 `cursor/demo-videos-ppo-7d44`）：
-
-- https://github.com/willnien10005914/q1_wheel_urdf/raw/cursor/demo-videos-ppo-7d44/docs/reference/review_recovery_v3/split_supine/recovery_eval_supine.mp4
-- https://github.com/willnien10005914/q1_wheel_urdf/raw/cursor/demo-videos-ppo-7d44/docs/reference/review_recovery_v3/split_prone/recovery_eval_prone.mp4
-- https://github.com/willnien10005914/q1_wheel_urdf/raw/cursor/demo-videos-ppo-7d44/docs/results/q1_skate_cubemars_iter3800.mp4
-- https://github.com/willnien10005914/q1_wheel_urdf/raw/cursor/demo-videos-ppo-7d44/docs/results/q1_slide_foreaft_iter32000.mp4
-
-### 各 PPO 細節
-
-| PPO | 觀測 / 動作 | 訓練重點 | 播放行為 |
-|---|---|---|---|
-| **skate** | 92-D obs、24-D action；CubeMars 致動器 + DR | 課程 stand→glide→swizzle→lean→micro-lift | 預設模式；WASD 控 `vx` / yaw |
-| **slide** | 同 skate 契約 | 前後腳交換、50–220 ms 抬腳獎勵 | 自動 wander 或 WASD |
-| **posture** | 同契約；較寬腿部 clip | kneel↔stand 姿態轉移 | Kneel / Stand 按鈕 |
-| **unbox** | 同契約 + MediaPipe 關鍵幀 prior | 正躺開箱到穩定四輪跪 | 舊版 launcher 的 API `unbox`；新版按鈕為跪姿起立 |
-| **recovery supine** | recovery_v3 MDP；接觸閘門 | 6144 envs × ~10k iters，僅 mode=正躺 | 先按正躺，再 Recovery |
-| **recovery prone** | 同上 | 同上，僅 mode=趴躺 | 先按趴躺，再 Recovery |
-
-開箱鏈（可選）：正躺 → **unbox** 跪 → **posture** 站 → skate/slide。  
-地板起身鏈（網頁主流程）：正躺／趴躺 → **對應的 Elbow／Gripper PPO** → 站穩後切 Walk / Slide。
-
----
-
-## 網頁按鈕 ↔ 功能
-
-`./play_skateboard.sh` 會啟動 Isaac Sim，並在 **8765** 提供 `/api/pose`。按鈕對應如下：
-
-| 按鈕 | `POST /api/pose` | 載入的策略 | 行為 |
-|---|---|---|---|
-| **Kneel (4 wheels)** | `kneel` | `q1_posture_ppo.pt`（target=跪） | 蹲成四輪跪姿 |
-| **起立（Unbox PPO）** | `unbox` | 標準跪姿或後翻落地對應模型 | 從目前跪姿起立；原 Stand up 已合併 |
-| **Slide mode** | `slide` | `q1_slide_ppo.pt` | 側滑／交替抬腳模式 |
-| **Walk / skate** | `skate` | `q1_skate_ppo.pt` | 站立滑行；鍵盤 WASD |
-| **正躺 supine** | `supine` | （尚不跑 PPO） | 放到正躺並保持關節目標（物理仍運作） |
-| **趴躺 prone** | `prone` | （尚不跑 PPO） | 放到趴躺並保持關節目標（物理仍運作） |
-| **正／反躺 Elbow PPO** | `recovery_supine_elbow`／`recovery_prone_elbow` | 各自 Elbow 模型 | 指定躺姿的肘部支撐起身（實驗） |
-| **正／反躺 Gripper 輔助 PPO** | `recovery_supine_gripper`／`recovery_prone_gripper` | 各自 Gripper 模型 | 指定躺姿的 Gripper 輔助起身 |
-| **Backflip 後空翻** | `backflip` | 收臂後翻模型 | 站立後翻、收臂並平衡跪姿落地 |
-
-建議流程：先選 **正躺** 或 **趴躺** → 再選 **對應的 Elbow／Gripper PPO** → 站穩後按 **Walk / skate** 或 **Slide mode**，用 WASD 操控。
-
-「Recovery PPO 起身」原本只是依躺姿自動選同一個 Gripper 模型，已移除重複按鈕；API `recovery` 與 `stand` 仍保留相容。按鈕短暫縮放代表按下；「送出中／準備中／執行中」與完成結果明確分開，完成後不保留選取框。
-
-其餘：
-
-| 控制 | 說明 |
-|---|---|
-| Zero / T-pose / Reach | 站立待命時送出關節手動覆蓋 |
-| Iso / Front / Side / Top | 相機視角 |
-| 滑桿拖曳 | 覆蓋該馬達到 sim；**Follow PPO** 交還策略 |
-| Load A3 keyframes… | MediaPipe 開箱參考軌跡編輯（見下方） |
-| 鍵盤 W/S | 前進／後退 |
-| A/D、Q/E | 轉向 |
-| Space / X / L | 停止 |
-| R | 重置 episode |
-| K / U | 快捷 Kneel / Stand |
-| P | 切換 Slide |
-| G | 躺下（supine） |
-
----
-
-## 訓練指令
+## 大量訓練佇列
 
 ```bash
-# 站立滑行
-./train_skate.sh
-
-# 側滑
-./train_slide.sh
-
-# 跪 ↔ 站
-./train_posture.sh
-
-# 開箱：正躺 → 跪
-./train_unbox.sh
-
-# 分拆起身（建議一次只跑一個）
-ALLOW_REDESIGN=1 ./train_recovery_v3_supine.sh
-ALLOW_REDESIGN=1 ./train_recovery_v3_prone.sh
-# 或連續：./train_recovery_v3_sequential.sh
+./start_native_training.sh
+python3 tools/native_training_queue.py --status
+journalctl --user -u q1-native-training -f
+# 中止並保留進度：
+systemctl --user stop q1-native-training
+# 再啟動時從本次有效 checkpoint 續跑：
+./start_native_training.sh
 ```
 
-環境變數常用：`NUM_ENVS`、`MAX_ITERS`、`RESUME=1`、`CHECKPOINT=...`。
+沒有 user systemd 的環境可用 `./start_native_training.sh --foreground`。
 
-訓練日誌在 `logs/`（已 gitignore）；結束後有效權重請複製到上表 `checkpoints/` 路徑。
+預設計畫見 [config/native_training_queue.json](config/native_training_queue.json)：
 
----
+| 順序 | 任務 | 平行環境 | PPO updates |
+| --- | --- | ---: | ---: |
+| 1 | Stand 站立平衡 | 1024 | 5,000 |
+| 2 | Walk 雙輪行進與轉向 | 1024 | 20,000 |
+| 3 | Standup 跪姿起身 | 1024 | 20,000 |
+| 4 | Backflip 後空翻 | 1024 | 40,000 |
 
-## 目錄結構（精簡）
+共 85,000 次 PPO 更新，名義約 **20.89 億 transitions**。每 1000 updates 分段續跑並驗證，訓練和驗證依序使用 GPU。Walk、Standup、Backflip 從原生 Stand 模型 warm-start，使用新的任務迭代計數；不載入舊 24 軸模型。
 
-```
-config/q1_wheel_components.yaml     硬體表（馬達 SKU、關節對應、質量）
-urdf/                               結構 URDF + 網頁輕量 URDF
-meshes/                             視覺／碰撞 STL
-source/wheel_humanoid_lab/          Isaac Lab 擴充（skate / slide / posture / unbox / recovery_v3）
-scripts/reinforcement_learning/     train / play / web bridge
-web/                                THREE.js 關節 UI
-checkpoints/                        最後有效 PPO + exported ONNX
-tools/                              URDF 建置、MediaPipe、recovery 工具
-docs/                               馬達規格、參考姿態、評測紀錄
-docs/demos/                         示範影片 ↔ PPO 對照（正躺／趴躺／滑行／側滑）
-install.sh / pyproject.toml         uv 安裝入口
-```
+`outputs/native_manager/queue/status.json` 保存階段、進度、PID、log、驗證狀態與來源 SHA-256。保存中的不完整 checkpoint 不會被選用。若來源控制器改變，既有實驗會停止並要求新的 state 路徑，避免無聲混用不同物理設定。GPU 記憶體不足時會降低環境數並有限次重試。
 
----
+完成更新預算但沒有通過驗證會標為 `completed_with_unvalidated_skills`，不會冒充技能完成。後翻驗證要求實際離地、完整後轉與穩定落地，沒有 root pose／速度輔助。
 
-## MediaPipe 開箱參考（選用）
+## Checkpoints 與進度
+
+- `checkpoints/native_manager/<skill>/latest.pt`：本次訓練預覽，可尚未通過動作驗證。
+- `checkpoints/native_manager/<skill>/model.pt`：通過獨立驗證的較佳模型。
+- `validated.json` / `latest.json`：來源、迭代、雜湊與驗證紀錄。
+- `logs/rsl_rl/q1_native_*`：原始模型、TensorBoard 與設定快照。
+- `logs/native_manager_queue`：每段訓練與驗證 log。
+
+Web 自動檢查新的原生模型，優先使用通過驗證的版本。大量訓練模型與 log 保存在本機，不會把每次中間權重寫入 Git。
+
+## 個別訓練
 
 ```bash
-# 需 mediapipe（install.sh 的 tools extra）
-uv run python tools/unbox_pose_extract.py \
-  --video docs/reference/a3_unbox_ref.mp4 \
-  --model tools/models/pose_landmarker_heavy.task \
-  --out docs/reference --overlay
-
-uv run python web/serve.py   # 編輯馬達角 → Save for RL
-uv run python tools/apply_unbox_recording.py \
-  --recording docs/reference/a3_unbox_ref_web_recording.json
-./train_unbox.sh
+NUM_ENVS=1024 MAX_ITERS=20000 ./train_native.sh walk
+./train_stand.sh
+./train_backflip.sh
+./train_posture.sh       # native Standup
+./train_skate.sh         # native Walk
 ```
 
-詳見 [`docs/reference/README_unbox.md`](docs/reference/README_unbox.md)。
+需要隔離測試、不更新預覽檔時加 `--no-publish`。`RESUME=1 CHECKPOINT=/path/model.pt` 可續跑同一個原生任務；跨任務 warm-start 使用 `--reset_iteration`，佇列會自動處理。
 
----
+主要 train.py 會檢查 Manager 環境和新版資產路徑；舊 URDF 任務會被拒絕。歷史 Direct 後翻程式仍保留供查閱，其 `launch.sh` 已改成新版 manager 入口。尚未遷移的舊 recovery／MediaPipe 工具不屬於這個新技能佇列。
 
-## 觀測／動作契約（skate 系）
+## Runtime 與物理
 
-- **觀測 92-D**：IMU gyro 3 + projected gravity 3 + joint pos 24 + joint vel 24 + last action 24 + twist 3 + head 4 + body 6 + arm_style 1
-- **動作 24-D**：22 位置目標 + 2 輪速（×25 rad/s）
-- 控制 50 Hz，PhysX / CAN 200 Hz
+支援 pip Isaac Sim Python 及 binary `python.sh`，也會偵測有效的 X display（包含 Spark `:1`）。可設定 `ISAAC_PYTHON`、`ISAACLAB_PATH`、`ISAAC_SIM_PATH` 或 `ISAAC_VENV` 指定既有安裝；不會自動替換你的 CUDA／Isaac 套件。
 
-合約單元測試：
+主要馬達為 CubeMars **explicit actuator**（電壓／電流限制、齒輪、摩擦、延遲），mimic 使用 implicit servo；Direct／Manager 是環境組織方式，與 actuator 的 explicit／implicit 分類不同。慣量 converter 明確要求匯入來源 tensor，來源與 PhysX 已逐連桿核對。mimic servo 與凸包碰撞為模擬近似，自碰撞目前關閉。
+
+DGX Spark / GB10 已實測；RTX 4090／5080／5090 使用同一可攜式程式入口，但仍需平台相符的 Isaac Sim／PyTorch CUDA 安裝，本機沒有這三張卡可做實機驗證。
+
+## 驗證
 
 ```bash
-./run_isaac.sh tests/test_skate_contract.py
+./run_isaac.sh tools/check_runtime.py --require-cuda
+./run_isaac.sh tests/test_inertia_contract.py --headless --num_envs 2
+./run_isaac.sh tests/test_native_manager_skills.py --skill Stand --steps 200 --out outputs/native_stand.json
+python3 tests/test_native_queue.py
 ```
 
----
-
-## 授權與注意
-
-- 本倉庫含 URDF、訓練腳本與最後有效 PPO；Isaac Sim / Isaac Lab 需另行安裝並遵守其授權。
-- GPU 訓練建議單卡一次一 job；`stop_isaac.sh` 可清殘留 Kit／佔用埠。
-
-## Live Isaac Sim uploads (this machine)
-
-| 動作 | PPO | gofile |
-|---|---|---|
-| 正躺 supine | `checkpoints/q1_recovery_v3_supine_ppo.pt` | https://gofile.io/d/XUMcmzmU |
-| 趴躺 prone | `checkpoints/q1_recovery_v3_prone_ppo.pt` | https://gofile.io/d/hJnyjRmT |
-| 側滑 左右腳前後 | `checkpoints/q1_slide_ppo.pt` | https://gofile.io/d/sXvBGMnl |
-
+[新版 manager 遷移與實測紀錄](docs/training/native_manager_2026-10-15.md)；[前一版 Spark／慣量整合歷史](docs/training/spark_inertia_2026-10-15.md)。歷史 checkpoint 保留，但不是新版 Web 的 fallback。

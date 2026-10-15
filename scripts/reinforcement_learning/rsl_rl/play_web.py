@@ -169,6 +169,7 @@ class PlayWebHandler(SimpleHTTPRequestHandler):
         elif parsed.path == "/api/pose":
             name = str(body.get("name") or "").strip().lower()
             allowed = {
+                "walk", "standard", "standup",
                 "kneel",
                 "stand",
                 "slide",

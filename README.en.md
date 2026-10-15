@@ -1,3 +1,5 @@
+> 2026-10-15 update: the default Web and skill training now use the native 23-actuator BU10 URDF and ManagerBasedRLEnv. See [current instructions](README.md) and [migration results](docs/training/native_manager_2026-10-15.md). Older instructions below describe archived 24-axis policies.
+
 Latest integration and checkpoint provenance: [2026-10-11 skill training record](docs/training/README.md). Run `bash play_skills.sh`, then open http://127.0.0.1:8765/web/. Recovery buttons include explicitly labeled experimental variants.
 
 # Q1 Wheel (BI2 Wheel) URDF + Isaac Lab inline-skate RL

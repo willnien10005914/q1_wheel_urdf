@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
+# Native URDF manager backflip training.
 set -euo pipefail
-cd "$(dirname "$0")/.."
-source scripts/isaac_env.sh
-export WHEEL_HUMANOID_ROOT="$PWD"
-export PYTHONPATH="$PWD:$PWD/q1_backflip_v2:${PYTHONPATH:-}"
-export OMNI_KIT_ACCEPT_EULA=YES ACCEPT_EULA=Y PRIVACY_CONSENT=Y
-exec "$ISAAC_PYTHON" -u q1_backflip_v2/train.py --headless "$@"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+exec "$ROOT/train_backflip.sh" "$@"

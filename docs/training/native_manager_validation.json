@@ -1,0 +1,308 @@
+{
+  "date": "2026-10-15",
+  "contract": "q1-native-manager-v2-23x90",
+  "new_urdf": "urdf/q1_inertia/quanta_robot_wheeled.urdf",
+  "long_zero_residual_stand": {
+    "task": "Isaac-Q1-Native-Web-v0",
+    "manager_based": true,
+    "new_urdf": true,
+    "action_dim": 23,
+    "actor_obs_dim": 90,
+    "critic_obs_dim": 90,
+    "steps": 2000,
+    "num_envs": 2,
+    "terminations": 0,
+    "min_height_m": 0.8368052244186401,
+    "upright_fraction": 1.0,
+    "max_backturn_rad": 0.14078423380851746,
+    "handover_no_pose_writes": true,
+    "nonfinite": 0
+  },
+  "browser": {
+    "manager_based": true,
+    "native_urdf": true,
+    "action_dim": 23,
+    "observation_dim": 90,
+    "joints": 27,
+    "mimic": 4,
+    "urdf_urls": [
+      "http://127.0.0.1:8876/urdf/q1_inertia/quanta_robot_wheeled.urdf"
+    ],
+    "mass_kg": 41.05226135253906,
+    "models": {
+      "stand": {
+        "path": "outputs/native_manager/preflight_models_v2/stand/model.pt",
+        "sha256": "a5a6edc5e1f0291ad195ba28a3ce42a643187a0e0da6439c955357e9b4698fa4",
+        "iteration": 2,
+        "validated": true
+      },
+      "walk": {
+        "path": "outputs/native_manager/preflight_models_v2/walk/latest.pt",
+        "sha256": "14642ce5d87e634527dc4e119b9e78456e50733fb894e7a8a14cf1518dd43307",
+        "iteration": 2,
+        "validated": false
+      },
+      "standup": {
+        "path": "outputs/native_manager/preflight_models_v2/standup/latest.pt",
+        "sha256": "d9466ccb524daf22577493305cf80f415de722c8e847559eba0906b6b2db2141",
+        "iteration": 2,
+        "validated": false
+      },
+      "backflip": {
+        "path": "outputs/native_manager/preflight_models_v2/backflip/latest.pt",
+        "sha256": "f247d92164afe4e6764c22301be546f04de74ed1f6fc9eb4c1032ef17ea68ece",
+        "iteration": 2,
+        "validated": false
+      }
+    },
+    "page_errors": []
+  },
+  "queue_preflight": {
+    "status": "completed_with_unvalidated_skills",
+    "plan": {
+      "contract": "q1-native-manager-v2-23x90",
+      "num_envs": 64,
+      "chunk_iterations": 3,
+      "seed": 42,
+      "evaluation_envs": 2,
+      "evaluation_steps": 200,
+      "max_retries": 2,
+      "stages": [
+        {
+          "skill": "stand",
+          "task": "Isaac-Q1-Native-Stand-v0",
+          "iterations": 3
+        },
+        {
+          "skill": "walk",
+          "task": "Isaac-Q1-Native-Walk-v0",
+          "iterations": 3,
+          "warm_from": "stand"
+        },
+        {
+          "skill": "standup",
+          "task": "Isaac-Q1-Native-Standup-v0",
+          "iterations": 3,
+          "warm_from": "stand"
+        },
+        {
+          "skill": "backflip",
+          "task": "Isaac-Q1-Native-Backflip-v0",
+          "iterations": 3,
+          "warm_from": "stand"
+        }
+      ]
+    },
+    "stages": {
+      "stand": {
+        "completed_iterations": 3,
+        "evaluations": [
+          "outputs/native_manager/preflight_queue_v2/stand_000003_validation.json"
+        ],
+        "attempts": 0,
+        "last_evaluated_iteration": 3,
+        "last_validation_pass": true,
+        "best_score": 1.6686550429463387,
+        "validated": true,
+        "budget_completed": true
+      },
+      "walk": {
+        "completed_iterations": 3,
+        "evaluations": [
+          "outputs/native_manager/preflight_queue_v2/walk_000003_validation.json"
+        ],
+        "attempts": 0,
+        "last_evaluated_iteration": 3,
+        "last_validation_pass": false,
+        "budget_completed": true
+      },
+      "standup": {
+        "completed_iterations": 3,
+        "evaluations": [
+          "outputs/native_manager/preflight_queue_v2/standup_000003_validation.json"
+        ],
+        "attempts": 0,
+        "last_evaluated_iteration": 3,
+        "last_validation_pass": false,
+        "budget_completed": true
+      },
+      "backflip": {
+        "completed_iterations": 3,
+        "evaluations": [
+          "outputs/native_manager/preflight_queue_v2/backflip_000003_validation.json"
+        ],
+        "attempts": 0,
+        "last_evaluated_iteration": 3,
+        "last_validation_pass": false,
+        "budget_completed": true
+      }
+    },
+    "source_sha256": {
+      "config/q1_wheel_components.yaml": "c3a40df3d52268d52c798a6b708d4948b109bca1feb81a4a48954ae22efa422a",
+      "scripts/reinforcement_learning/rsl_rl/evaluate_native.py": "bac05ed08d1b856660c7c5d61f18c42a3427805dcdc738432003c5ddabaeae49",
+      "scripts/reinforcement_learning/rsl_rl/runtime_compat.py": "a38a848388551989a700f1f7db0ce4b7bfaa54571ede7be1123007cb9a271a6c",
+      "scripts/reinforcement_learning/rsl_rl/train.py": "d29c29e920bed2f89678db1bb017755a564d709f97bb2fc6484edf2e0ceceb06",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/actuators/__init__.py": "eeb66051e5a4ffea0bb9e637603ffa76c1bb0614e4dce1406d0e60f0868a8e70",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/actuators/cubemars.py": "319720db20ca5de9bcba89b39968f1170065d5fedc185145359aafa482037b37",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/actuators/cubemars_cfg.py": "c7dfa44b36cadf6cc903a657b9f717bddc6e06273369e65e200523b26bec62dc",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/assets/q1_inertia.py": "c22d22a7a3ccd33214fdacebe41a9c20851f0d1b18a2171103558ad8bb8aac30",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/assets/q1_spec.py": "6cae50219c99349696e67adeae153e1465a126a29df18e4dee3b47e2c611171b",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/assets/wheel_humanoid.py": "c3cc3a5928ca2e136defdb50284342c42b084780f754d4ad160d8c8ccdb7d60f",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/__init__.py": "c1343c7531135de2dadccc44256fd66415edc3e2c86dc12ad0d92cc60c80a8b7",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/agents/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/agents/native_ppo_cfg.py": "575664b37922d8441b369c43909fd6d54a99a2e729e34cfb6a756050055e36be",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/agents/rsl_rl_ppo_cfg.py": "02895a0b68e103e787880f87c8a768a6a0e42c201636d920421b454de3325964",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/inertia_env_cfg.py": "7b53086df18f09b4c77a5a0cfdc641c0eb41cac7485bda83be60ca1d567443e2",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/mdp.py": "ce39a8e4f6ef93ebd682ab4f13ab88164de0b86ffe4c12174c5effbd71c2bf73",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/native_env_cfg.py": "ecc881b7959e0f91df1ef7a493aba26a49e3b3fbd38517f7b7ab6b9768784e50",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/native_skills.py": "c802eede7dac1ee802a07b5e02e9538f9754d92ae84684d23d5d6b293b749ef6",
+      "urdf/q1_inertia/quanta_robot_wheeled.urdf": "0a6c9219bf0d7ade77c3a52b1d7334232ee5adc23528f8afe86679bfc2e794e9"
+    }
+  },
+  "planned_long_training": {
+    "contract": "q1-native-manager-v2-23x90",
+    "num_envs": 1024,
+    "chunk_iterations": 1000,
+    "seed": 42,
+    "evaluation_envs": 16,
+    "evaluation_steps": 500,
+    "max_retries": 2,
+    "stages": [
+      {
+        "skill": "stand",
+        "task": "Isaac-Q1-Native-Stand-v0",
+        "iterations": 5000
+      },
+      {
+        "skill": "walk",
+        "task": "Isaac-Q1-Native-Walk-v0",
+        "iterations": 20000,
+        "warm_from": "stand"
+      },
+      {
+        "skill": "standup",
+        "task": "Isaac-Q1-Native-Standup-v0",
+        "iterations": 20000,
+        "warm_from": "stand"
+      },
+      {
+        "skill": "backflip",
+        "task": "Isaac-Q1-Native-Backflip-v0",
+        "iterations": 40000,
+        "warm_from": "stand"
+      }
+    ]
+  },
+  "planned_total_updates": 85000,
+  "planned_nominal_transitions": 2088960000,
+  "tests": {
+    "native_queue_unittests": {
+      "count": 5,
+      "pass": true
+    },
+    "runtime_compat_unittests": {
+      "count": 3,
+      "pass": true
+    }
+  },
+  "limits": [
+    "Long training is scheduled separately; 85000 updates are not yet completed.",
+    "Only Stand passed the tiny preflight evaluation; other skills are not converged.",
+    "Long zero-residual stand tests the physical motor prior, not a converged PPO.",
+    "Browser tests check native assets/API/controls, not skill success.",
+    "GPU simulations tested on GB10 only; RTX hardware unavailable."
+  ],
+  "real_single_update_chunks": {
+    "contract": "q1-native-manager-v2-23x90",
+    "run_id": "20261015T160819",
+    "plan": {
+      "contract": "q1-native-manager-v2-23x90",
+      "num_envs": 64,
+      "chunk_iterations": 1,
+      "seed": 42,
+      "evaluation_envs": 2,
+      "evaluation_steps": 100,
+      "max_retries": 2,
+      "stages": [
+        {
+          "skill": "stand",
+          "task": "Isaac-Q1-Native-Stand-v0",
+          "iterations": 2
+        }
+      ]
+    },
+    "source_sha256": {
+      "config/q1_wheel_components.yaml": "c3a40df3d52268d52c798a6b708d4948b109bca1feb81a4a48954ae22efa422a",
+      "scripts/reinforcement_learning/rsl_rl/evaluate_native.py": "bac05ed08d1b856660c7c5d61f18c42a3427805dcdc738432003c5ddabaeae49",
+      "scripts/reinforcement_learning/rsl_rl/runtime_compat.py": "a38a848388551989a700f1f7db0ce4b7bfaa54571ede7be1123007cb9a271a6c",
+      "scripts/reinforcement_learning/rsl_rl/train.py": "f26b9ad86a609719e0375096721faa899bc17e5f058de941ac446abbed0de9d3",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/actuators/__init__.py": "eeb66051e5a4ffea0bb9e637603ffa76c1bb0614e4dce1406d0e60f0868a8e70",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/actuators/cubemars.py": "319720db20ca5de9bcba89b39968f1170065d5fedc185145359aafa482037b37",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/actuators/cubemars_cfg.py": "c7dfa44b36cadf6cc903a657b9f717bddc6e06273369e65e200523b26bec62dc",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/assets/q1_inertia.py": "c22d22a7a3ccd33214fdacebe41a9c20851f0d1b18a2171103558ad8bb8aac30",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/assets/q1_spec.py": "6cae50219c99349696e67adeae153e1465a126a29df18e4dee3b47e2c611171b",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/assets/wheel_humanoid.py": "c3cc3a5928ca2e136defdb50284342c42b084780f754d4ad160d8c8ccdb7d60f",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/__init__.py": "c1343c7531135de2dadccc44256fd66415edc3e2c86dc12ad0d92cc60c80a8b7",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/agents/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/agents/native_ppo_cfg.py": "575664b37922d8441b369c43909fd6d54a99a2e729e34cfb6a756050055e36be",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/agents/rsl_rl_ppo_cfg.py": "02895a0b68e103e787880f87c8a768a6a0e42c201636d920421b454de3325964",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/inertia_env_cfg.py": "7b53086df18f09b4c77a5a0cfdc641c0eb41cac7485bda83be60ca1d567443e2",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/mdp.py": "ce39a8e4f6ef93ebd682ab4f13ab88164de0b86ffe4c12174c5effbd71c2bf73",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/native_env_cfg.py": "ecc881b7959e0f91df1ef7a493aba26a49e3b3fbd38517f7b7ab6b9768784e50",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/native_skills.py": "3256b1bd44118fd2998a7fc776e0d8ea1648c7e87b1965db86b4290b2769f46e",
+      "urdf/q1_inertia/quanta_robot_wheeled.urdf": "0a6c9219bf0d7ade77c3a52b1d7334232ee5adc23528f8afe86679bfc2e794e9"
+    },
+    "stages": {
+      "stand": {
+        "completed_iterations": 2,
+        "evaluations": [
+          "outputs/native_manager/chunk_resume_final/stand_000001_validation.json",
+          "outputs/native_manager/chunk_resume_final/stand_000002_validation.json"
+        ],
+        "attempts": 0,
+        "last_evaluated_iteration": 2,
+        "last_validation_pass": true,
+        "best_score": 1.8656392874196173,
+        "validated": true,
+        "budget_completed": true
+      }
+    },
+    "effective_num_envs": 64,
+    "current": {
+      "index": 0,
+      "skill": "stand",
+      "task": "Isaac-Q1-Native-Stand-v0",
+      "phase": "validation",
+      "completed_iterations": 2,
+      "total_iterations": 2,
+      "fresh_warm_start": false,
+      "pid": 6906,
+      "log": "logs/native_manager_queue/20261015T160819/stand_000001_validation.log"
+    },
+    "status": "completed",
+    "updated_at": "2026-10-15T16:09:23.593332+00:00"
+  },
+  "final_walk_contract": {
+    "task": "Isaac-Q1-Native-Walk-v0",
+    "manager_based": true,
+    "new_urdf": true,
+    "action_dim": 23,
+    "actor_obs_dim": 90,
+    "critic_obs_dim": 90,
+    "steps": 200,
+    "num_envs": 2,
+    "terminations": 0,
+    "min_height_m": 0.8428421020507812,
+    "upright_fraction": 1.0,
+    "max_backturn_rad": 0.051008597016334534,
+    "handover_no_pose_writes": true,
+    "nonfinite": 0
+  },
+  "spark_manager_gui": {
+    "environment": "ManagerBasedRLEnv",
+    "contract": "q1-native-manager-v2-23x90",
+    "steps": 100,
+    "final_height_m": 0.8450331091880798,
+    "new_urdf": "urdf/q1_inertia/quanta_robot_wheeled.urdf"
+  }
+}
