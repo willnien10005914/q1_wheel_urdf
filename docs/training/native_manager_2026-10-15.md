@@ -75,3 +75,5 @@ Web：http://127.0.0.1:8875/web/。訓練與 Web 使用相同原生任務；Web 
 共同入口現在在 Linux ARM 自行偵測並預載 Isaac Sim checker 所需的系統／PyTorch OpenMP library，保留既有值、不重複加入，也不修改系統或 venv。清除 `LD_PRELOAD` 後實測 `import isaacsim` 成功；模擬 x86 分支不加入預載，既有預載亦保留。
 
 Supervisor 的耗盡重試與設定錯誤改用 terminal exit 78，systemd 設定 `RestartPreventExitStatus=78`；重啟 supervisor 也會先檢查已耗盡預算。兩個服務另外限制五分鐘內最多三次啟動。只有成功完成訓練段落才清零連續失敗計數。
+
+修正後的新正式實驗為 `20261015T232705`，在 `~/will/q1_wheel_urdf` 執行。23:34 UTC 已確認 1024 env 的 Stand PPO 持續更新，checkpoint 從 `model_0.pt` 推進到 `model_100.pt`（含 101 次更新），所有模型與 optimizer tensor 均有限值；Web 自動載入與發布檔相同 SHA-256 的 `model_100`。兩個 user service 均 active/running、重啟次數 0，真實瀏覽器測試無 page error。此時仍是未完成的早期訓練，正式動作驗證依原計畫在每 1000 updates 後執行，尚未宣稱任何大量訓練技能已收斂。摘要與來源雜湊收錄於 validation JSON 的 `systemd_recovery`。

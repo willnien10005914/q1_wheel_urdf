@@ -304,5 +304,135 @@
     "steps": 100,
     "final_height_m": 0.8450331091880798,
     "new_urdf": "urdf/q1_inertia/quanta_robot_wheeled.urdf"
+  },
+  "systemd_recovery": {
+    "observed_at": "2026-10-15T23:34:00.336510+00:00",
+    "run_id": "20261015T232705",
+    "contract": "q1-native-manager-v2-23x90",
+    "status": "running",
+    "num_envs": 1024,
+    "latest_logged_iteration": 101,
+    "published_checkpoint": {
+      "contract": "q1-native-manager-v2-23x90",
+      "manager_based": true,
+      "new_urdf": true,
+      "validated": false,
+      "source": "logs/rsl_rl/q1_native_stand/2026-10-15_23-27-10_native_20261015T232705_stand_0/model_100.pt",
+      "iteration": 100,
+      "sha256": "a9229e23157db6c71850f061e9366aca6d235e76568f2e196fdeb1deda40ee79",
+      "validation": null
+    },
+    "web": {
+      "environment": "ManagerBasedRLEnv",
+      "urdf": "urdf/q1_inertia/quanta_robot_wheeled.urdf",
+      "action_dim": 23,
+      "observation_dim": 90,
+      "mass_kg": 41.05226135253906,
+      "stand_model": {
+        "path": "checkpoints/native_manager/stand/latest.pt",
+        "sha256": "a9229e23157db6c71850f061e9366aca6d235e76568f2e196fdeb1deda40ee79",
+        "iteration": 100,
+        "validated": false,
+        "fingerprint": [
+          "/home/spark/will/q1_wheel_urdf/checkpoints/native_manager/stand/latest.pt",
+          1792107233349000000
+        ]
+      }
+    },
+    "services": {
+      "q1-native-training": {
+        "MainPID": "324711",
+        "NRestarts": "0",
+        "ActiveState": "active",
+        "SubState": "running"
+      },
+      "q1-native-web": {
+        "MainPID": "324311",
+        "NRestarts": "0",
+        "ActiveState": "active",
+        "SubState": "running"
+      }
+    },
+    "source_sha256": {
+      "config/q1_wheel_components.yaml": "c3a40df3d52268d52c798a6b708d4948b109bca1feb81a4a48954ae22efa422a",
+      "scripts/reinforcement_learning/rsl_rl/evaluate_native.py": "491cd73036a8c85a32ee5a9d8812da621e41bfe5b3b12a5119ce7601797c8b67",
+      "scripts/reinforcement_learning/rsl_rl/runtime_compat.py": "a38a848388551989a700f1f7db0ce4b7bfaa54571ede7be1123007cb9a271a6c",
+      "scripts/reinforcement_learning/rsl_rl/train.py": "f26b9ad86a609719e0375096721faa899bc17e5f058de941ac446abbed0de9d3",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/actuators/__init__.py": "eeb66051e5a4ffea0bb9e637603ffa76c1bb0614e4dce1406d0e60f0868a8e70",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/actuators/cubemars.py": "319720db20ca5de9bcba89b39968f1170065d5fedc185145359aafa482037b37",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/actuators/cubemars_cfg.py": "c7dfa44b36cadf6cc903a657b9f717bddc6e06273369e65e200523b26bec62dc",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/assets/q1_inertia.py": "c22d22a7a3ccd33214fdacebe41a9c20851f0d1b18a2171103558ad8bb8aac30",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/assets/q1_spec.py": "6cae50219c99349696e67adeae153e1465a126a29df18e4dee3b47e2c611171b",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/assets/wheel_humanoid.py": "c3cc3a5928ca2e136defdb50284342c42b084780f754d4ad160d8c8ccdb7d60f",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/__init__.py": "c1343c7531135de2dadccc44256fd66415edc3e2c86dc12ad0d92cc60c80a8b7",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/agents/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/agents/native_ppo_cfg.py": "575664b37922d8441b369c43909fd6d54a99a2e729e34cfb6a756050055e36be",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/agents/rsl_rl_ppo_cfg.py": "02895a0b68e103e787880f87c8a768a6a0e42c201636d920421b454de3325964",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/inertia_env_cfg.py": "7b53086df18f09b4c77a5a0cfdc641c0eb41cac7485bda83be60ca1d567443e2",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/mdp.py": "ce39a8e4f6ef93ebd682ab4f13ab88164de0b86ffe4c12174c5effbd71c2bf73",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/native_env_cfg.py": "ecc881b7959e0f91df1ef7a493aba26a49e3b3fbd38517f7b7ab6b9768784e50",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/native_skills.py": "67c05d8a0abcb81dc83ede85f2e4f6247f1c3921a78c2b3dbca86aa59971a13c",
+      "urdf/q1_inertia/quanta_robot_wheeled.urdf": "0a6c9219bf0d7ade77c3a52b1d7334232ee5adc23528f8afe86679bfc2e794e9"
+    },
+    "checkpoint_integrity": {
+      "iteration": 100,
+      "all_tensors_finite": true,
+      "input_dim": 90,
+      "output_dim": 23,
+      "size_bytes": 1591011,
+      "sha256": "a9229e23157db6c71850f061e9366aca6d235e76568f2e196fdeb1deda40ee79"
+    },
+    "previous_failed_run": {
+      "run_id": "20261015T161440",
+      "completed_ppo_updates": 0,
+      "reason": "Isaac Sim ARM bootstrap missing LD_PRELOAD in user systemd",
+      "archived_status": "outputs/native_manager/queue/startup_failed_20261015T232646Z/status.json"
+    },
+    "tests": {
+      "queue_regressions_passed": 6,
+      "clean_preload_isaacsim_import": true,
+      "preload_idempotent": true,
+      "existing_preload_preserved": true,
+      "simulated_x86_preload_unchanged": true
+    },
+    "browser": {
+      "manager_based": true,
+      "native_urdf": true,
+      "action_dim": 23,
+      "observation_dim": 90,
+      "joints": 27,
+      "mimic": 4,
+      "urdf_urls": [
+        "http://127.0.0.1:8875/urdf/q1_inertia/quanta_robot_wheeled.urdf"
+      ],
+      "mass_kg": 41.05226135253906,
+      "models": {},
+      "page_errors": []
+    },
+    "runtime": {
+      "machine": "aarch64",
+      "packages": {
+        "torch": "2.9.0+cu130",
+        "isaacsim": "5.1.0.0",
+        "isaaclab": "0.54.4",
+        "rsl-rl-lib": "5.0.1"
+      },
+      "cuda_devices": [
+        {
+          "index": 0,
+          "name": "NVIDIA GB10",
+          "compute_capability": [
+            12,
+            1
+          ],
+          "math_finite": true,
+          "matmul_correct": true,
+          "math_pass": true
+        }
+      ],
+      "pass": true
+    },
+    "motion_convergence_validated": false,
+    "note": "Early 1024-env PPO is running and model_100 is synchronized to Web. Formal skill validation remains scheduled after each 1000-update chunk; the full training plan is unfinished."
   }
 }
