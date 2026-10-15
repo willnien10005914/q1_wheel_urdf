@@ -1,0 +1,29 @@
+{
+  "task": "Isaac-Q1-Inertia-Skate-v0",
+  "manager_based": true,
+  "action_dim": 23,
+  "actor_obs_dim": 78,
+  "critic_obs_dim": 81,
+  "training": {
+    "iterations": 20,
+    "num_envs": 64,
+    "steps_per_env": 24,
+    "seed": 42,
+    "status": "training_smoke_only_not_converged"
+  },
+  "checkpoint_sha256": {
+    "model_19.pt": "fa5fa39c52b61d2ba7db0fa47c79dc3d90b78df55cf08e6aa2f5812b22a11668"
+  },
+  "web_default": false,
+  "report": "docs/training/spark_inertia_2026-10-15.md",
+  "replay_source_sha256": {
+    "scripts/reinforcement_learning/rsl_rl/runtime_compat.py": "a38a848388551989a700f1f7db0ce4b7bfaa54571ede7be1123007cb9a271a6c",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/actuators/cubemars.py": "319720db20ca5de9bcba89b39968f1170065d5fedc185145359aafa482037b37",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/assets/q1_inertia.py": "c22d22a7a3ccd33214fdacebe41a9c20851f0d1b18a2171103558ad8bb8aac30",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/mdp.py": "ce39a8e4f6ef93ebd682ab4f13ab88164de0b86ffe4c12174c5effbd71c2bf73",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/inertia_env_cfg.py": "7b53086df18f09b4c77a5a0cfdc641c0eb41cac7485bda83be60ca1d567443e2",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/__init__.py": "7fabb2f15af7d560b848d738375882a8f2c17debdaf901905dd7e5db3464d322",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/agents/rsl_rl_ppo_cfg.py": "02895a0b68e103e787880f87c8a768a6a0e42c201636d920421b454de3325964",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/agents/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

@@ -19,8 +19,9 @@ from wheel_humanoid_lab.tasks.manager_based.recovery_v3.runner_cfg import Q1Reco
 from wheel_humanoid_lab.tasks.manager_based.recovery_v3 import mdp
 from wheel_humanoid_lab.tasks.manager_based.skate.mdp.actions import RollerMimicActionCfg
 from isaaclab.managers import RewardTermCfg
-from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper,handle_deprecated_rsl_rl_cfg
+from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper
 from rsl_rl.runners import OnPolicyRunner
+from runtime_compat import runner_cfg, load_checkpoint, policy_module, reset_noise_std
 from isaaclab.utils.io import dump_yaml
 from importlib.metadata import version
 bank=json.loads(Path(args.bank).read_text());states=bank['states']
@@ -70,23 +71,25 @@ if args.landing_direct:
     cfg.terminations.escaped.func=fallen_or_escape
 log=ROOT/'logs/unbox_transfer'/(time.strftime('%Y-%m-%d_%H-%M-%S')+'_'+args.run_name);log.mkdir(parents=True)
 env=gym.make('Isaac-Q1-RecoveryV3-BootKneel-v0',cfg=cfg);wrapped=RslRlVecEnvWrapper(env,clip_actions=None)
-agent=Q1RecoveryV3BootKneelPPORunnerCfg();handle_deprecated_rsl_rl_cfg(agent,version('rsl-rl-lib'))
+agent=Q1RecoveryV3BootKneelPPORunnerCfg()
 agent.max_iterations=args.iterations;agent.save_interval=args.save_interval;agent.device=cfg.sim.device
 agent.algorithm.learning_rate=args.learning_rate
 if args.fixed_learning_rate:agent.algorithm.schedule='fixed'
-runner=OnPolicyRunner(wrapped,agent.to_dict(),log_dir=str(log),device=cfg.sim.device)
+runner=OnPolicyRunner(wrapped,runner_cfg(agent),log_dir=str(log),device=cfg.sim.device)
 checkpoint=Path(args.checkpoint)
 if not checkpoint.is_absolute():checkpoint=ROOT/checkpoint
-runner.load(str(checkpoint),load_cfg={'actor':True,'critic':True,'optimizer':False,'iteration':False})
+load_checkpoint(runner,checkpoint,load_iteration=False)
 runner.current_learning_iteration=0
 with torch.no_grad():
-    runner.alg.actor.distribution.std_param.fill_(args.noise_std if args.noise_std is not None else (.15 if args.landing_direct else .08))
-    runner.alg.actor.mlp[-1].weight.mul_(args.head_scale)
-    runner.alg.actor.mlp[-1].bias.mul_(args.head_scale)
+    reset_noise_std(runner, args.noise_std if args.noise_std is not None else (.15 if args.landing_direct else .08))
+    actor=policy_module(runner)
+    mlp=actor.mlp if hasattr(actor,'mlp') else actor.actor
+    mlp[-1].weight.mul_(args.head_scale)
+    mlp[-1].bias.mul_(args.head_scale)
 dump_yaml(str(log/'agent.yaml'),agent)
 (log/'manifest.json').write_text(json.dumps({'args':vars(args),'bank_sha256':hashlib.sha256(Path(args.bank).read_bytes()).hexdigest(),
     'resume_sha256':hashlib.sha256(checkpoint.read_bytes()).hexdigest(),'controller_sha256':hashlib.sha256(Path(mdp.__file__).read_bytes()).hexdigest()},indent=2))
 print('TRANSFER_RUN_DIR',str(log),flush=True)
 runner.learn(num_learning_iterations=args.iterations,init_at_random_ep_len=False)
-(log/'completed.json').write_text(json.dumps({'iterations':args.iterations,'finite':all(torch.isfinite(p).all().item() for p in runner.alg.actor.parameters())}))
+(log/'completed.json').write_text(json.dumps({'iterations':args.iterations,'finite':all(torch.isfinite(p).all().item() for p in policy_module(runner).parameters())}))
 env.close();app.close()

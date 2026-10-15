@@ -1,0 +1,28 @@
+{
+  "task": "Isaac-Q1-Skate-v0",
+  "manager_based": true,
+  "action_dim": 24,
+  "actor_obs_dim": 92,
+  "critic_obs_dim": 102,
+  "training": {
+    "iterations": 10,
+    "num_envs": 64,
+    "steps_per_env": 24,
+    "seed": 42,
+    "learning_rate": 1e-06,
+    "schedule": "fixed",
+    "reset_noise_std": 0.03,
+    "freeze_obs_normalization": true,
+    "warm_start": "checkpoints/q1_skate_ppo.pt",
+    "status": "isolated_validation_candidate"
+  },
+  "checkpoint_sha256": {
+    "model_20008.pt": "307475b29bfce6871ee610d73553d61b8c0b732bf9692fae5f023a716c0f536f"
+  },
+  "web_default": false,
+  "report": "docs/training/spark_inertia_2026-10-15.md",
+  "replay_source_sha256": {
+    "scripts/reinforcement_learning/rsl_rl/runtime_compat.py": "a38a848388551989a700f1f7db0ce4b7bfaa54571ede7be1123007cb9a271a6c",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/actuators/cubemars.py": "319720db20ca5de9bcba89b39968f1170065d5fedc185145359aafa482037b37"
+  }
+}

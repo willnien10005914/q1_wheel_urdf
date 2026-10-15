@@ -2,17 +2,14 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
-source "$HOME/isaac/env_isaaclab/bin/activate"
+source "$ROOT/scripts/isaac_env.sh"
 export PYTHONPATH="$ROOT/source/wheel_humanoid_lab:${PYTHONPATH:-}"
 export WHEEL_HUMANOID_ROOT="$ROOT"
 export OMNI_KIT_ACCEPT_EULA=YES ACCEPT_EULA=Y PRIVACY_CONSENT=Y
-export VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/nvidia_icd.json
-export __NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia __VK_LAYER_NV_optimus=NVIDIA_only
 
 CKPT="$ROOT/logs/rsl_rl/q1_recovery_contact_v3/2026-09-29_20-43-53_v3_smooth_arms_full_4096/model_19999.pt"
 echo "CKPT=$CKPT"
 test -f "$CKPT"
-python -m pip install -e source/wheel_humanoid_lab -q
 
 find_success() {
   local mode=$1; shift

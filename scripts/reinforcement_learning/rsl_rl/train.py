@@ -19,6 +19,9 @@ parser.add_argument(
     "--agent", type=str, default="rsl_rl_cfg_entry_point", help="Name of the RL agent configuration entry point."
 )
 parser.add_argument("--seed", type=int, default=None, help="Seed used for the environment")
+parser.add_argument("--no_publish_checkpoint", "--no-publish", action="store_true", help="Keep run checkpoints without replacing stable skill checkpoints.")
+parser.add_argument("--freeze_obs_normalization", "--freeze-obs-normalization", action="store_true",
+                    help="Keep checkpoint observation mean/std fixed during training; normalization remains enabled.")
 parser.add_argument("--max_iterations", type=int, default=None, help="RL Policy training iterations.")
 parser.add_argument(
     "--distributed", action="store_true", default=False, help="Run training with multiple GPUs or nodes."
@@ -69,6 +72,7 @@ from glob import glob
 import gymnasium as gym
 import torch
 from rsl_rl.runners import DistillationRunner, OnPolicyRunner
+from runtime_compat import runner_cfg, load_checkpoint, policy_module, reset_noise_std, freeze_observation_normalizers
 
 from isaaclab.envs import (
     DirectMARLEnv,
@@ -113,6 +117,8 @@ def _stable_checkpoint_name(task: str) -> str:
         return "q1_posture_ppo.pt"
     if "Q1-Slide" in task:
         return "q1_slide_ppo.pt"
+    if "Q1-Inertia" in task:
+        return "q1_inertia_skate_ppo.pt"
     if "Q1-Skate" in task:
         return "q1_skate_ppo.pt"
     return "skateboard_ppo.pt"
@@ -143,6 +149,8 @@ def _copy_final_checkpoint(log_dir: str, task: str) -> None:
 @hydra_task_config(args_cli.task, args_cli.agent)
 def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agent_cfg: RslRlBaseRunnerCfg):
     """Train with RSL-RL agent."""
+    if not isinstance(env_cfg, ManagerBasedRLEnvCfg):
+        raise TypeError("Q1 PPO training requires a ManagerBasedRLEnvCfg (manager mode).")
     agent_cfg = cli_args.update_rsl_rl_cfg(agent_cfg, args_cli)
     env_cfg.scene.num_envs = args_cli.num_envs if args_cli.num_envs is not None else env_cfg.scene.num_envs
     agent_cfg.max_iterations = (
@@ -161,6 +169,7 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
 
     env_cfg.seed = agent_cfg.seed
     env_cfg.sim.device = args_cli.device if args_cli.device is not None else env_cfg.sim.device
+    agent_cfg.device = env_cfg.sim.device
     if args_cli.distributed and args_cli.device is not None and "cpu" in args_cli.device:
         raise ValueError("Distributed training is not supported when using CPU device.")
 
@@ -211,13 +220,11 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     start_time = time.time()
     env = RslRlVecEnvWrapper(env, clip_actions=agent_cfg.clip_actions)
 
-    from importlib.metadata import version as _pkg_version
-    from isaaclab_rl.rsl_rl import handle_deprecated_rsl_rl_cfg
-    handle_deprecated_rsl_rl_cfg(agent_cfg, _pkg_version("rsl-rl-lib"))
+    agent_dict = runner_cfg(agent_cfg)
     if agent_cfg.class_name == "OnPolicyRunner":
-        runner = OnPolicyRunner(env, agent_cfg.to_dict(), log_dir=log_dir, device=agent_cfg.device)
+        runner = OnPolicyRunner(env, agent_dict, log_dir=log_dir, device=agent_cfg.device)
     elif agent_cfg.class_name == "DistillationRunner":
-        runner = DistillationRunner(env, agent_cfg.to_dict(), log_dir=log_dir, device=agent_cfg.device)
+        runner = DistillationRunner(env, agent_dict, log_dir=log_dir, device=agent_cfg.device)
     else:
         raise ValueError(f"Unsupported runner class: {agent_cfg.class_name}")
     # Recovery v3 starts from a physically tested motor controller. A zero residual
@@ -225,7 +232,9 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     # separately. Resumed policies must retain their learned output layer.
     if args_cli.task.startswith("Isaac-Q1-RecoveryV3") and not agent_cfg.resume:
         # rsl-rl 5.x: PPO actor is runner.alg.actor / get_policy()
-        actor = runner.alg.get_policy() if hasattr(runner.alg, "get_policy") else runner.alg.actor
+        actor = policy_module(runner)
+        if hasattr(actor, "actor"):
+            actor = actor.actor
         mlp = actor.mlp if hasattr(actor, "mlp") else actor
         linear_layers = [m for m in mlp.modules() if isinstance(m, torch.nn.Linear)]
         with torch.no_grad():
@@ -237,16 +246,15 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     if agent_cfg.resume or agent_cfg.algorithm.class_name == "Distillation":
         print(f"[INFO]: Loading model checkpoint from: {resume_path}")
         reset_std = os.environ.get("RESET_NOISE_STD", "").strip()
-        runner.load(resume_path, load_optimizer=not bool(reset_std))
+        load_checkpoint(runner, resume_path, load_optimizer=not bool(reset_std))
         if reset_std:
             std = float(reset_std)
-            policy = runner.alg.get_policy() if hasattr(runner.alg, "get_policy") else runner.alg.actor
-            with torch.no_grad():
-                if hasattr(policy, "std"):
-                    policy.std.fill_(std)
-                elif hasattr(policy, "log_std"):
-                    policy.log_std.fill_(torch.log(torch.tensor(std, device=policy.log_std.device)))
+            reset_noise_std(runner, std)
             print(f"[INFO] Reset policy noise std to {std}; optimizer state was not loaded.")
+
+    if args_cli.freeze_obs_normalization:
+        frozen = freeze_observation_normalizers(runner)
+        print(f"[INFO] Frozen observation statistics ({len(frozen)}): {', '.join(frozen) or 'normalization disabled'}")
 
     dump_yaml(os.path.join(log_dir, "params", "env.yaml"), env_cfg)
     dump_yaml(os.path.join(log_dir, "params", "agent.yaml"), agent_cfg)
@@ -272,14 +280,16 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
 
     def _save_and_publish(*args, **kwargs):
         out = _orig_save(*args, **kwargs)
-        _copy_final_checkpoint(log_dir, args_cli.task)
+        if not args_cli.no_publish_checkpoint:
+            _copy_final_checkpoint(log_dir, args_cli.task)
         return out
 
     runner.save = _save_and_publish
 
     runner.learn(num_learning_iterations=agent_cfg.max_iterations, init_at_random_ep_len=not getattr(env.unwrapped.cfg, "reference_phase_resets", False))
     print(f"Training time: {round(time.time() - start_time, 2)} seconds")
-    _copy_final_checkpoint(log_dir, args_cli.task)
+    if not args_cli.no_publish_checkpoint:
+        _copy_final_checkpoint(log_dir, args_cli.task)
     env.close()
 
 

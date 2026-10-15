@@ -2,12 +2,10 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
-source "$HOME/isaac/env_isaaclab/bin/activate"
+source "$ROOT/scripts/isaac_env.sh"
 export PYTHONPATH="$ROOT/source/wheel_humanoid_lab:${PYTHONPATH:-}"
 export WHEEL_HUMANOID_ROOT="$ROOT"
 export OMNI_KIT_ACCEPT_EULA=YES ACCEPT_EULA=Y PRIVACY_CONSENT=Y
-export VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/nvidia_icd.json
-export __NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia __VK_LAYER_NV_optimus=NVIDIA_only
 
 TRAIN_LOG="$ROOT/logs/train_recovery_v3_smooth_arms.log"
 TRAIN_PID_FILE="$ROOT/logs/train_recovery_v3_smooth_arms.pid"
@@ -34,7 +32,6 @@ CKPT="$RUN_DIR/model_19999.pt"
 echo "USING CKPT=$CKPT"
 test -f "$CKPT"
 
-python -m pip install -e source/wheel_humanoid_lab -q
 mkdir -p logs/recovery_v3_smooth_arms_ppo_evaluation \
   docs/reference/review_recovery_v3/smooth_arms_supine \
   docs/reference/review_recovery_v3/smooth_arms_prone

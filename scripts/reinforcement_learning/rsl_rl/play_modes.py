@@ -23,6 +23,7 @@ import re
 
 import torch
 from rsl_rl.runners import OnPolicyRunner
+from runtime_compat import runner_cfg, load_checkpoint, policy_module, policy_observations
 
 from wheel_humanoid_lab.tasks.manager_based.unbox.unbox_env_cfg import LIE_POSE, UNBOX_POS_ACTION_SCALE
 from wheel_humanoid_lab.tasks.manager_based.posture.posture_env_cfg import POSTURE_POS_ACTION_SCALE
@@ -67,23 +68,23 @@ class LoadedPolicy:
         if self.policy is not None and mtime <= self.mtime:
             return False
         if self.runner is None:
-            self.runner = OnPolicyRunner(self._env, self._agent_cfg.to_dict(), log_dir=None, device=self.device)
+            self.runner = OnPolicyRunner(self._env, runner_cfg(self._agent_cfg), log_dir=None, device=self.device)
         try:
-            self.runner.load(self.path)
+            load_checkpoint(self.runner, self.path)
         except Exception as exc:  # partially written file while training is copying it
             print(f"[WARN] could not load {self.path}: {exc}")
             return False
         self.policy = self.runner.get_inference_policy(device=self.device)
-        try:
-            self.nn = self.runner.alg.policy
-        except AttributeError:
-            self.nn = self.runner.alg.actor_critic
+        self.nn = policy_module(self.runner)
         self.mtime = mtime
         return True
 
     def reset(self, mask: torch.Tensor | None = None) -> None:
         if self.nn is not None and hasattr(self.nn, "reset"):
             self.nn.reset(mask)
+
+    def act(self, obs) -> torch.Tensor:
+        return self.policy(policy_observations(obs))
 
 
 class WanderCommand:
@@ -352,7 +353,7 @@ class ModeController:
             if not torch.is_tensor(policy_obs):
                 policy_obs = obs["policy"]
             policy_obs[:, GETUP_PHASE_INDEX] = min(self._unbox_t / 6.0, 1.0)
-            actions = pol.policy(obs)
+            actions = pol.act(obs)
             a_pos = actions[:, : len(self.pos_joint_names)]
             targets = self.default_pos + self.unbox_scale * a_pos
             self.processed_override = torch.maximum(torch.minimum(targets, self.unbox_hi), self.unbox_lo)
@@ -363,7 +364,7 @@ class ModeController:
             if not torch.is_tensor(policy_obs):
                 policy_obs = obs["policy"]
             policy_obs[:, POSTURE_OBS_INDEX] = self.posture_target
-            actions = pol.policy(obs)
+            actions = pol.act(obs)
             a_pos = actions[:, : len(self.pos_joint_names)]
             targets = self.default_pos + self.posture_scale * a_pos
             self.processed_override = torch.maximum(torch.minimum(targets, self.posture_hi), self.posture_lo)
@@ -371,7 +372,7 @@ class ModeController:
             return actions
         self.processed_override = None
         self.processed_wheel = None
-        return pol.policy(obs)
+        return pol.act(obs)
 
     def after_step(self, dones: torch.Tensor) -> str | None:
         """Posture -> skate handover once the robot is back in the skate pose and still."""

@@ -53,3 +53,9 @@ checkpoints/*_rslrl5.pt
 !checkpoints/unbox_landing_continue/**
 !checkpoints/unbox_linkage_120/
 !checkpoints/unbox_linkage_120/**
+
+# Isolated integration smoke models and their validation provenance.
+!checkpoints/inertia_native_smoke/
+!checkpoints/inertia_native_smoke/**
+!checkpoints/spark_smoke/
+!checkpoints/spark_smoke/**

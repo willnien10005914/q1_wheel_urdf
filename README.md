@@ -1,5 +1,7 @@
 # Q1 Wheel（BI2 Wheel）URDF + Isaac Lab PPO
 
+2026-10-15：整合 DGX Spark 顯示、pip／binary Isaac Sim 啟動與 RSL-RL 3／5 權重相容；保留既有 Web 起身／後翻技能。新增 BU10 最新輪式 URDF 的獨立 **Manager-based** PPO 任務。操作方式與實測結果見 [Spark／新版 URDF 整合紀錄](docs/training/spark_inertia_2026-10-15.md)。
+
 2026-10-12：新增後翻收臂模型、實際落地姿態 Unbox 微調與四種正反躺 recovery 測試按鈕。最新驗證與模型來源見 [整合訓練紀錄](docs/training/README.md)。
 
 廣達 Q1 / BI2 輪式人形：約 1.4 m、**40 kg**、24 顆 CubeMars 準直驅關節、雙 Ø200 mm 驅動輪、骨盆 Xsens MTi-630 IMU。在 Isaac Lab（Isaac Sim 5.1 / PhysX、RSL-RL PPO）訓練站立滑行、側滑、蹲跪／站起，以及正躺／趴躺起身。
@@ -15,6 +17,16 @@
 - Ubuntu 22.04 / 24.04，NVIDIA 驅動可用
 - 已安裝 [Isaac Lab 2.3](https://isaac-sim.github.io/IsaacLab/)（預設路徑 `~/isaac/IsaacLab`，venv `~/isaac/env_isaaclab`）
 - Git、curl、Python ≥ 3.10
+
+Spark（aarch64）與 RTX 桌機（x86_64）共用啟動器，會自動尋找現有 Isaac runtime 與可用的 X display（包括 Spark 的 `:1`）。如需指定安裝位置：
+
+```bash
+export ISAACLAB_PATH="$HOME/IsaacLab"
+export ISAAC_PYTHON="$HOME/env_isaaclab/bin/python"  # pip 安裝，或指定 binary 的 python.sh
+./run_isaac.sh tools/check_runtime.py --out outputs/runtime.json
+```
+
+請使用適合各平台／GPU 的 Isaac Sim、PyTorch CUDA 安裝。GB10 已在本機實測；RTX 4090／5080／5090 使用同一程式入口，硬體實測範圍與版本資訊詳見整合紀錄。
 
 ### 2. 一鍵安裝（uv）
 

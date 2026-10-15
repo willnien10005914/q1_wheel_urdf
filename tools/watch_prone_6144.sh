@@ -3,7 +3,7 @@
 # The in-flight sequential job still has NUM_ENVS=4096 exported; this watcher
 # intercepts a 4096 prone launch (or a gap with no train) and starts 6144.
 set -uo pipefail
-ROOT=/home/will/projects/q1_wheel_urdf
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 LOG=logs/train_recovery_v3_prone_6144_watch.log
 mkdir -p logs

@@ -14,10 +14,11 @@ from typing import Any
 import torch
 from tensordict import TensorDict
 
-try:
-    from rsl_rl.modules import ActorCritic  # rsl-rl < 5
-except ImportError:  # pragma: no cover - rsl-rl >= 5 removed ActorCritic
-    ActorCritic = None  # type: ignore
+# Share the same checkpoint reader used by the web skill orchestrator.
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+from skills.policy import FrozenActor
 
 from wheel_humanoid_lab.tasks.manager_based.recovery_v3 import mdp as recovery_mdp
 
@@ -49,35 +50,10 @@ def _default_checkpoint(project_root: str, mode: int | None = None) -> str:
 
 
 def load_recovery_actor(checkpoint: str, device: str):
-    if ActorCritic is None:
-        raise RuntimeError("rsl-rl >= 5 removed ActorCritic; use evaluate_recovery_v3 / converted MLPModel load instead")
-
-    obs = TensorDict(
-        {
-            "policy": torch.zeros(1, RECOVERY_ACTOR_OBS, device=device),
-            "critic": torch.zeros(1, RECOVERY_CRITIC_OBS, device=device),
-        },
-        batch_size=[1],
-        device=device,
-    )
-    ac = ActorCritic(
-        obs,
-        obs_groups={"policy": ["policy"], "critic": ["critic"]},
-        num_actions=RECOVERY_ACTIONS,
-        actor_hidden_dims=[512, 256, 128],
-        critic_hidden_dims=[512, 256, 128],
-        activation="elu",
-        actor_obs_normalization=True,
-        critic_obs_normalization=True,
-        init_noise_std=0.05,
-        noise_std_type="scalar",
-    )
-    payload = torch.load(checkpoint, map_location=device, weights_only=False)
-    state = payload["model_state_dict"] if isinstance(payload, dict) and "model_state_dict" in payload else payload
-    ac.load_state_dict(state)
-    ac.to(device)
-    ac.eval()
-    return ac
+    actor = FrozenActor(checkpoint, device)
+    if actor.input_dim != RECOVERY_ACTOR_OBS:
+        raise ValueError(f"Recovery policy requires {RECOVERY_ACTOR_OBS} observations; got {actor.input_dim}")
+    return actor
 
 
 def _policy_tensor(obs: Any) -> torch.Tensor:
@@ -105,10 +81,10 @@ class RecoveryV3PlayBridge:
         self.env = env.unwrapped
         self.device = device
         self.checkpoint = checkpoint
-        self.policy: ActorCritic | None = None
-        self.mixed_policy: ActorCritic | None = None
+        self.policy: FrozenActor | None = None
+        self.mixed_policy: FrozenActor | None = None
         self.mixed_checkpoint: str | None = None
-        self.policies: dict[int, ActorCritic] = {}
+        self.policies: dict[int, FrozenActor] = {}
         self.checkpoints: dict[int, str] = {}
         self.available = False
         project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
@@ -168,7 +144,7 @@ class RecoveryV3PlayBridge:
         self._arm_action_ids = [i for i, n in enumerate(names) if ("shoulder" in n or "elbow" in n)]
         self._hip_roll_action_ids = [i for i, n in enumerate(names) if "hip_roll" in n]
 
-    def _active_policy(self) -> ActorCritic | None:
+    def _active_policy(self) -> FrozenActor | None:
         """Use orientation-specific split PPO; only fall back to mixed, never the other mode."""
         if self.lie_mode in self.policies:
             return self.policies[self.lie_mode]

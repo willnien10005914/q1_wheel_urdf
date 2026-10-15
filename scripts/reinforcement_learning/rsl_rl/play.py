@@ -97,6 +97,7 @@ import weakref
 import gymnasium as gym
 import torch
 from rsl_rl.runners import DistillationRunner, OnPolicyRunner
+from runtime_compat import runner_cfg, load_checkpoint, policy_module, export_policy
 
 from isaaclab.envs import (
     DirectMARLEnv,
@@ -563,6 +564,7 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     env_cfg.scene.num_envs = args_cli.num_envs if args_cli.num_envs is not None else env_cfg.scene.num_envs
     env_cfg.seed = agent_cfg.seed
     env_cfg.sim.device = args_cli.device if args_cli.device is not None else env_cfg.sim.device
+    agent_cfg.device = env_cfg.sim.device
 
     log_root_path = os.path.join("logs", "rsl_rl", agent_cfg.experiment_name)
     log_root_path = os.path.abspath(log_root_path)
@@ -604,47 +606,20 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     env = RslRlVecEnvWrapper(env, clip_actions=agent_cfg.clip_actions)
 
     print(f"[INFO]: Loading model checkpoint from: {resume_path}")
-    from importlib.metadata import version as _pkg_version
-    from isaaclab_rl.rsl_rl import handle_deprecated_rsl_rl_cfg
-    from pathlib import Path as _P
-    import sys as _sys
-    _sys.path.insert(0, str(_P(__file__).resolve().parents[3] / "tools"))
-    from convert_rslrl5_checkpoint import convert as _convert_ckpt
-    _ver = _pkg_version("rsl-rl-lib")
-    handle_deprecated_rsl_rl_cfg(agent_cfg, _ver)
-    resume_path = str(_convert_ckpt(_P(resume_path)))
+    agent_dict = runner_cfg(agent_cfg)
     if agent_cfg.class_name == "OnPolicyRunner":
-        runner = OnPolicyRunner(env, agent_cfg.to_dict(), log_dir=None, device=agent_cfg.device)
+        runner = OnPolicyRunner(env, agent_dict, log_dir=None, device=agent_cfg.device)
     elif agent_cfg.class_name == "DistillationRunner":
-        runner = DistillationRunner(env, agent_cfg.to_dict(), log_dir=None, device=agent_cfg.device)
+        runner = DistillationRunner(env, agent_dict, log_dir=None, device=agent_cfg.device)
     else:
         raise ValueError(f"Unsupported runner class: {agent_cfg.class_name}")
-    runner.load(resume_path)
+    load_checkpoint(runner, resume_path)
     policy = runner.get_inference_policy(device=env.unwrapped.device)
 
-    # rsl-rl >= 5: PPO exposes actor/critic via get_policy(); older builds used .policy / .actor_critic.
-    if hasattr(runner.alg, "get_policy"):
-        policy_nn = runner.alg.get_policy()
-    elif hasattr(runner.alg, "actor"):
-        policy_nn = runner.alg.actor
-    elif hasattr(runner.alg, "policy"):
-        policy_nn = runner.alg.policy
-    else:
-        policy_nn = getattr(runner.alg, "actor_critic", None)
-
-    if hasattr(policy_nn, "actor_obs_normalizer"):
-        normalizer = policy_nn.actor_obs_normalizer
-    elif hasattr(policy_nn, "obs_normalizer"):
-        normalizer = policy_nn.obs_normalizer
-    elif hasattr(policy_nn, "student_obs_normalizer"):
-        normalizer = policy_nn.student_obs_normalizer
-    else:
-        normalizer = None
-
+    policy_nn = policy_module(runner)
     export_model_dir = os.path.join(os.path.dirname(resume_path), "exported")
     try:
-        export_policy_as_jit(policy_nn, normalizer=normalizer, path=export_model_dir, filename="policy.pt")
-        export_policy_as_onnx(policy_nn, normalizer=normalizer, path=export_model_dir, filename="policy.onnx")
+        export_policy(runner, export_model_dir)
         print(f"[INFO] Exported JIT/ONNX policies to: {export_model_dir}")
     except Exception as exc:
         print(f"[WARN] Policy export skipped ({exc})")

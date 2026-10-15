@@ -24,6 +24,7 @@ class FrozenActor(nn.Module):
             layers.append(layer)
         self.mlp=nn.Sequential(*layers)
         self.input_dim=weights[0][1].shape[1]
+        self.has_normalizer=normal+'_mean' in state
         self.register_buffer('mean',state.get(normal+'_mean',torch.zeros(1,self.input_dim,device=device)))
         self.register_buffer('std',state.get(normal+'_std',torch.ones(1,self.input_dim,device=device)))
         self.eval().requires_grad_(False)
@@ -33,4 +34,11 @@ class FrozenActor(nn.Module):
         if obs.shape[-1]!=self.input_dim:raise ValueError(f'Expected {self.input_dim} observations; got {obs.shape[-1]}')
         # rsl-rl EmpiricalNormalization default epsilon is 0.01. Matching it
         # matters especially for the near-constant gripper/neck channels.
-        return self.mlp((obs-self.mean)/(self.std+.01))
+        return self.mlp((obs-self.mean)/(self.std+.01) if self.has_normalizer else obs)
+
+    def act_inference(self, obs):
+        """Legacy recovery bridge inference interface."""
+        return self(obs if torch.is_tensor(obs) else obs["policy"])
+
+    def reset(self, mask=None):
+        """MLP policies have no recurrent state."""

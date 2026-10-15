@@ -1,0 +1,1002 @@
+{
+  "date_utc": "2026-10-15",
+  "baseline_revision": "5ded8ed0f8f0c508234f74a23b4aa8943cbc363b",
+  "local_spark_revision": "9ba86a7",
+  "checks": {
+    "merged_vs_baseline_metrics": {
+      "pass": true,
+      "failures": [],
+      "thresholds": {
+        "observation": 0.1,
+        "action": 0.05,
+        "reward": 0.1,
+        "height": 0.02,
+        "position": 0.1,
+        "gravity": 0.05,
+        "command": 1e-06,
+        "termination_count": 0
+      },
+      "checkpoint_change_allowed": false,
+      "metrics": {
+        "observation": {
+          "rmse": 0.0,
+          "max_abs": 0.0,
+          "relative_rmse": 0.0
+        },
+        "action": {
+          "rmse": 0.0,
+          "max_abs": 0.0,
+          "relative_rmse": 0.0
+        },
+        "reward": {
+          "rmse": 0.0,
+          "max_abs": 0.0,
+          "relative_rmse": 0.0
+        },
+        "height": {
+          "rmse": 0.0,
+          "max_abs": 0.0,
+          "relative_rmse": 0.0
+        },
+        "position": {
+          "rmse": 0.0,
+          "max_abs": 0.0,
+          "relative_rmse": 0.0
+        },
+        "gravity": {
+          "rmse": 0.0,
+          "max_abs": 0.0,
+          "relative_rmse": 0.0
+        },
+        "command": {
+          "rmse": 0.0,
+          "max_abs": 0.0,
+          "relative_rmse": 0.0
+        },
+        "done": {
+          "baseline_count": 0.0,
+          "candidate_count": 0.0,
+          "count_delta": 0.0,
+          "step_mismatches": 0
+        },
+        "terminated": {
+          "baseline_count": 0.0,
+          "candidate_count": 0.0,
+          "count_delta": 0.0,
+          "step_mismatches": 0
+        },
+        "truncated": {
+          "baseline_count": 0.0,
+          "candidate_count": 0.0,
+          "count_delta": 0.0,
+          "step_mismatches": 0
+        }
+      }
+    },
+    "tuned_vs_stable_metrics": {
+      "pass": false,
+      "failures": [
+        "observation rmse 0.600134 > 0.1",
+        "action rmse 0.386752 > 0.05",
+        "reward relative_rmse 0.128971 > 0.1",
+        "position rmse 0.368225 > 0.1"
+      ],
+      "thresholds": {
+        "observation": 0.1,
+        "action": 0.05,
+        "reward": 0.1,
+        "height": 0.02,
+        "position": 0.1,
+        "gravity": 0.05,
+        "command": 1e-06,
+        "termination_count": 0
+      },
+      "checkpoint_change_allowed": true,
+      "metrics": {
+        "observation": {
+          "rmse": 0.6001343489194085,
+          "max_abs": 9.010633826255798,
+          "relative_rmse": 0.7062599074575795
+        },
+        "action": {
+          "rmse": 0.38675182035518973,
+          "max_abs": 2.2781327962875366,
+          "relative_rmse": 0.4464655624556568
+        },
+        "reward": {
+          "rmse": 0.022601613036206385,
+          "max_abs": 0.05116559565067291,
+          "relative_rmse": 0.12897087731966644
+        },
+        "height": {
+          "rmse": 0.003386286789432183,
+          "max_abs": 0.007702231407165527,
+          "relative_rmse": 0.004504931469887328
+        },
+        "position": {
+          "rmse": 0.36822489635443606,
+          "max_abs": 1.0001401901245117,
+          "relative_rmse": 0.3979925323775426
+        },
+        "gravity": {
+          "rmse": 0.022118472209365546,
+          "max_abs": 0.09452435374259949,
+          "relative_rmse": 0.038310317555121355
+        },
+        "command": {
+          "rmse": 0.0,
+          "max_abs": 0.0,
+          "relative_rmse": 0.0
+        },
+        "done": {
+          "baseline_count": 0.0,
+          "candidate_count": 0.0,
+          "count_delta": 0.0,
+          "step_mismatches": 0
+        },
+        "terminated": {
+          "baseline_count": 0.0,
+          "candidate_count": 0.0,
+          "count_delta": 0.0,
+          "step_mismatches": 0
+        },
+        "truncated": {
+          "baseline_count": 0.0,
+          "candidate_count": 0.0,
+          "count_delta": 0.0,
+          "step_mismatches": 0
+        }
+      }
+    },
+    "tuned_policy_same_observations_metrics": {
+      "pass": true,
+      "reference": "outputs/integration/merged_skate.json",
+      "observations": 300,
+      "observation_dim": 92,
+      "action_dim": 24,
+      "baseline_checkpoint_sha256": "0b36ba0a1a9198e89109a886b2812705c9bfbd2b3c8f98ea56ad3dbfa2252db0",
+      "candidate_checkpoint_sha256": "e4647ebb72f9d85d607da5f62d93f1ecc139e3007c17e9005985bd0605c52be5",
+      "max_action_rmse": 0.05,
+      "action": {
+        "rmse": 0.005228441420464909,
+        "max_abs": 0.03914184868335724,
+        "relative_rmse": 0.006035702739278828,
+        "mean_abs": 0.0041078622452914715
+      },
+      "inference": "FrozenActor, CPU, identical reference policy observations"
+    },
+    "skill_regression_metrics": {
+      "boot": {
+        "pass": true,
+        "full_trace_equal": true,
+        "baseline_successes": 4,
+        "merged_successes": 4,
+        "trials": 4,
+        "stable_at_end": 4,
+        "hold_seconds": [
+          21.100292205810547,
+          21.080291748046875,
+          21.100292205810547,
+          21.080291748046875
+        ]
+      },
+      "backflip": {
+        "pass": true,
+        "equal_except_absolute_checkpoint_paths": true,
+        "baseline_successes": 2,
+        "merged_successes": 2,
+        "trials": 2,
+        "actual_web_controller": true,
+        "seeds": [
+          4107,
+          5107
+        ],
+        "arm_errors_rad": [
+          0.06213345006108284,
+          0.055053263902664185
+        ],
+        "hold_seconds": [
+          2.019998788833618,
+          2.019998788833618
+        ]
+      }
+    },
+    "rollout_physical_summary": {
+      "baseline_skate": {
+        "captured_steps": 300,
+        "nominal_duration_s": 6.0,
+        "delta_sample_interval_s": 5.98,
+        "mean_reward": 0.17382180206477643,
+        "min_height_m": 0.7368921041488647,
+        "max_height_m": 0.8485168218612671,
+        "mean_height_m": 0.7515675379832586,
+        "delta_x_m": 2.05165793991182,
+        "delta_y_m": -0.2812943941898993,
+        "mean_velocity_x_mps": 0.3430866120253879,
+        "mean_velocity_y_mps": -0.04703919635282597,
+        "mean_tilt_rad": 0.042050232067579976,
+        "max_tilt_rad": 0.10284330649717718,
+        "done_count": 0.0,
+        "root_xy_path_length_m": 2.1057569217464938
+      },
+      "merged_skate": {
+        "captured_steps": 300,
+        "nominal_duration_s": 6.0,
+        "delta_sample_interval_s": 5.98,
+        "mean_reward": 0.17382180206477643,
+        "min_height_m": 0.7368921041488647,
+        "max_height_m": 0.8485168218612671,
+        "mean_height_m": 0.7515675379832586,
+        "delta_x_m": 2.05165793991182,
+        "delta_y_m": -0.2812943941898993,
+        "mean_velocity_x_mps": 0.3430866120253879,
+        "mean_velocity_y_mps": -0.04703919635282597,
+        "mean_tilt_rad": 0.042050232067579976,
+        "max_tilt_rad": 0.10284330649717718,
+        "done_count": 0.0,
+        "root_xy_path_length_m": 2.1057569217464938
+      },
+      "tuned_skate": {
+        "captured_steps": 300,
+        "nominal_duration_s": 6.0,
+        "delta_sample_interval_s": 5.98,
+        "mean_reward": 0.16124175416926542,
+        "min_height_m": 0.7365549206733704,
+        "max_height_m": 0.8485310077667236,
+        "mean_height_m": 0.752625480890274,
+        "delta_x_m": 1.0526230826508254,
+        "delta_y_m": -0.025730342895258218,
+        "mean_velocity_x_mps": 0.17602392686468651,
+        "mean_velocity_y_mps": -0.004302732925628465,
+        "mean_tilt_rad": 0.058728255144703166,
+        "max_tilt_rad": 0.08620729515431672,
+        "done_count": 0.0,
+        "root_xy_path_length_m": 1.0818892910516837
+      },
+      "conservative_skate": {
+        "captured_steps": 300,
+        "nominal_duration_s": 6.0,
+        "delta_sample_interval_s": 5.98,
+        "mean_reward": 0.1678822968651851,
+        "min_height_m": 0.7366676330566406,
+        "max_height_m": 0.8485152125358582,
+        "mean_height_m": 0.7518539345264434,
+        "delta_x_m": 1.8523392468923703,
+        "delta_y_m": -0.1948513609386282,
+        "mean_velocity_x_mps": 0.30975572690507863,
+        "mean_velocity_y_mps": -0.03258383962184418,
+        "mean_tilt_rad": 0.04591163157595986,
+        "max_tilt_rad": 0.10276780211547114,
+        "done_count": 0.0,
+        "root_xy_path_length_m": 1.896746080307501
+      }
+    },
+    "runtime": {
+      "platform": "Linux-6.17.0-1029-nvidia-aarch64-with-glibc2.39",
+      "machine": "aarch64",
+      "python": "3.11.15",
+      "packages": {
+        "torch": "2.9.0+cu130",
+        "isaacsim": "5.1.0.0",
+        "isaaclab": "0.54.4",
+        "rsl-rl-lib": "5.0.1"
+      },
+      "errors": [],
+      "cuda_devices": [
+        {
+          "index": 0,
+          "name": "NVIDIA GB10",
+          "compute_capability": [
+            12,
+            1
+          ],
+          "math_finite": true,
+          "matmul_correct": true,
+          "math_pass": true
+        }
+      ],
+      "manager_registrations": [
+        {
+          "task": "Isaac-Q1-Getup-v0",
+          "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+          "env_config": "wheel_humanoid_lab.tasks.manager_based.getup.getup_env_cfg:Q1GetupEnvCfg",
+          "agent_config": "wheel_humanoid_lab.tasks.manager_based.getup.agents.rsl_rl_ppo_cfg:Q1GetupPPORunnerCfg",
+          "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/getup/__init__.py"
+        },
+        {
+          "task": "Isaac-Q1-Getup-Play-v0",
+          "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+          "env_config": "wheel_humanoid_lab.tasks.manager_based.getup.getup_env_cfg:Q1GetupEnvCfg_PLAY",
+          "agent_config": "wheel_humanoid_lab.tasks.manager_based.getup.agents.rsl_rl_ppo_cfg:Q1GetupPPORunnerCfg",
+          "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/getup/__init__.py"
+        },
+        {
+          "task": "Isaac-Q1-Inertia-Skate-v0",
+          "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+          "env_config": "wheel_humanoid_lab.tasks.manager_based.inertia.inertia_env_cfg:Q1InertiaSkateEnvCfg",
+          "agent_config": "wheel_humanoid_lab.tasks.manager_based.inertia.agents.rsl_rl_ppo_cfg:Q1InertiaSkatePPORunnerCfg",
+          "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/__init__.py"
+        },
+        {
+          "task": "Isaac-Q1-Inertia-Skate-Play-v0",
+          "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+          "env_config": "wheel_humanoid_lab.tasks.manager_based.inertia.inertia_env_cfg:Q1InertiaSkateEnvCfg_PLAY",
+          "agent_config": "wheel_humanoid_lab.tasks.manager_based.inertia.agents.rsl_rl_ppo_cfg:Q1InertiaSkatePPORunnerCfg",
+          "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/__init__.py"
+        },
+        {
+          "task": "Isaac-Q1-Posture-v0",
+          "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+          "env_config": "wheel_humanoid_lab.tasks.manager_based.posture.posture_env_cfg:Q1PostureEnvCfg",
+          "agent_config": "wheel_humanoid_lab.tasks.manager_based.posture.agents.rsl_rl_ppo_cfg:Q1PosturePPORunnerCfg",
+          "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/posture/__init__.py"
+        },
+        {
+          "task": "Isaac-Q1-Posture-Play-v0",
+          "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+          "env_config": "wheel_humanoid_lab.tasks.manager_based.posture.posture_env_cfg:Q1PostureEnvCfg_PLAY",
+          "agent_config": "wheel_humanoid_lab.tasks.manager_based.posture.agents.rsl_rl_ppo_cfg:Q1PosturePPORunnerCfg",
+          "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/posture/__init__.py"
+        },
+        {
+          "task": "Isaac-Q1-RecoveryV3-v0",
+          "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+          "env_config": "wheel_humanoid_lab.tasks.manager_based.recovery_v3.env_cfg:Q1RecoveryV3EnvCfg",
+          "agent_config": "wheel_humanoid_lab.tasks.manager_based.recovery_v3.runner_cfg:Q1RecoveryV3PPORunnerCfg",
+          "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3/__init__.py"
+        },
+        {
+          "task": "Isaac-Q1-RecoveryV3-Play-v0",
+          "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+          "env_config": "wheel_humanoid_lab.tasks.manager_based.recovery_v3.env_cfg:Q1RecoveryV3PlayCfg",
+          "agent_config": "wheel_humanoid_lab.tasks.manager_based.recovery_v3.runner_cfg:Q1RecoveryV3PPORunnerCfg",
+          "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3/__init__.py"
+        },
+        {
+          "task": "Isaac-Q1-RecoveryV3-Supine-v0",
+          "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+          "env_config": "wheel_humanoid_lab.tasks.manager_based.recovery_v3.env_cfg:Q1RecoveryV3SupineEnvCfg",
+          "agent_config": "wheel_humanoid_lab.tasks.manager_based.recovery_v3.runner_cfg:Q1RecoveryV3SupinePPORunnerCfg",
+          "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3/__init__.py"
+        },
+        {
+          "task": "Isaac-Q1-RecoveryV3-Supine-Play-v0",
+          "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+          "env_config": "wheel_humanoid_lab.tasks.manager_based.recovery_v3.env_cfg:Q1RecoveryV3SupinePlayCfg",
+          "agent_config": "wheel_humanoid_lab.tasks.manager_based.recovery_v3.runner_cfg:Q1RecoveryV3SupinePPORunnerCfg",
+          "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3/__init__.py"
+        },
+        {
+          "task": "Isaac-Q1-RecoveryV3-Prone-v0",
+          "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+          "env_config": "wheel_humanoid_lab.tasks.manager_based.recovery_v3.env_cfg:Q1RecoveryV3ProneEnvCfg",
+          "agent_config": "wheel_humanoid_lab.tasks.manager_based.recovery_v3.runner_cfg:Q1RecoveryV3PronePPORunnerCfg",
+          "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3/__init__.py"
+        },
+        {
+          "task": "Isaac-Q1-RecoveryV3-Prone-Play-v0",
+          "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+          "env_config": "wheel_humanoid_lab.tasks.manager_based.recovery_v3.env_cfg:Q1RecoveryV3PronePlayCfg",
+          "agent_config": "wheel_humanoid_lab.tasks.manager_based.recovery_v3.runner_cfg:Q1RecoveryV3PronePPORunnerCfg",
+          "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3/__init__.py"
+        },
+        {
+          "task": "Isaac-Q1-RecoveryV3-BootKneel-v0",
+          "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+          "env_config": "wheel_humanoid_lab.tasks.manager_based.recovery_v3.env_cfg:Q1RecoveryV3BootKneelEnvCfg",
+          "agent_config": "wheel_humanoid_lab.tasks.manager_based.recovery_v3.runner_cfg:Q1RecoveryV3BootKneelPPORunnerCfg",
+          "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3/__init__.py"
+        },
+        {
+          "task": "Isaac-Q1-RecoveryV3-BootKneel-Play-v0",
+          "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+          "env_config": "wheel_humanoid_lab.tasks.manager_based.recovery_v3.env_cfg:Q1RecoveryV3BootKneelPlayCfg",
+          "agent_config": "wheel_humanoid_lab.tasks.manager_based.recovery_v3.runner_cfg:Q1RecoveryV3BootKneelPPORunnerCfg",
+          "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3/__init__.py"
+        },
+        {
+          "task": "Isaac-Q1-Skate-v0",
+          "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+          "env_config": "wheel_humanoid_lab.tasks.manager_based.skate.skate_env_cfg:Q1SkateEnvCfg",
+          "agent_config": "wheel_humanoid_lab.tasks.manager_based.skate.agents.rsl_rl_ppo_cfg:Q1SkatePPORunnerCfg",
+          "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/skate/__init__.py"
+        },
+        {
+          "task": "Isaac-Q1-Skate-Play-v0",
+          "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+          "env_config": "wheel_humanoid_lab.tasks.manager_based.skate.skate_env_cfg:Q1SkateEnvCfg_PLAY",
+          "agent_config": "wheel_humanoid_lab.tasks.manager_based.skate.agents.rsl_rl_ppo_cfg:Q1SkatePPORunnerCfg",
+          "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/skate/__init__.py"
+        },
+        {
+          "task": "Isaac-WheelHumanoid-Skateboard-v0",
+          "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+          "env_config": "wheel_humanoid_lab.tasks.manager_based.skateboard.skateboard_env_cfg:WheelHumanoidSkateboardEnvCfg",
+          "agent_config": "wheel_humanoid_lab.tasks.manager_based.skateboard.agents.rsl_rl_ppo_cfg:WheelHumanoidSkateboardPPORunnerCfg",
+          "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/skateboard/__init__.py"
+        },
+        {
+          "task": "Isaac-WheelHumanoid-Skateboard-Play-v0",
+          "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+          "env_config": "wheel_humanoid_lab.tasks.manager_based.skateboard.skateboard_env_cfg:WheelHumanoidSkateboardEnvCfg_PLAY",
+          "agent_config": "wheel_humanoid_lab.tasks.manager_based.skateboard.agents.rsl_rl_ppo_cfg:WheelHumanoidSkateboardPPORunnerCfg",
+          "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/skateboard/__init__.py"
+        },
+        {
+          "task": "Isaac-Q1-Slide-v0",
+          "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+          "env_config": "wheel_humanoid_lab.tasks.manager_based.slide.slide_env_cfg:Q1SlideEnvCfg",
+          "agent_config": "wheel_humanoid_lab.tasks.manager_based.slide.agents.rsl_rl_ppo_cfg:Q1SlidePPORunnerCfg",
+          "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/slide/__init__.py"
+        },
+        {
+          "task": "Isaac-Q1-Slide-Play-v0",
+          "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+          "env_config": "wheel_humanoid_lab.tasks.manager_based.slide.slide_env_cfg:Q1SlideEnvCfg_PLAY",
+          "agent_config": "wheel_humanoid_lab.tasks.manager_based.slide.agents.rsl_rl_ppo_cfg:Q1SlidePPORunnerCfg",
+          "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/slide/__init__.py"
+        },
+        {
+          "task": "Isaac-Q1-Unbox-v0",
+          "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+          "env_config": "wheel_humanoid_lab.tasks.manager_based.unbox.unbox_env_cfg:Q1UnboxEnvCfg",
+          "agent_config": "wheel_humanoid_lab.tasks.manager_based.unbox.agents.rsl_rl_ppo_cfg:Q1UnboxPPORunnerCfg",
+          "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/unbox/__init__.py"
+        },
+        {
+          "task": "Isaac-Q1-Unbox-Play-v0",
+          "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+          "env_config": "wheel_humanoid_lab.tasks.manager_based.unbox.unbox_env_cfg:Q1UnboxEnvCfg_PLAY",
+          "agent_config": "wheel_humanoid_lab.tasks.manager_based.unbox.agents.rsl_rl_ppo_cfg:Q1UnboxPPORunnerCfg",
+          "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/unbox/__init__.py"
+        }
+      ],
+      "torch_cuda": "13.0",
+      "cuda_available": true,
+      "torch_cuda_arches": [
+        "sm_80",
+        "sm_90",
+        "sm_100",
+        "sm_110",
+        "sm_120",
+        "compute_120"
+      ],
+      "pass": true
+    },
+    "conservative_vs_stable_metrics": {
+      "pass": false,
+      "failures": [
+        "observation rmse 0.397683 > 0.1",
+        "action rmse 0.252618 > 0.05",
+        "reward relative_rmse 0.108119 > 0.1"
+      ],
+      "thresholds": {
+        "observation": 0.1,
+        "action": 0.05,
+        "reward": 0.1,
+        "height": 0.02,
+        "position": 0.1,
+        "gravity": 0.05,
+        "command": 1e-06,
+        "termination_count": 0
+      },
+      "checkpoint_change_allowed": true,
+      "metrics": {
+        "observation": {
+          "rmse": 0.39768330302567134,
+          "max_abs": 6.981098651885986,
+          "relative_rmse": 0.4680081606694581
+        },
+        "action": {
+          "rmse": 0.2526179462400612,
+          "max_abs": 2.0439774990081787,
+          "relative_rmse": 0.2916216744652443
+        },
+        "reward": {
+          "rmse": 0.018947420519677353,
+          "max_abs": 0.05697600543498993,
+          "relative_rmse": 0.10811907289328589
+        },
+        "height": {
+          "rmse": 0.0022271423552071693,
+          "max_abs": 0.006365954875946045,
+          "relative_rmse": 0.002962868861315236
+        },
+        "position": {
+          "rmse": 0.0787601168784326,
+          "max_abs": 0.2176675796508789,
+          "relative_rmse": 0.08512715646642886
+        },
+        "gravity": {
+          "rmse": 0.01369320720440793,
+          "max_abs": 0.06762183457612991,
+          "relative_rmse": 0.02371733053636578
+        },
+        "command": {
+          "rmse": 0.0,
+          "max_abs": 0.0,
+          "relative_rmse": 0.0
+        },
+        "done": {
+          "baseline_count": 0.0,
+          "candidate_count": 0.0,
+          "count_delta": 0.0,
+          "step_mismatches": 0
+        },
+        "terminated": {
+          "baseline_count": 0.0,
+          "candidate_count": 0.0,
+          "count_delta": 0.0,
+          "step_mismatches": 0
+        },
+        "truncated": {
+          "baseline_count": 0.0,
+          "candidate_count": 0.0,
+          "count_delta": 0.0,
+          "step_mismatches": 0
+        }
+      }
+    },
+    "conservative_policy_same_observations_metrics": {
+      "pass": true,
+      "reference": "outputs/integration/merged_skate.json",
+      "observations": 300,
+      "observation_dim": 92,
+      "action_dim": 24,
+      "baseline_checkpoint_sha256": "0b36ba0a1a9198e89109a886b2812705c9bfbd2b3c8f98ea56ad3dbfa2252db0",
+      "candidate_checkpoint_sha256": "307475b29bfce6871ee610d73553d61b8c0b732bf9692fae5f023a716c0f536f",
+      "max_action_rmse": 0.05,
+      "action": {
+        "rmse": 0.0026279830277479506,
+        "max_abs": 0.009777069091796875,
+        "relative_rmse": 0.003033738562561185,
+        "mean_abs": 0.0020339179318398237
+      },
+      "inference": "FrozenActor, CPU, identical reference policy observations"
+    },
+    "inertia_contract": {
+      "task": "Isaac-Q1-Inertia-Skate-v0",
+      "num_envs": 2,
+      "steps": 64,
+      "source_urdf": "BU10_robot_Assets/urdf/quanta_robot_wheeled.urdf",
+      "mass_kg": 41.05226516723633,
+      "action_dim": 23,
+      "actor_obs_dim": 78,
+      "critic_obs_dim": 81,
+      "joint_count": 27,
+      "source_inertia_max_abs_error": 9.183490752573409e-09,
+      "mimic_targets_exact": true,
+      "mimic_max_tracking_error_rad": 0.07545560598373413,
+      "mimic_physics_substep_calls": 256,
+      "finite": true,
+      "failures": [],
+      "pass": true
+    },
+    "conservative_physical_comparison": {
+      "reference": "merged_skate",
+      "candidate": "conservative_skate",
+      "command_mps_radps": [
+        0.4,
+        0.0,
+        0.0
+      ],
+      "nominal_duration_s": 6.0,
+      "trajectory_pass": false,
+      "same_observation_policy_pass": true,
+      "baseline": {
+        "captured_steps": 300,
+        "nominal_duration_s": 6.0,
+        "delta_sample_interval_s": 5.98,
+        "mean_reward": 0.17382180206477643,
+        "min_height_m": 0.7368921041488647,
+        "max_height_m": 0.8485168218612671,
+        "mean_height_m": 0.7515675379832586,
+        "delta_x_m": 2.05165793991182,
+        "delta_y_m": -0.2812943941898993,
+        "mean_velocity_x_mps": 0.3430866120253879,
+        "mean_velocity_y_mps": -0.04703919635282597,
+        "mean_tilt_rad": 0.042050232067579976,
+        "max_tilt_rad": 0.10284330649717718,
+        "done_count": 0.0,
+        "root_xy_path_length_m": 2.1057569217464938
+      },
+      "candidate_values": {
+        "captured_steps": 300,
+        "nominal_duration_s": 6.0,
+        "delta_sample_interval_s": 5.98,
+        "mean_reward": 0.1678822968651851,
+        "min_height_m": 0.7366676330566406,
+        "max_height_m": 0.8485152125358582,
+        "mean_height_m": 0.7518539345264434,
+        "delta_x_m": 1.8523392468923703,
+        "delta_y_m": -0.1948513609386282,
+        "mean_velocity_x_mps": 0.30975572690507863,
+        "mean_velocity_y_mps": -0.03258383962184418,
+        "mean_tilt_rad": 0.04591163157595986,
+        "max_tilt_rad": 0.10276780211547114,
+        "done_count": 0.0,
+        "root_xy_path_length_m": 1.896746080307501
+      },
+      "relative_change": {
+        "mean_reward": -0.03417008182539674,
+        "mean_velocity_x_mps": -0.09715006051545624,
+        "delta_x_m": -0.0971500605154563,
+        "root_xy_path_length_m": -0.09925687019261527
+      },
+      "assessment": "Similar short-term forward balancing behavior, with 9.72% lower forward speed and 3.42% lower mean reward. Strict trajectory thresholds still fail. Keep the stable policy as the Web default."
+    },
+    "portable_runtime_roundtrip": {
+      "cpu_only": true,
+      "path": "/tmp/q1-runtime-portable-roundtrip",
+      "phases": {
+        "create3": {
+          "rsl_rl_version": "3.0.1",
+          "phase": "create3",
+          "cpu_only": true,
+          "policy_obs": 92,
+          "critic_obs": 111,
+          "actions": 24,
+          "results": [
+            {
+              "normalization": false,
+              "noise": "scalar",
+              "max_error": 0.0,
+              "frozen_max_error": 0.0,
+              "mode_cases": 6,
+              "frozen_normalizers": 0
+            },
+            {
+              "normalization": false,
+              "noise": "log",
+              "max_error": 0.0,
+              "frozen_max_error": 0.0,
+              "mode_cases": 6,
+              "frozen_normalizers": 0
+            },
+            {
+              "normalization": true,
+              "noise": "scalar",
+              "max_error": 0.0,
+              "frozen_max_error": 0.0,
+              "mode_cases": 6,
+              "frozen_normalizers": 2
+            },
+            {
+              "normalization": true,
+              "noise": "log",
+              "max_error": 0.0,
+              "frozen_max_error": 0.0,
+              "mode_cases": 6,
+              "frozen_normalizers": 2
+            }
+          ]
+        },
+        "load5": {
+          "rsl_rl_version": "5.0.1",
+          "phase": "load5",
+          "cpu_only": true,
+          "policy_obs": 92,
+          "critic_obs": 111,
+          "actions": 24,
+          "results": [
+            {
+              "normalization": false,
+              "noise": "scalar",
+              "max_error": 0.0,
+              "frozen_max_error": 0.0,
+              "mode_cases": 6,
+              "frozen_normalizers": 0
+            },
+            {
+              "normalization": false,
+              "noise": "log",
+              "max_error": 0.0,
+              "frozen_max_error": 0.0,
+              "mode_cases": 6,
+              "frozen_normalizers": 0
+            },
+            {
+              "normalization": true,
+              "noise": "scalar",
+              "max_error": 0.0,
+              "frozen_max_error": 0.0,
+              "mode_cases": 6,
+              "frozen_normalizers": 2
+            },
+            {
+              "normalization": true,
+              "noise": "log",
+              "max_error": 0.0,
+              "frozen_max_error": 0.0,
+              "mode_cases": 6,
+              "frozen_normalizers": 2
+            }
+          ]
+        },
+        "load3": {
+          "rsl_rl_version": "3.0.1",
+          "phase": "load3",
+          "cpu_only": true,
+          "policy_obs": 92,
+          "critic_obs": 111,
+          "actions": 24,
+          "results": [
+            {
+              "normalization": false,
+              "noise": "scalar",
+              "max_error": 0.0,
+              "frozen_max_error": 0.0,
+              "mode_cases": 6,
+              "frozen_normalizers": 0
+            },
+            {
+              "normalization": false,
+              "noise": "log",
+              "max_error": 0.0,
+              "frozen_max_error": 0.0,
+              "mode_cases": 6,
+              "frozen_normalizers": 0
+            },
+            {
+              "normalization": true,
+              "noise": "scalar",
+              "max_error": 0.0,
+              "frozen_max_error": 0.0,
+              "mode_cases": 6,
+              "frozen_normalizers": 2
+            },
+            {
+              "normalization": true,
+              "noise": "log",
+              "max_error": 0.0,
+              "frozen_max_error": 0.0,
+              "mode_cases": 6,
+              "frozen_normalizers": 2
+            }
+          ]
+        }
+      },
+      "pass": true,
+      "rsl_rl_versions": [
+        "3.0.1",
+        "5.0.1"
+      ],
+      "conditions_per_phase": 4,
+      "mode_cases_per_phase": 24,
+      "max_error": 0.0,
+      "frozen_max_error": 0.0,
+      "conditions": "Empirical normalization enabled/disabled; scalar/log standard deviation; skate/posture/unbox inference with flat tensor and grouped observations.",
+      "additional_guards": [
+        "Checkpoint iteration 27 is preserved when requested and reset to zero for fresh fine tuning.",
+        "Exploration standard deviation reset to 0.15 for scalar/log noise.",
+        "Frozen actor/critic empirical normalizers do not update even after switching modules to training mode."
+      ]
+    },
+    "inertia_player": {
+      "INERTIA_PLAY": {
+        "task": "Isaac-Q1-Inertia-Skate-Play-v0",
+        "manager_based": true,
+        "checkpoint": "/home/spark/.codex_will/Documents/Codex/2026-10-15/will-q1-wheel-urdf-github-q1/checkpoints/inertia_native_smoke/model_19.pt",
+        "num_envs": 1,
+        "observation_dim": 78,
+        "action_dim": 23,
+        "command": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "step_dt": 0.02,
+        "requested_steps": 20
+      },
+      "INERTIA_PLAY_RESULT": {
+        "steps": 20,
+        "done_count": 0,
+        "root_height_m": [
+          0.8206679224967957
+        ]
+      },
+      "pass": true
+    },
+    "spark_gui_web": {
+      "display": ":1",
+      "web_status": 200,
+      "kneel_response": {
+        "ok": true,
+        "pose": "kneel"
+      },
+      "isaac_windows": [
+        "0x60005a \"Isaac Sim 5.1.0\": (\"mutter-x11-frames\" \"mutter-x11-frames\")  1468x966+-14+-49  +-14+-49",
+        "0x1800009 \"Isaac Sim 5.1.0\": (\"Isaac Sim 5.1.0\" \"Isaac Sim 5.1.0\")  1440x900+14+49  +0+0"
+      ],
+      "requests": [
+        {
+          "step": 382,
+          "name": "kneel",
+          "accepted": true,
+          "message": "Kneel PPO: lowering smoothly with foot-wheel support."
+        }
+      ],
+      "final_pose": "kneel",
+      "final_message": "Stable kneel; press Unbox to stand.",
+      "captured_policy_steps": 1200
+    },
+    "conservative_weight_update": {
+      "source_iteration": 19999,
+      "final_iteration": 20008,
+      "updates": 10,
+      "learning_rate": 1e-06,
+      "normalization": {
+        "actor_state_dict": {
+          "normalizers_unchanged": true,
+          "max_weight_update": 0.00013940362259745598
+        },
+        "critic_state_dict": {
+          "normalizers_unchanged": true,
+          "max_weight_update": 0.0002918839454650879
+        }
+      }
+    }
+  },
+  "cpu_tests": {
+    "interpreter": "/home/spark/env_isaaclab/bin/python",
+    "all_pass": true,
+    "suites": [
+      {
+        "path": "tests/test_skill_controls.py",
+        "tests": 6,
+        "pass": true
+      },
+      {
+        "path": "tests/test_skill_policy.py",
+        "checkpoint_parity_cases": 6,
+        "all_max_abs_error": 0.0,
+        "pass": true
+      },
+      {
+        "path": "tests/test_manager_regression.py",
+        "tests": 8,
+        "pass": true
+      }
+    ]
+  },
+  "ppo_training": {
+    "legacy": {
+      "completed": true,
+      "iterations": 10,
+      "new_transitions": 15360,
+      "checkpoint": "logs/rsl_rl/q1_skate_cubemars/2026-10-15_11-53-43_integration_legacy_smoke/model_20008.pt",
+      "checkpoint_sha256": "e4647ebb72f9d85d607da5f62d93f1ecc139e3007c17e9005985bd0605c52be5",
+      "final_logged_metrics": {
+        "Mean reward": 20.21,
+        "Mean episode length": 119.67,
+        "Mean action std": 0.03,
+        "Training time": 12.17
+      }
+    },
+    "inertia": {
+      "completed": true,
+      "iterations": 20,
+      "new_transitions": 30720,
+      "checkpoint": "logs/rsl_rl/q1_inertia_skate_native/2026-10-15_11-55-52_integration_inertia_smoke/model_19.pt",
+      "checkpoint_sha256": "fa5fa39c52b61d2ba7db0fa47c79dc3d90b78df55cf08e6aa2f5812b22a11668",
+      "final_logged_metrics": {
+        "Mean reward": 1.66,
+        "Mean episode length": 61.95,
+        "Mean action std": 0.5,
+        "Episode_Termination/nonfinite": 0.0,
+        "Episode_Termination/fallen": 0.4954,
+        "Episode_Termination/tilted": 0.8678,
+        "Training time": 21.59
+      }
+    },
+    "legacy_conservative": {
+      "completed": true,
+      "iterations": 10,
+      "new_transitions": 15360,
+      "checkpoint": "checkpoints/spark_smoke/model_20008.pt",
+      "checkpoint_sha256": "307475b29bfce6871ee610d73553d61b8c0b732bf9692fae5f023a716c0f536f",
+      "final_logged_metrics": {
+        "Mean reward": 20.25,
+        "Mean episode length": 119.67,
+        "Mean action std": 0.03,
+        "Training time": 11.59
+      },
+      "learning_rate": 1e-06
+    }
+  },
+  "interpretation": {
+    "legacy_merge_behavior_equivalent_for_recorded_cases": true,
+    "original_stable_checkpoint_should_remain_web_default": true,
+    "ten_iteration_tuned_policy_passes_identical_observation_test": true,
+    "ten_iteration_tuned_policy_passes_full_rollout_regression": false,
+    "native_training_pipeline_operational": true,
+    "native_policy_converged_or_equivalent_to_legacy": false,
+    "rtx_hardware_tested": false,
+    "rtx_validation_limit": "RTX 4090/5080/5090 hardware was unavailable. GB10 results cannot establish actual RTX execution.",
+    "conservative_ten_iteration_policy_passes_identical_observation_test": true,
+    "conservative_ten_iteration_policy_passes_full_rollout_regression": false,
+    "conservative_short_rollout_physically_broadly_similar": true,
+    "conservative_forward_speed_change_percent": -9.715006051545627,
+    "conservative_mean_reward_change_percent": -3.4170081825396714,
+    "portable_rsl_rl_3_to_5_to_3_cpu_parity": true,
+    "native_player_20_steps_pass": true
+  },
+  "native_physics_review": {
+    "all_27_default_movable_joint_positions_within_urdf_limits": true,
+    "obvious_sign_height_dimension_or_default_limit_error_found": false,
+    "source_mass_kg": 41.052262573,
+    "control_hz": 50,
+    "physics_hz": 200,
+    "action_dim": 23,
+    "actor_obs_dim": 78,
+    "critic_obs_dim": 81,
+    "limitations": [
+      "Finite-gain mimic servos approximate an exact linkage and can inject forces; they are not truly passive.",
+      "Self collision is disabled.",
+      "CAD meshes are imported as convex hull collision geometry.",
+      "Wheel velocity reward uses equal vx targets without the yaw-dependent differential wheel speeds; secondary turning objective can conflict.",
+      "Four wrist/finger position action channels have zero scale and no present motion authority.",
+      "20-iteration native PPO is a finite smoke test only, with final mean episode length ~1.239s and frequent fallen/tilted resets."
+    ]
+  },
+  "legacy_tracked_checkpoints_unchanged": true,
+  "published_experiments": {
+    "inertia_native_smoke": {
+      "task": "Isaac-Q1-Inertia-Skate-v0",
+      "manager_based": true,
+      "action_dim": 23,
+      "actor_obs_dim": 78,
+      "critic_obs_dim": 81,
+      "training": {
+        "iterations": 20,
+        "num_envs": 64,
+        "steps_per_env": 24,
+        "seed": 42,
+        "status": "training_smoke_only_not_converged"
+      },
+      "checkpoint_sha256": {
+        "model_19.pt": "fa5fa39c52b61d2ba7db0fa47c79dc3d90b78df55cf08e6aa2f5812b22a11668"
+      },
+      "web_default": false,
+      "report": "docs/training/spark_inertia_2026-10-15.md",
+      "replay_source_sha256": {
+        "scripts/reinforcement_learning/rsl_rl/runtime_compat.py": "a38a848388551989a700f1f7db0ce4b7bfaa54571ede7be1123007cb9a271a6c",
+        "source/wheel_humanoid_lab/wheel_humanoid_lab/actuators/cubemars.py": "319720db20ca5de9bcba89b39968f1170065d5fedc185145359aafa482037b37",
+        "source/wheel_humanoid_lab/wheel_humanoid_lab/assets/q1_inertia.py": "c22d22a7a3ccd33214fdacebe41a9c20851f0d1b18a2171103558ad8bb8aac30",
+        "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/mdp.py": "ce39a8e4f6ef93ebd682ab4f13ab88164de0b86ffe4c12174c5effbd71c2bf73",
+        "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/inertia_env_cfg.py": "7b53086df18f09b4c77a5a0cfdc641c0eb41cac7485bda83be60ca1d567443e2",
+        "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/__init__.py": "7fabb2f15af7d560b848d738375882a8f2c17debdaf901905dd7e5db3464d322",
+        "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/agents/rsl_rl_ppo_cfg.py": "02895a0b68e103e787880f87c8a768a6a0e42c201636d920421b454de3325964",
+        "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/agents/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "spark_smoke": {
+      "task": "Isaac-Q1-Skate-v0",
+      "manager_based": true,
+      "action_dim": 24,
+      "actor_obs_dim": 92,
+      "critic_obs_dim": 102,
+      "training": {
+        "iterations": 10,
+        "num_envs": 64,
+        "steps_per_env": 24,
+        "seed": 42,
+        "learning_rate": 1e-06,
+        "schedule": "fixed",
+        "reset_noise_std": 0.03,
+        "freeze_obs_normalization": true,
+        "warm_start": "checkpoints/q1_skate_ppo.pt",
+        "status": "isolated_validation_candidate"
+      },
+      "checkpoint_sha256": {
+        "model_20008.pt": "307475b29bfce6871ee610d73553d61b8c0b732bf9692fae5f023a716c0f536f"
+      },
+      "web_default": false,
+      "report": "docs/training/spark_inertia_2026-10-15.md",
+      "replay_source_sha256": {
+        "scripts/reinforcement_learning/rsl_rl/runtime_compat.py": "a38a848388551989a700f1f7db0ce4b7bfaa54571ede7be1123007cb9a271a6c",
+        "source/wheel_humanoid_lab/wheel_humanoid_lab/actuators/cubemars.py": "319720db20ca5de9bcba89b39968f1170065d5fedc185145359aafa482037b37"
+      }
+    }
+  }
+}
