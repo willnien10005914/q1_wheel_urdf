@@ -68,6 +68,8 @@ systemctl --user status q1-native-web
 systemctl --user stop q1-native-web
 ```
 
+區網啟動時指定 Spark 的區網介面 IP：`./start_native_web.sh --web-host 192.168.1.147`，其他同區網電腦可開 **http://192.168.1.147:8875/web/**。預設仍只監聽本機；IP 改變時請替換參數。修改已運行服務的監聽位址時，先停止 Web 服務再啟動，無須停止訓練。直接執行 `play_skateboard.sh` 也可使用相同 `--web-host` 參數。
+
 ## 大量訓練佇列
 
 ```bash

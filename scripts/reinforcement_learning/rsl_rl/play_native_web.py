@@ -14,6 +14,7 @@ from isaaclab.app import AppLauncher
 
 p = argparse.ArgumentParser()
 p.add_argument("--web-port", type=int, default=8875)
+p.add_argument("--web-host", default="127.0.0.1", help="HTTP bind address (default: localhost)")
 p.add_argument("--no-browser", action="store_true")
 p.add_argument("--no-keyboard", action="store_true")
 p.add_argument("--real-time", action="store_true")
@@ -156,7 +157,7 @@ try:
     env=gym.make("Isaac-Q1-Native-Web-v0",cfg=cfg).unwrapped
     if not isinstance(env,ManagerBasedRLEnv): raise TypeError("Web requires ManagerBasedRLEnv")
     env.reset(seed=42); runtime=NativeWeb(env)
-    state=start_play_web(port=a.web_port,open_browser=not a.no_browser and not a.headless)
+    state=start_play_web(port=a.web_port,open_browser=not a.no_browser and not a.headless,host=a.web_host)
     if not a.headless and not a.no_keyboard: keyboard=IsaacKeyboard()
     schedule={int(k):v for k,v in (item.split(":",1) for item in a.sequence.split(",") if item)}
     step=0; requests=[]; records=[]

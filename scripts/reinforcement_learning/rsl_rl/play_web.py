@@ -237,7 +237,7 @@ class PlayWebHandler(SimpleHTTPRequestHandler):
         self.wfile.write(raw)
 
 
-def start_play_web(port: int = 8766, open_browser: bool = True) -> PlayWebState:
+def start_play_web(port: int = 8766, open_browser: bool = True, host: str = "127.0.0.1") -> PlayWebState:
     state = PlayWebState()
 
     class BoundHandler(PlayWebHandler):
@@ -247,9 +247,9 @@ def start_play_web(port: int = 8766, open_browser: bool = True) -> PlayWebState:
     ThreadingHTTPServer.allow_reuse_address = True
     # Bind before printing so a refresh does not race an unbound port.
     try:
-        httpd = ThreadingHTTPServer(("127.0.0.1", port), BoundHandler)
+        httpd = ThreadingHTTPServer((host, port), BoundHandler)
     except OSError as exc:
-        print(f"[ERROR] Web UI could not bind 127.0.0.1:{port}: {exc}")
+        print(f"[ERROR] Web UI could not bind {host}:{port}: {exc}")
         print("[ERROR] Free the port (./stop_isaac.sh) or pass --web-port N")
         raise
     # Sanity: URDF + meshes must be reachable from this process cwd/root.
@@ -260,7 +260,7 @@ def start_play_web(port: int = 8766, open_browser: bool = True) -> PlayWebState:
         print(f"[ERROR] expected {urdf} and {mesh}")
     thread = threading.Thread(target=httpd.serve_forever, name="q1-play-web", daemon=True)
     thread.start()
-    url = f"http://127.0.0.1:{port}/web/"
+    url = f"http://{host}:{port}/web/"
     print(f"[INFO] Web motor UI: {url}  (root={ROOT})")
     if open_browser:
         try:
