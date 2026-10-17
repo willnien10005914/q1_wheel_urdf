@@ -10,7 +10,8 @@ case "$SKILL" in
   walk|skate) TASK=Walk ;;
   standup|posture|unbox) TASK=Standup ;;
   backflip) TASK=Backflip ;;
-  *) echo "Skill must be stand, walk, standup or backflip." >&2; exit 2 ;;
+  slide|sliding) TASK=Slide ;;
+  *) echo "Skill must be stand, walk, standup, backflip or slide." >&2; exit 2 ;;
 esac
 MODE="${1:-headless}"
 if [[ "${1:-}" == gui || "${1:-}" == headless ]]; then shift; fi

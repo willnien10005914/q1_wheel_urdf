@@ -1,0 +1,10 @@
+{
+  "real_api": true,
+  "new_urdf": true,
+  "distinct_sliding_button": true,
+  "unvalidated_disabled": true,
+  "keyboard_cannot_bypass_validation": true,
+  "stand_still_upright": true,
+  "root_height": 0.833398699760437,
+  "page_errors": []
+}

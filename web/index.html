@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Q1 Native Manager control</title>
-  <link rel="stylesheet" href="./style.css?v=20261012-actions">
+  <link rel="stylesheet" href="./style.css?v=20261017-sliding">
   <base href="/web/">
 </head>
 <body>
@@ -38,16 +38,17 @@
         <h2>Joint control</h2>
         <div class="preset-row pose-row">
           <button id="pose-stand" type="button" data-pose="stand">Stand 站穩</button>
-          <button id="pose-skate" type="button" data-pose="skate">Walk / skate</button>
+          <button id="pose-skate" type="button" data-pose="skate">雙輪行進 Walk</button>
         </div>
         <div class="preset-row pose-row">
           <button id="pose-kneel" type="button" data-pose="kneel">Kneel 跪姿</button>
           <button id="pose-unbox" type="button" data-pose="unbox">Stand up 起身</button>
         </div>
         <div class="preset-row pose-row">
+          <button id="pose-slide" type="button" data-pose="slide" disabled>交替滑行 Sliding</button>
           <button id="pose-backflip" type="button" data-pose="backflip" class="primary-pose">Backflip 後空翻</button>
         </div>
-        <p class="pose-hint">全部動作使用新版輪式 URDF。策略仍在訓練；上方狀態會顯示載入的模型與驗證狀態。後空翻模型尚未產生時按鈕停用。</p>
+        <p class="pose-hint">全部動作使用新版輪式 URDF。策略仍在訓練；上方狀態會顯示載入的模型與驗證狀態。交替滑行：支撐腳貼地向後推、回收腳抬起向前；模型通過驗證後才可按。後空翻模型尚未產生時按鈕停用。</p>
         <p id="training-readout" class="pose-hint">讀取訓練佇列…</p>
         <div class="preset-row">
           <button data-preset="zero">Zero</button>
@@ -75,7 +76,7 @@
   </div>
   <script type="module">
     // Bundled viewer and local controls; no bare three imports / import maps.
-    import("./app.bundle.js?v=20261015-native-manager").catch((err) => {
+    import("./app.bundle.js?v=20261017-sliding").catch((err) => {
       const status = document.getElementById("load-status");
       const error = document.getElementById("error");
       const detail = (err && (err.stack || err.message)) ? (err.stack || err.message) : String(err);

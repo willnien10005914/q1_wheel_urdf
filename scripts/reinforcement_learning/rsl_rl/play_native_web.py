@@ -37,6 +37,7 @@ from isaaclab_tasks.utils import parse_env_cfg
 import wheel_humanoid_lab.tasks
 from wheel_humanoid_lab.tasks.manager_based.inertia.native_skills import CONTRACT
 from skills.policy import FrozenActor
+from wheel_humanoid_lab.tasks.manager_based.native_slide.gait import CONTRACT as SLIDE_CONTRACT
 from skills.teleop import IsaacKeyboard
 from play_web import start_play_web
 
@@ -63,7 +64,8 @@ class NativeWeb:
         if time.monotonic()-self.last_refresh < 2.: return
         self.last_refresh = time.monotonic()
         self.training = read_json(a.training_state, {})
-        for name in ("stand", "walk", "standup", "backflip"):
+        self.training["slide_queue"] = read_json(ROOT/"outputs/native_slide_queue/status.json", read_json(ROOT/"outputs/native_slide_queue/waiting.json", {}))
+        for name in ("stand", "walk", "standup", "backflip", "slide"):
             folder = a.models/name
             path = folder/"model.pt"
             validated = path.is_file()
@@ -75,9 +77,12 @@ class NativeWeb:
                 actor = FrozenActor(path, self.env.device)
                 if actor.input_dim != 90 or actor.mlp[-1].out_features != 23:
                     raise ValueError("Checkpoint does not match native 23-action/90-observation contract")
+                metadata = read_json(folder/("validated.json" if validated else "latest.json"), {})
+                if name == "slide" and (metadata.get("contract") != SLIDE_CONTRACT or metadata.get("sha256") != actor.checkpoint_sha256 or (validated and not metadata.get("validated"))):
+                    raise ValueError("Sliding model is missing its own verified gait contract")
                 self.actors[name] = actor
-                self.models[name] = dict(path=str(path.relative_to(ROOT)), sha256=actor.checkpoint_sha256,
-                                         iteration=actor.training_iteration, validated=validated,
+                self.models[name] = dict(path=str(path.relative_to(ROOT)) if path.is_relative_to(ROOT) else str(path), sha256=actor.checkpoint_sha256,
+                                         iteration=actor.training_iteration, validated=validated, contract=metadata.get("contract", CONTRACT),
                                          fingerprint=fingerprint)
                 print("NATIVE_WEB_MODEL", name, json.dumps(self.models[name]), flush=True)
             except (OSError, ValueError, RuntimeError, KeyError) as error:
@@ -85,13 +90,17 @@ class NativeWeb:
 
     def request(self, name):
         mapping = {"skate":"walk", "walk":"walk", "standard":"stand", "stand":"stand",
-                   "unbox":"standup", "getup":"standup", "standup":"standup", "kneel":"kneel", "backflip":"backflip"}
+                   "unbox":"standup", "getup":"standup", "standup":"standup", "kneel":"kneel", "backflip":"backflip", "slide":"slide", "sliding":"slide"}
         if name == "reset":
             self.env.reset(); self.mode="stand"; self.failed=False; self.command.zero_()
             self.message="新版 Q1 已重設。"; return True
         if name not in mapping:
             self.message="此動作尚未加入新版原生訓練。"; return False
         target = mapping[name]
+        if target == "slide" and not self.models.get("slide", {}).get("validated", False):
+            self.message="交替滑行模型尚未通過貼地推進／抬腳回收驗證。"; return False
+        if target == "slide" and self.mode == "slide":
+            self.command[:,0]=.4; return True
         if target == "backflip" and target not in self.actors:
             self.message="後空翻模型仍在佇列中，尚無原生 checkpoint。"; return False
         # A command handover changes manager buffers only.
@@ -99,7 +108,8 @@ class NativeWeb:
         self.skill.set_mode(target); self.skill.level=1.
         assert torch.equal(before_root,self.robot.data.root_state_w) and torch.equal(before_q,self.robot.data.joint_pos)
         self.mode=target; self.failed=False; self.motors.manual={}
-        if target != "walk": self.command.zero_()
+        if target == "slide": self.command[:]=torch.tensor([.4,0.,0.],device=self.env.device)
+        elif target != "walk": self.command.zero_()
         trained=self.models.get("standup" if target=="kneel" else target)
         detail="已驗證 PPO" if trained and trained["validated"] else "訓練中的 PPO" if trained else "姿態／平衡控制，PPO 尚待訓練"
         self.message=f"{target} · 新版 URDF · {detail}"
@@ -108,9 +118,12 @@ class NativeWeb:
     def drive(self, values):
         v=[float(values.get(n,0.)) for n in ("vx","vy","yaw")]
         if not all(math.isfinite(x) for x in v): return False
-        if self.mode not in ("walk","stand"): return False
-        if any(abs(x) > 1.e-6 for x in v) and self.mode != "walk": self.request("walk")
-        self.command[0]=torch.tensor([max(-.4,min(1.2,v[0])),0.,max(-.5,min(.5,v[2]))],device=self.env.device)
+        if self.mode not in ("walk","stand","slide"): return False
+        if any(abs(x) > 1.e-6 for x in v) and self.mode not in ("walk","slide"): self.request("walk")
+        if self.mode=="slide":
+            bounded=[max(0.,min(.6,v[0])),0.,max(-.15,min(.15,v[2]))]
+        else: bounded=[max(-.4,min(1.2,v[0])),0.,max(-.5,min(.5,v[2]))]
+        self.command[0]=torch.tensor(bounded,device=self.env.device)
         return True
 
     def action(self):
@@ -134,27 +147,33 @@ class NativeWeb:
         model=self.models.get("standup" if self.mode=="kneel" else self.mode)
         mode_label="已驗證 PPO" if model and model["validated"] else "訓練中 PPO" if model else "平衡／姿態控制"
         if not self.failed: self.message=f"{self.mode} · {mode_label}"+ (" · 已站穩" if pose=="unbox_hold" else "")
+        if self.mode=="slide" and not self.failed:
+            left,right=s.cycles.cycles[0].tolist()
+            self.message+=f" · 有效推進 L{int(left)}/R{int(right)}"
         q=r.joint_pos[0].tolist(); qd=r.joint_vel[0].tolist(); tau=r.applied_torque[0].tolist()
         local=r.root_pos_w[0]-self.env.scene.env_origins[0]; quat=r.root_quat_w[0].tolist()
         joints={n:dict(pos=q[i],vel=qd[i],torque=tau[i]) for i,n in enumerate(self.robot.joint_names)}
-        policies={n:n in self.actors for n in ("stand","walk","standup","backflip")}
+        policies={n:n in self.actors for n in ("stand","walk","standup","backflip","slide")}
         policies["unbox"]=policies["standup"]
         return dict(ok=True,contract=CONTRACT,environment="ManagerBasedRLEnv",urdf="urdf/q1_inertia/quanta_robot_wheeled.urdf",
                     action_dim=23,observation_dim=90,mass_kg=float(r.default_mass[0].sum()),pose=pose,message=self.message,
                     cmd=dict(vx=float(self.command[0,0]),vy=0.,yaw=float(self.command[0,2])),
                     base=dict(x=float(local[0]),y=float(local[1]),z=float(local[2]),qw=quat[0],qx=quat[1],qy=quat[2],qz=quat[3]),
                     joints=joints,policies=policies,models=self.models,
-                    supported_actions=dict(stand=True,skate=True,walk=True,kneel=True,unbox=True,backflip=policies["backflip"]),
+                    supported_actions=dict(stand=True,skate=True,walk=True,kneel=True,unbox=True,backflip=policies["backflip"],slide=self.models.get("slide",{}).get("validated",False)),
                     manual_control_available=self.mode in ("stand","walk"),
                     backflip=dict(success=bool(s.success[0]) and self.mode=="backflip",hold_s=float(s.best_hold[0]),
                                   winding_rad=float(s.winding[0]),airtime_s=float(s.max_air_time[0]),illegal=bool(s.illegal[0])),
+                    sliding=dict(active=self.mode=="slide",cycles=s.cycles.cycles[0].tolist(),
+                                 foot_contact_N=s.normal[0].tolist(),relative_foot_vx=s.relative_vx[0].tolist(),
+                                 clearance_m=s.clearance[0].tolist()),
                     training=self.training)
 
 
 env=None; keyboard=None
 try:
-    cfg=parse_env_cfg("Isaac-Q1-Native-Web-v0",device=a.device or "cuda:0",num_envs=1);cfg.seed=42
-    env=gym.make("Isaac-Q1-Native-Web-v0",cfg=cfg).unwrapped
+    cfg=parse_env_cfg("Isaac-Q1-Native-Slide-Web-v0",device=a.device or "cuda:0",num_envs=1);cfg.seed=42
+    env=gym.make("Isaac-Q1-Native-Slide-Web-v0",cfg=cfg).unwrapped
     if not isinstance(env,ManagerBasedRLEnv): raise TypeError("Web requires ManagerBasedRLEnv")
     env.reset(seed=42); runtime=NativeWeb(env)
     state=start_play_web(port=a.web_port,open_browser=not a.no_browser and not a.headless,host=a.web_host)
@@ -169,6 +188,8 @@ try:
             if name:
                 state.apply_joint_msg({"release_all":True})
                 accepted=runtime.request(name); row=dict(step=step,name=name,accepted=accepted)
+                if accepted and name in ("slide","sliding"):
+                    with state._lock: state.web_cmd=None
                 requests.append(row); print("NATIVE_WEB_REQUEST",json.dumps(row),flush=True)
             with state._lock: command=state.web_cmd;state.web_cmd=None
             if command is not None: runtime.drive(command)

@@ -1,0 +1,27 @@
+{
+  "contract": "q1-native-manager-v2-23x90",
+  "num_envs": 6144,
+  "chunk_iterations": 1000,
+  "seed": 42,
+  "evaluation_envs": 64,
+  "evaluation_steps": 1000,
+  "max_retries": 2,
+  "source_paths": [
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/native_slide/__init__.py",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/native_slide/env_cfg.py",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/native_slide/gait.py",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/native_slide/mdp.py",
+    "scripts/reinforcement_learning/rsl_rl/evaluate_native_slide.py",
+    "tools/queue_native_slide.py",
+    "tools/native_training_queue.py"
+  ],
+  "stages": [
+    {
+      "skill": "slide",
+      "task": "Isaac-Q1-Native-Slide-v0",
+      "iterations": 20000,
+      "policy_contract": "q1-native-slide-v1-23x90",
+      "evaluate_script": "scripts/reinforcement_learning/rsl_rl/evaluate_native_slide.py"
+    }
+  ]
+}

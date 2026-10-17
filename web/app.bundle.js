@@ -1,23 +1,28 @@
-// button_feedback.mjs?v=20261012-actions
+// button_feedback.mjs?v=20261017-sliding
+// One-shot feedback and live execution status are separate: these are commands,
+// not toggle switches. Completion never leaves an action looking enabled/selected.
 function actionStatus(action, state) {
   const pose = state.pose;
-  if (action === "stand") return pose === "stand" ? "\u7AD9\u7ACB\u4E2D" : "";
-  if (action === "kneel") return ["prepare_kneel", "kneeling"].includes(pose) ? "\u57F7\u884C\u4E2D" : pose === "kneel" ? "\u5DF2\u8DEA\u7A69" : "";
-  if (action === "unbox") return pose === "prepare_unbox" ? "\u6E96\u5099\u4E2D" : pose === "unbox" ? "\u57F7\u884C\u4E2D" : pose === "unbox_hold" ? "\u5DF2\u7AD9\u7A69" : "";
-  if (action === "backflip") return pose === "prepare_backflip" ? "\u6E96\u5099\u4E2D" : pose === "backflip" ? state.backflip?.success ? "\u5DF2\u5B8C\u6210" : "\u57F7\u884C\u4E2D" : "";
-  if (["skate", "slide"].includes(action)) return pose === action ? "\u57F7\u884C\u4E2D" : "";
-  if (action.startsWith("recovery_")) return pose === action ? "\u57F7\u884C\u4E2D" : "";
-  if (["supine", "prone"].includes(action)) return pose === action ? "\u76EE\u524D\u59FF\u52E2" : "";
+  if (action === "stand") return pose === "stand" ? "站立中" : "";
+  if (action === "kneel") return ["prepare_kneel", "kneeling"].includes(pose) ? "執行中" : pose === "kneel" ? "已跪穩" : "";
+  if (action === "unbox") return pose === "prepare_unbox" ? "準備中" : pose === "unbox" ? "執行中" : pose === "unbox_hold" ? "已站穩" : "";
+  if (action === "backflip") return pose === "prepare_backflip" ? "準備中" : pose === "backflip" ? (state.backflip?.success ? "已完成" : "執行中") : "";
+  if (["skate", "slide"].includes(action)) return pose === action ? "執行中" : "";
+  if (action.startsWith("recovery_")) return pose === action ? "執行中" : "";
+  if (["supine", "prone"].includes(action)) return pose === action ? "目前姿勢" : "";
   return "";
 }
 function updateActionButtons(state = {}, root = document) {
   root.querySelectorAll("[data-pose]").forEach((button) => {
     const action = button.dataset.pose;
     const pending = button.dataset.pending === "true";
-    const status = pending ? "\u9001\u51FA\u4E2D" : actionStatus(action, state);
-    const running = ["\u57F7\u884C\u4E2D", "\u6E96\u5099\u4E2D"].includes(status);
-    const unavailable = state.supported_actions?.[action] === false || (action === "backflip" ? !state.policies?.backflip : action === "unbox" ? state.policies?.unbox === false : action.startsWith("recovery_") ? !state.policies?.[action.slice(9)] : false);
-    button.disabled = pending || unavailable || running && !["skate", "slide"].includes(action);
+    let status = pending ? "送出中" : actionStatus(action, state);
+    const running = ["執行中", "準備中"].includes(status);
+    const unavailable = state.supported_actions?.[action] === false || (action === "slide" && state.supported_actions?.slide !== true) || (action === "backflip" ? !state.policies?.backflip
+      : action === "unbox" ? state.policies?.unbox === false
+      : action.startsWith("recovery_") ? !state.policies?.[action.slice(9)] : false);
+    if (action === "slide" && unavailable) status = state.models?.slide ? "訓練中，待驗證" : "等待模型";
+    button.disabled = pending || unavailable || (running && !["skate", "slide"].includes(action));
     button.dataset.actionState = status;
     button.classList.remove("active-pose");
     button.classList.toggle("action-running", running);
@@ -34,7 +39,6 @@ function animateButton(button) {
   button._pressFeedbackTimer = setTimeout(() => button.classList.remove("press-feedback"), 360);
 }
 document.addEventListener("click", (event) => animateButton(event.target.closest?.("button, .file-btn")), true);
-
 // vendor/three/three.module.js
 var REVISION = "170";
 var MOUSE = { LEFT: 0, MIDDLE: 1, RIGHT: 2, ROTATE: 0, DOLLY: 1, PAN: 2 };
@@ -22557,8 +22561,13 @@ function applyIsaacState(state) {
   lastIsaac = state;
   const training = document.getElementById("training-readout");
   if (training) {
-    const current = state.training?.current;
-    training.textContent = current ? `\u8A13\u7DF4 ${current.skill} \xB7 ${current.completed_iterations ?? 0}/${current.total_iterations ?? "--"} updates \xB7 ${state.training.status}` : "\u8A13\u7DF4\u4F47\u5217\u5C1A\u672A\u555F\u52D5";
+    const activeQueue = state.training?.slide_queue?.status === "running" ? state.training.slide_queue : state.training;
+    const current = activeQueue?.current;
+    training.textContent = current ? `訓練 ${current.skill} · ${current.completed_iterations ?? 0}/${current.total_iterations ?? "--"} updates · ${activeQueue.status}` : "訓練佇列尚未啟動";
+    if (state.training?.slide_queue?.status) {
+      const labels = {waiting_for_native_queue:"排隊中", running:"訓練中", failed:"訓練中斷", blocked_upstream_failed:"前項訓練中斷", completed:"已完成", completed_with_unvalidated_skills:"待改善"};
+      training.textContent += ` · Sliding ${labels[state.training.slide_queue.status] || "準備中"}`;
+    }
   }
   if (state.contract && state.contract !== "q1-native-manager-v2-23x90") {
     els.pose.textContent = "\u8ACB\u555F\u52D5\u65B0\u7248 Q1 Manager \u64AD\u653E\u5668";
@@ -22806,7 +22815,7 @@ document.querySelectorAll("[data-view]").forEach((btn) => {
 document.getElementById("reset").addEventListener("click", () => applyPose(PRESETS.zero));
 document.getElementById("follow-all").addEventListener("click", () => releaseAll());
 document.getElementById("reset-sim").addEventListener("click", async () => {
-  stopBrowserDrive();
+  await stopBrowserDrive();
   await releaseAll();
   try {
     await postJson("/api/reset", {});
@@ -22819,7 +22828,7 @@ async function requestPose(name) {
   animateButton(button);
   if (button) button.dataset.pending = "true";
   updateActionButtons(lastIsaac || {});
-  stopBrowserDrive();
+  await stopBrowserDrive();
   await releaseAll();
   try {
     await postJson("/api/pose", { name });
@@ -23221,7 +23230,7 @@ async function sendBrowserDrive() {
 }
 function stopBrowserDrive() {
   browserDriveKeys.clear();
-  sendBrowserDrive();
+  return sendBrowserDrive();
 }
 document.addEventListener("keydown", (event) => {
   if (event.target.closest?.("input, textarea, select, [contenteditable='true']") || event.ctrlKey || event.metaKey || event.altKey) return;

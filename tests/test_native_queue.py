@@ -133,5 +133,20 @@ class NativeQueueTest(unittest.TestCase):
         self.assertIn('no log output',state['current']['watchdog_error'])
         self.assertIsNone(queue.CHILD)
 
+    def test_extra_slide_sources_do_not_change_base_queue_contract(self):
+        path=self.root/'slide.py';path.write_text('version=1')
+        with patch.object(queue,'source_manifest',return_value={'base.py':'unchanged'}):
+            self.assertEqual(queue.plan_source_manifest({}),{'base.py':'unchanged'})
+            first=queue.plan_source_manifest({'source_paths':['slide.py']})
+            path.write_text('version=2')
+            self.assertNotEqual(first,queue.plan_source_manifest({'source_paths':['slide.py']}))
+
+    def test_slide_publication_keeps_distinct_policy_contract(self):
+        source=self.root/'run/model_2.pt';checkpoint(source)
+        queue.publish(source,self.root/'slide',policy_contract='q1-native-slide-v1-23x90')
+        meta=json.loads((self.root/'slide/latest.json').read_text())
+        self.assertEqual(meta['contract'],'q1-native-slide-v1-23x90')
+        self.assertFalse(meta['validated'])
+
 
 if __name__=="__main__":unittest.main()

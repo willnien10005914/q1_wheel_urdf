@@ -15,11 +15,12 @@ export function updateActionButtons(state = {}, root = document) {
   root.querySelectorAll("[data-pose]").forEach((button) => {
     const action = button.dataset.pose;
     const pending = button.dataset.pending === "true";
-    const status = pending ? "送出中" : actionStatus(action, state);
+    let status = pending ? "送出中" : actionStatus(action, state);
     const running = ["執行中", "準備中"].includes(status);
-    const unavailable = state.supported_actions?.[action] === false || (action === "backflip" ? !state.policies?.backflip
+    const unavailable = state.supported_actions?.[action] === false || (action === "slide" && state.supported_actions?.slide !== true) || (action === "backflip" ? !state.policies?.backflip
       : action === "unbox" ? state.policies?.unbox === false
       : action.startsWith("recovery_") ? !state.policies?.[action.slice(9)] : false);
+    if (action === "slide" && unavailable) status = state.models?.slide ? "訓練中，待驗證" : "等待模型";
     button.disabled = pending || unavailable || (running && !["skate", "slide"].includes(action));
     button.dataset.actionState = status;
     button.classList.remove("active-pose");

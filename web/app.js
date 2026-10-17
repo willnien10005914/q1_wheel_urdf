@@ -1,4 +1,4 @@
-import { updateActionButtons, animateButton } from "./button_feedback.mjs?v=20261012-actions";
+import { updateActionButtons, animateButton } from "./button_feedback.mjs?v=20261017-sliding";
 import * as THREE from "./vendor/three/three.module.js";
 import { OrbitControls } from "./vendor/three/examples/jsm/controls/OrbitControls.js";
 import URDFLoader from "./vendor/urdf-loader/URDFLoader.js";
@@ -328,8 +328,13 @@ function applyIsaacState(state) {
   lastIsaac = state;
   const training = document.getElementById("training-readout");
   if (training) {
-    const current = state.training?.current;
-    training.textContent = current ? `訓練 ${current.skill} · ${current.completed_iterations ?? 0}/${current.total_iterations ?? "--"} updates · ${state.training.status}` : "訓練佇列尚未啟動";
+    const activeQueue = state.training?.slide_queue?.status === "running" ? state.training.slide_queue : state.training;
+    const current = activeQueue?.current;
+    training.textContent = current ? `訓練 ${current.skill} · ${current.completed_iterations ?? 0}/${current.total_iterations ?? "--"} updates · ${activeQueue.status}` : "訓練佇列尚未啟動";
+    if (state.training?.slide_queue?.status) {
+      const labels = {waiting_for_native_queue:"排隊中", running:"訓練中", failed:"訓練中斷", blocked_upstream_failed:"前項訓練中斷", completed:"已完成", completed_with_unvalidated_skills:"待改善"};
+      training.textContent += ` · Sliding ${labels[state.training.slide_queue.status] || "準備中"}`;
+    }
   }
   if (state.contract && state.contract !== "q1-native-manager-v2-23x90") {
     els.pose.textContent = "請啟動新版 Q1 Manager 播放器";
@@ -594,7 +599,7 @@ document.querySelectorAll("[data-view]").forEach((btn) => {
 document.getElementById("reset").addEventListener("click", () => applyPose(PRESETS.zero));
 document.getElementById("follow-all").addEventListener("click", () => releaseAll());
 document.getElementById("reset-sim").addEventListener("click", async () => {
-  stopBrowserDrive();
+  await stopBrowserDrive();
   await releaseAll();
   try {
     await postJson("/api/reset", {});
@@ -609,7 +614,7 @@ async function requestPose(name) {
   animateButton(button);
   if (button) button.dataset.pending = "true";
   updateActionButtons(lastIsaac || {});
-  stopBrowserDrive();
+  await stopBrowserDrive();
   await releaseAll();
   try {
     await postJson("/api/pose", { name });
@@ -1041,7 +1046,7 @@ async function sendBrowserDrive() {
 }
 function stopBrowserDrive() {
   browserDriveKeys.clear();
-  sendBrowserDrive();
+  return sendBrowserDrive();
 }
 document.addEventListener("keydown", (event) => {
   if (event.target.closest?.("input, textarea, select, [contenteditable='true']") || event.ctrlKey || event.metaKey || event.altKey) return;

@@ -63,11 +63,20 @@ def latest_checkpoint(directory,prefix):
     return None
 
 
-def publish(source,folder,validated=False,validation=None):
+def plan_source_manifest(plan):
+    result=dict(source_manifest())
+    for name in plan.get('source_paths',[]):
+        path=(ROOT/name).resolve()
+        path.relative_to(ROOT.resolve())
+        result[name]=hashlib.sha256(path.read_bytes()).hexdigest()
+    return result
+
+
+def publish(source,folder,validated=False,validation=None,policy_contract=CONTRACT):
     folder.mkdir(parents=True,exist_ok=True)
     target=folder/("model.pt" if validated else "latest.pt")
     tmp=target.with_suffix(".tmp");shutil.copy2(source,tmp);tmp.replace(target)
-    metadata=dict(contract=CONTRACT,manager_based=True,new_urdf=True,validated=validated,
+    metadata=dict(contract=policy_contract,manager_based=True,new_urdf=True,validated=validated,
                   source=str(source.relative_to(ROOT)),iteration=int(re.search(r"model_(\d+)",source.name)[1]),
                   sha256=hashlib.sha256(target.read_bytes()).hexdigest(),validation=validation)
     atomic_json(folder/("validated.json" if validated else "latest.json"),metadata)
@@ -114,7 +123,7 @@ def run_child(command,log,status,state_path,stage=None,prefix=None,models=None):
                     completed=int(re.search(r"model_(\d+)",checkpoint.name)[1])+1
                     status["current"]["completed_iterations"]=completed
                     if str(checkpoint)!=last_published:
-                        publish(checkpoint,models/stage["skill"])
+                        publish(checkpoint,models/stage["skill"],policy_contract=stage.get('policy_contract',CONTRACT))
                         last_published=str(checkpoint)
             atomic_json(state_path,status)
             if STOP:
@@ -148,7 +157,7 @@ def main():
     args.state.parent.mkdir(parents=True,exist_ok=True)
     lock=(args.state.parent/"queue.lock").open("w")
     fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
-    source=source_manifest()
+    source=plan_source_manifest(plan)
     if args.state.exists():
         status=json.loads(args.state.read_text())
         if status["source_sha256"]!=source or status["plan"]!=plan:
@@ -164,7 +173,7 @@ def main():
         prefix=f"native_{status['run_id']}_{name}_"
         directory=ROOT/"logs/rsl_rl"/f"q1_native_{name}"
         while not STOP:
-            if source_manifest()!=source:raise RuntimeError("Controller sources changed during active training")
+            if plan_source_manifest(plan)!=source:raise RuntimeError("Controller sources changed during active training")
             checkpoint=latest_checkpoint(directory,prefix)
             if checkpoint:record["completed_iterations"]=max(record["completed_iterations"],int(re.search(r"model_(\d+)",checkpoint.name)[1])+1)
             done=record["completed_iterations"]
@@ -207,11 +216,11 @@ def main():
                 checkpoint=latest_checkpoint(directory,prefix)
                 if checkpoint is None:raise RuntimeError("Trainer exited without a valid checkpoint")
             record["completed_iterations"]=int(re.search(r"model_(\d+)",checkpoint.name)[1])+1
-            publish(checkpoint,args.models/name)
+            publish(checkpoint,args.models/name,policy_contract=stage.get('policy_contract',CONTRACT))
             status["current"]["phase"]="validation"
             status["current"]["completed_iterations"]=record["completed_iterations"]
             report=args.state.parent/f"{name}_{record['completed_iterations']:06d}_validation.json"
-            evaluate=[str(ROOT/"run_isaac.sh"),"scripts/reinforcement_learning/rsl_rl/evaluate_native.py",
+            evaluate=[str(ROOT/"run_isaac.sh"),stage.get('evaluate_script',"scripts/reinforcement_learning/rsl_rl/evaluate_native.py"),
                       "--skill",name,"--checkpoint",str(checkpoint),"--num_envs",str(plan["evaluation_envs"]),
                       "--steps",str(plan["evaluation_steps"]),"--out",str(report)]
             code=run_child(evaluate,log.with_name(log.stem+"_validation.log"),status,args.state)
@@ -221,7 +230,7 @@ def main():
                 record["last_evaluated_iteration"]=record["completed_iterations"]
                 record["last_validation_pass"]=result["pass_validation"]
                 if result["pass_validation"] and result["score"]>record.get("best_score",-1.e9):
-                    publish(checkpoint,args.models/name,True,str(report.relative_to(ROOT)))
+                    publish(checkpoint,args.models/name,True,str(report.relative_to(ROOT)),policy_contract=stage.get('policy_contract',CONTRACT))
                     record["best_score"]=result["score"];record["validated"]=True
             else:raise RuntimeError(f"Evaluation process failed: {log.with_name(log.stem+'_validation.log')}")
             atomic_json(args.state,status)
