@@ -59,3 +59,7 @@ checkpoints/*_rslrl5.pt
 !checkpoints/inertia_native_smoke/**
 !checkpoints/spark_smoke/
 !checkpoints/spark_smoke/**
+
+# Reviewed native Stand checkpoint; training continues in native_manager.
+!checkpoints/native_stand_review_20261017/
+!checkpoints/native_stand_review_20261017/**

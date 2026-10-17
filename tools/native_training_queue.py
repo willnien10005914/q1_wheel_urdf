@@ -26,6 +26,7 @@ CHILD=None
 STATE_PATH=None
 CHECKPOINT_CACHE={}
 TERMINAL_FAILURE=78  # systemd must not restart exhausted retries/config errors.
+STALL_TIMEOUT=600.  # A live supervisor heartbeat is not simulator progress.
 
 
 def atomic_json(path,value):
@@ -88,9 +89,24 @@ def run_child(command,log,status,state_path,stage=None,prefix=None,models=None):
         if status["current"].get("fresh_warm_start"):environment["RESET_NOISE_STD"]="0.20"
         CHILD=subprocess.Popen(command,cwd=ROOT,stdout=stream,stderr=subprocess.STDOUT,
                                env=environment,start_new_session=True)
+        last_output=time.monotonic();last_size=0
         status["current"]["pid"]=CHILD.pid;status["current"]["log"]=str(log.relative_to(ROOT))
         last_published=None
         while CHILD.poll() is None:
+            size=log.stat().st_size
+            if size!=last_size:
+                last_size=size;last_output=time.monotonic()
+            if time.monotonic()-last_output>STALL_TIMEOUT:
+                status["current"]["watchdog_error"]=f"Child produced no log output for {STALL_TIMEOUT:g}s"
+                atomic_json(state_path,status)
+                print("QUEUE_STALL",status["current"]["watchdog_error"],str(log),flush=True)
+                try:os.killpg(CHILD.pid,signal.SIGTERM)
+                except ProcessLookupError:pass
+                try:CHILD.wait(timeout=30)
+                except subprocess.TimeoutExpired:
+                    os.killpg(CHILD.pid,signal.SIGKILL);CHILD.wait()
+                CHILD=None
+                return 124  # Goes through the existing bounded retry budget.
             status["updated_at"]=datetime.now(timezone.utc).isoformat()
             if stage:
                 checkpoint=latest_checkpoint(ROOT/"logs/rsl_rl"/f"q1_native_{stage['skill']}",prefix)
@@ -112,13 +128,16 @@ def run_child(command,log,status,state_path,stage=None,prefix=None,models=None):
 
 
 def main():
-    global STATE_PATH
+    global STATE_PATH,STALL_TIMEOUT
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument("--config",type=Path,default=ROOT/"config/native_training_queue.json")
     p.add_argument("--state",type=Path,default=ROOT/"outputs/native_manager/queue/status.json")
     p.add_argument("--models",type=Path,default=ROOT/"checkpoints/native_manager")
     p.add_argument("--status",action="store_true")
+    p.add_argument("--stall-timeout",type=float,default=600.,help="Fail and retry a child with no log output for this many seconds")
     args=p.parse_args()
+    if args.stall_timeout<30: p.error("--stall-timeout must be at least 30 seconds")
+    STALL_TIMEOUT=args.stall_timeout
     args.config=args.config.resolve();args.state=args.state.resolve();args.models=args.models.resolve()
     STATE_PATH=args.state
     if args.status:

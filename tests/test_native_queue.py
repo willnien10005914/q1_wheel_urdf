@@ -8,7 +8,7 @@ import sys
 import tempfile
 import time
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 import zipfile
 
 spec=importlib.util.spec_from_file_location("native_queue",Path(__file__).resolve().parents[1]/"tools/native_training_queue.py")
@@ -119,6 +119,19 @@ class NativeQueueTest(unittest.TestCase):
             self.assertEqual(queue.main(),queue.TERMINAL_FAILURE)
             self.assertEqual(child.call_count,3)
         self.assertEqual(json.loads(state.read_text())["status"],"failed")
+
+    def test_stalled_child_is_killed_and_returns_retryable_timeout(self):
+        child=MagicMock();child.pid=12345;child.poll.return_value=None
+        child.wait.side_effect=[queue.subprocess.TimeoutExpired('sim',30),0]
+        state={"current":{}}
+        with patch.object(queue.subprocess,"Popen",return_value=child), \
+             patch.object(queue.time,"monotonic",side_effect=[0.,601.]), \
+             patch.object(queue.os,"killpg") as kill,patch.object(queue,"STALL_TIMEOUT",600.):
+            code=queue.run_child(['sim'],self.root/'child.log',state,self.root/'status.json')
+        self.assertEqual(code,124)
+        self.assertEqual([c.args for c in kill.call_args_list],[(12345,queue.signal.SIGTERM),(12345,queue.signal.SIGKILL)])
+        self.assertIn('no log output',state['current']['watchdog_error'])
+        self.assertIsNone(queue.CHILD)
 
 
 if __name__=="__main__":unittest.main()
