@@ -5,12 +5,12 @@
 | 順序 | 動作 | 新預算 | 單項時間上限 |
 |---|---|---:|---:|
 | 1 | Stand | 至少已完成 4,000；保留進度與最佳模型，不追加 | — |
-| 2 | Walk | 4,000 | 5 小時 |
-| 3 | Standup / Unbox | 5,000 | 6 小時 |
-| 4 | 交替 Sliding | 5,000 | 6 小時 |
-| 5 | Backflip | 14,000 | 14 小時 |
+| 2 | Walk | 3,000 | 3.5 小時 |
+| 3 | Standup / Unbox | 4,000 | 4.5 小時 |
+| 4 | 交替 Sliding | 4,000 | 4.5 小時 |
+| 5 | Backflip | 12,000 | 12 小時 |
 
-後續合計 28k updates，按目前約 3.2 秒/update，純訓練約 25 小時；啟動及驗證另計，實際速度可能不同。原實驗 state 與 checkpoint 保留，新計畫使用 `outputs/native_deadline_20261019/status.json`，延續相同 run_id，因此能找回已完成的 Stand checkpoint；計畫及 source hash 重新記錄，不覆寫舊實驗的固定計畫。
+10/18 00:24 確認正式服務尚未啟動後縮減預算。後續合計 23k updates，按目前約 3.2 秒/update，純訓練約 20.4 小時；啟動及驗證另計，實際速度可能不同。原實驗 state 與 checkpoint 保留，新計畫使用 `outputs/native_deadline_20261019/status.json`，延續相同 run_id，因此能找回已完成的 Stand checkpoint；計畫及 source hash 重新記錄，不覆寫舊實驗的固定計畫。
 
 ## 截止與交付
 

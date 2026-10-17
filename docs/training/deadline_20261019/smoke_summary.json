@@ -1,0 +1,49 @@
+{
+  "status": "completed_with_unvalidated_skills",
+  "envs": 64,
+  "iterations_per_skill": 3,
+  "completed_at": "2026-10-17T11:06:56.411386+00:00",
+  "meaning": "Pipeline smoke only; unvalidated motions require training.",
+  "skills": {
+    "stand": {
+      "pass_validation": true,
+      "trials": 8,
+      "successes": 8,
+      "failures": 0,
+      "nonfinite": 0,
+      "iterations": 3
+    },
+    "walk": {
+      "pass_validation": false,
+      "trials": 8,
+      "successes": 1,
+      "failures": 8,
+      "nonfinite": 0,
+      "iterations": 3
+    },
+    "standup": {
+      "pass_validation": false,
+      "trials": 8,
+      "successes": 0,
+      "failures": 8,
+      "nonfinite": 0,
+      "iterations": 3
+    },
+    "slide": {
+      "pass_validation": false,
+      "trials": 8,
+      "successes": 0,
+      "failures": 8,
+      "nonfinite": 0.0,
+      "iterations": 3
+    },
+    "backflip": {
+      "pass_validation": false,
+      "trials": 8,
+      "successes": 0,
+      "failures": 8,
+      "nonfinite": 0,
+      "iterations": 3
+    }
+  }
+}

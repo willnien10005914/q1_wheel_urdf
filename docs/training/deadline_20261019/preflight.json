@@ -13,6 +13,6 @@
   "shell_syntax": "passed",
   "browser_script_syntax": "passed",
   "delivery_test": "real local Git bare remote and isolated worktree; simulator calls stubbed; not evidence of future GitHub delivery",
-  "gpu_smoke": "running separately; see smoke_summary.json when complete",
+  "gpu_smoke": "completed five skills at 64 envs / 3 updates each; only Stand motion validation passed; see smoke_summary.json",
   "latest_models_not_claimed_successful": true
 }

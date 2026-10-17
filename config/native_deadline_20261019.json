@@ -28,32 +28,32 @@
     {
       "skill": "walk",
       "task": "Isaac-Q1-Native-Walk-v0",
-      "iterations": 4000,
+      "iterations": 3000,
       "warm_from": "stand",
-      "max_wall_seconds": 18000
+      "max_wall_seconds": 12600
     },
     {
       "skill": "standup",
       "task": "Isaac-Q1-Native-Standup-v0",
-      "iterations": 5000,
+      "iterations": 4000,
       "warm_from": "stand",
-      "max_wall_seconds": 21600
+      "max_wall_seconds": 16200
     },
     {
       "skill": "slide",
       "task": "Isaac-Q1-Native-Slide-v0",
-      "iterations": 5000,
+      "iterations": 4000,
       "policy_contract": "q1-native-slide-v1-23x90",
       "evaluate_script": "scripts/reinforcement_learning/rsl_rl/evaluate_native_slide.py",
       "evaluation_steps": 1000,
-      "max_wall_seconds": 21600
+      "max_wall_seconds": 16200
     },
     {
       "skill": "backflip",
       "task": "Isaac-Q1-Native-Backflip-v0",
-      "iterations": 14000,
+      "iterations": 12000,
       "warm_from": "stand",
-      "max_wall_seconds": 50400
+      "max_wall_seconds": 43200
     }
   ],
   "training_deadline": "2026-10-19T04:00:00+08:00",
