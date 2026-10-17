@@ -1,0 +1,56 @@
+{
+  "captured_at_utc": "2026-10-17T10:21:35.557569+00:00",
+  "deployment_commit": "d04ac53",
+  "service": "q1-native-slide-training.service",
+  "service_active": true,
+  "waiting": {
+    "status": "waiting_for_native_queue",
+    "upstream_status": "running",
+    "num_envs": 6144,
+    "skill": "slide",
+    "iterations": 20000
+  },
+  "formal_plan": {
+    "contract": "q1-native-manager-v2-23x90",
+    "num_envs": 6144,
+    "chunk_iterations": 1000,
+    "seed": 42,
+    "evaluation_envs": 64,
+    "evaluation_steps": 1000,
+    "max_retries": 2,
+    "source_paths": [
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/native_slide/__init__.py",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/native_slide/env_cfg.py",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/native_slide/gait.py",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/native_slide/mdp.py",
+      "scripts/reinforcement_learning/rsl_rl/evaluate_native_slide.py",
+      "tools/queue_native_slide.py",
+      "tools/native_training_queue.py"
+    ],
+    "stages": [
+      {
+        "skill": "slide",
+        "task": "Isaac-Q1-Native-Slide-v0",
+        "iterations": 20000,
+        "policy_contract": "q1-native-slide-v1-23x90",
+        "evaluate_script": "scripts/reinforcement_learning/rsl_rl/evaluate_native_slide.py"
+      }
+    ]
+  },
+  "upstream_run_id": "20261017T001905",
+  "upstream_status": "running",
+  "upstream_current": {
+    "index": 0,
+    "skill": "stand",
+    "task": "Isaac-Q1-Native-Stand-v0",
+    "phase": "training",
+    "completed_iterations": 3301,
+    "total_iterations": 5000,
+    "fresh_warm_start": false,
+    "pid": 61999,
+    "log": "logs/native_manager_queue/20261017T001905/stand_003000.log"
+  },
+  "upstream_live_iteration": 3389,
+  "upstream_sources_unchanged": true,
+  "original_checkpoints_preserved": true
+}
