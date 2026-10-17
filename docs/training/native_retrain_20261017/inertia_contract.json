@@ -1,0 +1,18 @@
+{
+  "task": "Isaac-Q1-Inertia-Skate-v0",
+  "num_envs": 2,
+  "steps": 64,
+  "source_urdf": "/home/will/Documents/Codex/2026-10-08/projects-q1-wheel-urdf-cursor-kneel/integrated_q1/urdf/q1_inertia/quanta_robot_wheeled.urdf",
+  "mass_kg": 41.05226516723633,
+  "action_dim": 23,
+  "actor_obs_dim": 78,
+  "critic_obs_dim": 81,
+  "joint_count": 27,
+  "source_inertia_max_abs_error": 9.183490752573409e-09,
+  "mimic_targets_exact": true,
+  "mimic_max_tracking_error_rad": 0.07603098452091217,
+  "mimic_physics_substep_calls": 256,
+  "finite": true,
+  "failures": [],
+  "pass": true
+}

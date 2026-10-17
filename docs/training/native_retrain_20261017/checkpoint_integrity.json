@@ -1,0 +1,34 @@
+{
+  "stand": {
+    "sha256": "4a4f0856ffbdd4a3251fa5f6a315d46acea4074804a06ab52a5a0fa8ae220f71",
+    "all_model_and_optimizer_tensors_finite": true,
+    "tensor_count": 76,
+    "iteration": 2,
+    "action_dim": 23,
+    "actor_obs_dim": 90
+  },
+  "walk": {
+    "sha256": "875836d4f7072aa884a55437cb7ca938a228999c0f6d646255907f6d533018ac",
+    "all_model_and_optimizer_tensors_finite": true,
+    "tensor_count": 76,
+    "iteration": 2,
+    "action_dim": 23,
+    "actor_obs_dim": 90
+  },
+  "standup": {
+    "sha256": "938423464ce8be01eadcb5ab5bbd8489bbac1fd353d85e041dfaf713e998989b",
+    "all_model_and_optimizer_tensors_finite": true,
+    "tensor_count": 76,
+    "iteration": 2,
+    "action_dim": 23,
+    "actor_obs_dim": 90
+  },
+  "backflip": {
+    "sha256": "6da126464708a39ceedf8db8e7d53f287cfa870ce9f0d7c505599a2fadbba997",
+    "all_model_and_optimizer_tensors_finite": true,
+    "tensor_count": 76,
+    "iteration": 2,
+    "action_dim": 23,
+    "actor_obs_dim": 90
+  }
+}

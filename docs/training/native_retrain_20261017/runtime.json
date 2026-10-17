@@ -1,0 +1,229 @@
+{
+  "platform": "Linux-6.8.0-138-generic-x86_64-with-glibc2.35",
+  "machine": "x86_64",
+  "python": "3.11.13",
+  "project_root": "/home/will/Documents/Codex/2026-10-08/projects-q1-wheel-urdf-cursor-kneel/integrated_q1",
+  "packages": {
+    "torch": "2.7.0+cu128",
+    "isaacsim": null,
+    "isaaclab": "0.54.4",
+    "rsl-rl-lib": "5.0.1"
+  },
+  "errors": [],
+  "cuda_devices": [
+    {
+      "index": 0,
+      "name": "NVIDIA GeForce RTX 4090 Laptop GPU",
+      "compute_capability": [
+        8,
+        9
+      ],
+      "math_finite": true,
+      "matmul_correct": true,
+      "math_pass": true
+    }
+  ],
+  "manager_registrations": [
+    {
+      "task": "Isaac-Q1-Getup-v0",
+      "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+      "env_config": "wheel_humanoid_lab.tasks.manager_based.getup.getup_env_cfg:Q1GetupEnvCfg",
+      "agent_config": "wheel_humanoid_lab.tasks.manager_based.getup.agents.rsl_rl_ppo_cfg:Q1GetupPPORunnerCfg",
+      "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/getup/__init__.py"
+    },
+    {
+      "task": "Isaac-Q1-Getup-Play-v0",
+      "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+      "env_config": "wheel_humanoid_lab.tasks.manager_based.getup.getup_env_cfg:Q1GetupEnvCfg_PLAY",
+      "agent_config": "wheel_humanoid_lab.tasks.manager_based.getup.agents.rsl_rl_ppo_cfg:Q1GetupPPORunnerCfg",
+      "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/getup/__init__.py"
+    },
+    {
+      "task": "Isaac-Q1-Inertia-Skate-v0",
+      "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+      "env_config": "wheel_humanoid_lab.tasks.manager_based.inertia.inertia_env_cfg:Q1InertiaSkateEnvCfg",
+      "agent_config": "wheel_humanoid_lab.tasks.manager_based.inertia.agents.rsl_rl_ppo_cfg:Q1InertiaSkatePPORunnerCfg",
+      "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/__init__.py"
+    },
+    {
+      "task": "Isaac-Q1-Inertia-Skate-Play-v0",
+      "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+      "env_config": "wheel_humanoid_lab.tasks.manager_based.inertia.inertia_env_cfg:Q1InertiaSkateEnvCfg_PLAY",
+      "agent_config": "wheel_humanoid_lab.tasks.manager_based.inertia.agents.rsl_rl_ppo_cfg:Q1InertiaSkatePPORunnerCfg",
+      "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/__init__.py"
+    },
+    {
+      "task": "Isaac-Q1-Native-Stand-v0",
+      "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+      "env_config": "wheel_humanoid_lab.tasks.manager_based.inertia.native_env_cfg:NativeStandEnvCfg",
+      "agent_config": "wheel_humanoid_lab.tasks.manager_based.inertia.agents.native_ppo_cfg:NativePPORunnerCfg",
+      "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/__init__.py"
+    },
+    {
+      "task": "Isaac-Q1-Native-Walk-v0",
+      "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+      "env_config": "wheel_humanoid_lab.tasks.manager_based.inertia.native_env_cfg:NativeWalkEnvCfg",
+      "agent_config": "wheel_humanoid_lab.tasks.manager_based.inertia.agents.native_ppo_cfg:NativePPORunnerCfg",
+      "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/__init__.py"
+    },
+    {
+      "task": "Isaac-Q1-Native-Standup-v0",
+      "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+      "env_config": "wheel_humanoid_lab.tasks.manager_based.inertia.native_env_cfg:NativeStandupEnvCfg",
+      "agent_config": "wheel_humanoid_lab.tasks.manager_based.inertia.agents.native_ppo_cfg:NativePPORunnerCfg",
+      "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/__init__.py"
+    },
+    {
+      "task": "Isaac-Q1-Native-Backflip-v0",
+      "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+      "env_config": "wheel_humanoid_lab.tasks.manager_based.inertia.native_env_cfg:NativeBackflipEnvCfg",
+      "agent_config": "wheel_humanoid_lab.tasks.manager_based.inertia.agents.native_ppo_cfg:NativePPORunnerCfg",
+      "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/__init__.py"
+    },
+    {
+      "task": "Isaac-Q1-Native-Web-v0",
+      "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+      "env_config": "wheel_humanoid_lab.tasks.manager_based.inertia.native_env_cfg:NativeWebEnvCfg",
+      "agent_config": "wheel_humanoid_lab.tasks.manager_based.inertia.agents.native_ppo_cfg:NativePPORunnerCfg",
+      "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/__init__.py"
+    },
+    {
+      "task": "Isaac-Q1-Posture-v0",
+      "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+      "env_config": "wheel_humanoid_lab.tasks.manager_based.posture.posture_env_cfg:Q1PostureEnvCfg",
+      "agent_config": "wheel_humanoid_lab.tasks.manager_based.posture.agents.rsl_rl_ppo_cfg:Q1PosturePPORunnerCfg",
+      "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/posture/__init__.py"
+    },
+    {
+      "task": "Isaac-Q1-Posture-Play-v0",
+      "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+      "env_config": "wheel_humanoid_lab.tasks.manager_based.posture.posture_env_cfg:Q1PostureEnvCfg_PLAY",
+      "agent_config": "wheel_humanoid_lab.tasks.manager_based.posture.agents.rsl_rl_ppo_cfg:Q1PosturePPORunnerCfg",
+      "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/posture/__init__.py"
+    },
+    {
+      "task": "Isaac-Q1-RecoveryV3-v0",
+      "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+      "env_config": "wheel_humanoid_lab.tasks.manager_based.recovery_v3.env_cfg:Q1RecoveryV3EnvCfg",
+      "agent_config": "wheel_humanoid_lab.tasks.manager_based.recovery_v3.runner_cfg:Q1RecoveryV3PPORunnerCfg",
+      "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3/__init__.py"
+    },
+    {
+      "task": "Isaac-Q1-RecoveryV3-Play-v0",
+      "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+      "env_config": "wheel_humanoid_lab.tasks.manager_based.recovery_v3.env_cfg:Q1RecoveryV3PlayCfg",
+      "agent_config": "wheel_humanoid_lab.tasks.manager_based.recovery_v3.runner_cfg:Q1RecoveryV3PPORunnerCfg",
+      "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3/__init__.py"
+    },
+    {
+      "task": "Isaac-Q1-RecoveryV3-Supine-v0",
+      "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+      "env_config": "wheel_humanoid_lab.tasks.manager_based.recovery_v3.env_cfg:Q1RecoveryV3SupineEnvCfg",
+      "agent_config": "wheel_humanoid_lab.tasks.manager_based.recovery_v3.runner_cfg:Q1RecoveryV3SupinePPORunnerCfg",
+      "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3/__init__.py"
+    },
+    {
+      "task": "Isaac-Q1-RecoveryV3-Supine-Play-v0",
+      "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+      "env_config": "wheel_humanoid_lab.tasks.manager_based.recovery_v3.env_cfg:Q1RecoveryV3SupinePlayCfg",
+      "agent_config": "wheel_humanoid_lab.tasks.manager_based.recovery_v3.runner_cfg:Q1RecoveryV3SupinePPORunnerCfg",
+      "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3/__init__.py"
+    },
+    {
+      "task": "Isaac-Q1-RecoveryV3-Prone-v0",
+      "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+      "env_config": "wheel_humanoid_lab.tasks.manager_based.recovery_v3.env_cfg:Q1RecoveryV3ProneEnvCfg",
+      "agent_config": "wheel_humanoid_lab.tasks.manager_based.recovery_v3.runner_cfg:Q1RecoveryV3PronePPORunnerCfg",
+      "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3/__init__.py"
+    },
+    {
+      "task": "Isaac-Q1-RecoveryV3-Prone-Play-v0",
+      "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+      "env_config": "wheel_humanoid_lab.tasks.manager_based.recovery_v3.env_cfg:Q1RecoveryV3PronePlayCfg",
+      "agent_config": "wheel_humanoid_lab.tasks.manager_based.recovery_v3.runner_cfg:Q1RecoveryV3PronePPORunnerCfg",
+      "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3/__init__.py"
+    },
+    {
+      "task": "Isaac-Q1-RecoveryV3-BootKneel-v0",
+      "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+      "env_config": "wheel_humanoid_lab.tasks.manager_based.recovery_v3.env_cfg:Q1RecoveryV3BootKneelEnvCfg",
+      "agent_config": "wheel_humanoid_lab.tasks.manager_based.recovery_v3.runner_cfg:Q1RecoveryV3BootKneelPPORunnerCfg",
+      "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3/__init__.py"
+    },
+    {
+      "task": "Isaac-Q1-RecoveryV3-BootKneel-Play-v0",
+      "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+      "env_config": "wheel_humanoid_lab.tasks.manager_based.recovery_v3.env_cfg:Q1RecoveryV3BootKneelPlayCfg",
+      "agent_config": "wheel_humanoid_lab.tasks.manager_based.recovery_v3.runner_cfg:Q1RecoveryV3BootKneelPPORunnerCfg",
+      "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/recovery_v3/__init__.py"
+    },
+    {
+      "task": "Isaac-Q1-Skate-v0",
+      "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+      "env_config": "wheel_humanoid_lab.tasks.manager_based.skate.skate_env_cfg:Q1SkateEnvCfg",
+      "agent_config": "wheel_humanoid_lab.tasks.manager_based.skate.agents.rsl_rl_ppo_cfg:Q1SkatePPORunnerCfg",
+      "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/skate/__init__.py"
+    },
+    {
+      "task": "Isaac-Q1-Skate-Play-v0",
+      "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+      "env_config": "wheel_humanoid_lab.tasks.manager_based.skate.skate_env_cfg:Q1SkateEnvCfg_PLAY",
+      "agent_config": "wheel_humanoid_lab.tasks.manager_based.skate.agents.rsl_rl_ppo_cfg:Q1SkatePPORunnerCfg",
+      "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/skate/__init__.py"
+    },
+    {
+      "task": "Isaac-WheelHumanoid-Skateboard-v0",
+      "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+      "env_config": "wheel_humanoid_lab.tasks.manager_based.skateboard.skateboard_env_cfg:WheelHumanoidSkateboardEnvCfg",
+      "agent_config": "wheel_humanoid_lab.tasks.manager_based.skateboard.agents.rsl_rl_ppo_cfg:WheelHumanoidSkateboardPPORunnerCfg",
+      "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/skateboard/__init__.py"
+    },
+    {
+      "task": "Isaac-WheelHumanoid-Skateboard-Play-v0",
+      "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+      "env_config": "wheel_humanoid_lab.tasks.manager_based.skateboard.skateboard_env_cfg:WheelHumanoidSkateboardEnvCfg_PLAY",
+      "agent_config": "wheel_humanoid_lab.tasks.manager_based.skateboard.agents.rsl_rl_ppo_cfg:WheelHumanoidSkateboardPPORunnerCfg",
+      "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/skateboard/__init__.py"
+    },
+    {
+      "task": "Isaac-Q1-Slide-v0",
+      "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+      "env_config": "wheel_humanoid_lab.tasks.manager_based.slide.slide_env_cfg:Q1SlideEnvCfg",
+      "agent_config": "wheel_humanoid_lab.tasks.manager_based.slide.agents.rsl_rl_ppo_cfg:Q1SlidePPORunnerCfg",
+      "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/slide/__init__.py"
+    },
+    {
+      "task": "Isaac-Q1-Slide-Play-v0",
+      "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+      "env_config": "wheel_humanoid_lab.tasks.manager_based.slide.slide_env_cfg:Q1SlideEnvCfg_PLAY",
+      "agent_config": "wheel_humanoid_lab.tasks.manager_based.slide.agents.rsl_rl_ppo_cfg:Q1SlidePPORunnerCfg",
+      "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/slide/__init__.py"
+    },
+    {
+      "task": "Isaac-Q1-Unbox-v0",
+      "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+      "env_config": "wheel_humanoid_lab.tasks.manager_based.unbox.unbox_env_cfg:Q1UnboxEnvCfg",
+      "agent_config": "wheel_humanoid_lab.tasks.manager_based.unbox.agents.rsl_rl_ppo_cfg:Q1UnboxPPORunnerCfg",
+      "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/unbox/__init__.py"
+    },
+    {
+      "task": "Isaac-Q1-Unbox-Play-v0",
+      "entry_point": "isaaclab.envs:ManagerBasedRLEnv",
+      "env_config": "wheel_humanoid_lab.tasks.manager_based.unbox.unbox_env_cfg:Q1UnboxEnvCfg_PLAY",
+      "agent_config": "wheel_humanoid_lab.tasks.manager_based.unbox.agents.rsl_rl_ppo_cfg:Q1UnboxPPORunnerCfg",
+      "source": "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/unbox/__init__.py"
+    }
+  ],
+  "torch_cuda": "12.8",
+  "cuda_available": true,
+  "torch_cuda_arches": [
+    "sm_75",
+    "sm_80",
+    "sm_86",
+    "sm_90",
+    "sm_100",
+    "sm_120",
+    "compute_120"
+  ],
+  "pass": true
+}

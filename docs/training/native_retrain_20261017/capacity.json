@@ -1,0 +1,44 @@
+{
+  "iterations_per_test": 10,
+  "task": "Isaac-Q1-Native-Stand-v0",
+  "selected_num_envs": 6144,
+  "reason": "12288 fits memory but is 64% slower per update; choose 6144 for the fixed iteration budget",
+  "benchmarks": [
+    {
+      "num_envs": 1024,
+      "exit_code": 0,
+      "elapsed_s": 31.894863453000653,
+      "peak_gpu_MiB": 3180,
+      "oom": false,
+      "median_iteration_s": 1.665,
+      "steady_transitions_per_s": 14760.36036036036
+    },
+    {
+      "num_envs": 3072,
+      "exit_code": 0,
+      "elapsed_s": 44.20927260999997,
+      "peak_gpu_MiB": 4150,
+      "oom": false,
+      "median_iteration_s": 2.27,
+      "steady_transitions_per_s": 32479.295154185023
+    },
+    {
+      "num_envs": 6144,
+      "exit_code": 0,
+      "elapsed_s": 65.63538793599946,
+      "peak_gpu_MiB": 5496,
+      "oom": false,
+      "median_iteration_s": 3.26,
+      "steady_transitions_per_s": 45231.9018404908
+    },
+    {
+      "num_envs": 12288,
+      "exit_code": 0,
+      "elapsed_s": 109.80404535100024,
+      "peak_gpu_MiB": 8188,
+      "oom": false,
+      "median_iteration_s": 5.345,
+      "steady_transitions_per_s": 55175.30402245089
+    }
+  ]
+}
