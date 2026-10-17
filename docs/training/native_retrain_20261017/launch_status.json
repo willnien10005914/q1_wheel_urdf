@@ -1,0 +1,84 @@
+{
+  "captured_at_utc": "2026-10-17T00:20:48.575779+00:00",
+  "repository_commit": "3538798",
+  "root": "/home/will/projects/q1_wheel_urdf",
+  "run_id": "20261017T001905",
+  "status": "running",
+  "num_envs": 6144,
+  "current_skill": "stand",
+  "current_log": "logs/native_manager_queue/20261017T001905/stand_000000.log",
+  "live_logged_iteration": 21,
+  "plan": {
+    "contract": "q1-native-manager-v2-23x90",
+    "num_envs": 6144,
+    "chunk_iterations": 1000,
+    "seed": 42,
+    "evaluation_envs": 64,
+    "evaluation_steps": 500,
+    "max_retries": 2,
+    "stages": [
+      {
+        "skill": "stand",
+        "task": "Isaac-Q1-Native-Stand-v0",
+        "iterations": 5000
+      },
+      {
+        "skill": "walk",
+        "task": "Isaac-Q1-Native-Walk-v0",
+        "iterations": 20000,
+        "warm_from": "stand"
+      },
+      {
+        "skill": "standup",
+        "task": "Isaac-Q1-Native-Standup-v0",
+        "iterations": 20000,
+        "warm_from": "stand"
+      },
+      {
+        "skill": "backflip",
+        "task": "Isaac-Q1-Native-Backflip-v0",
+        "iterations": 40000,
+        "warm_from": "stand"
+      }
+    ]
+  },
+  "source_sha256": {
+    "config/q1_wheel_components.yaml": "c3a40df3d52268d52c798a6b708d4948b109bca1feb81a4a48954ae22efa422a",
+    "scripts/reinforcement_learning/rsl_rl/evaluate_native.py": "491cd73036a8c85a32ee5a9d8812da621e41bfe5b3b12a5119ce7601797c8b67",
+    "scripts/reinforcement_learning/rsl_rl/runtime_compat.py": "a38a848388551989a700f1f7db0ce4b7bfaa54571ede7be1123007cb9a271a6c",
+    "scripts/reinforcement_learning/rsl_rl/train.py": "f26b9ad86a609719e0375096721faa899bc17e5f058de941ac446abbed0de9d3",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/actuators/__init__.py": "eeb66051e5a4ffea0bb9e637603ffa76c1bb0614e4dce1406d0e60f0868a8e70",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/actuators/cubemars.py": "319720db20ca5de9bcba89b39968f1170065d5fedc185145359aafa482037b37",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/actuators/cubemars_cfg.py": "c7dfa44b36cadf6cc903a657b9f717bddc6e06273369e65e200523b26bec62dc",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/assets/q1_inertia.py": "c22d22a7a3ccd33214fdacebe41a9c20851f0d1b18a2171103558ad8bb8aac30",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/assets/q1_spec.py": "6cae50219c99349696e67adeae153e1465a126a29df18e4dee3b47e2c611171b",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/assets/wheel_humanoid.py": "c3cc3a5928ca2e136defdb50284342c42b084780f754d4ad160d8c8ccdb7d60f",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/__init__.py": "c1343c7531135de2dadccc44256fd66415edc3e2c86dc12ad0d92cc60c80a8b7",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/agents/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/agents/native_ppo_cfg.py": "575664b37922d8441b369c43909fd6d54a99a2e729e34cfb6a756050055e36be",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/agents/rsl_rl_ppo_cfg.py": "02895a0b68e103e787880f87c8a768a6a0e42c201636d920421b454de3325964",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/inertia_env_cfg.py": "7b53086df18f09b4c77a5a0cfdc641c0eb41cac7485bda83be60ca1d567443e2",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/mdp.py": "ce39a8e4f6ef93ebd682ab4f13ab88164de0b86ffe4c12174c5effbd71c2bf73",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/native_env_cfg.py": "ecc881b7959e0f91df1ef7a493aba26a49e3b3fbd38517f7b7ab6b9768784e50",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/native_skills.py": "67c05d8a0abcb81dc83ede85f2e4f6247f1c3921a78c2b3dbca86aa59971a13c",
+    "urdf/q1_inertia/quanta_robot_wheeled.urdf": "0a6c9219bf0d7ade77c3a52b1d7334232ee5adc23528f8afe86679bfc2e794e9"
+  },
+  "service": {
+    "name": "q1-native-training.service",
+    "active_state": "active",
+    "sub_state": "running",
+    "n_restarts": 0
+  },
+  "observed_gpu_memory_MiB": 5496,
+  "latest_checkpoint": {
+    "contract": "q1-native-manager-v2-23x90",
+    "manager_based": true,
+    "new_urdf": true,
+    "validated": false,
+    "source": "logs/rsl_rl/q1_native_stand/2026-10-17_08-19-13_native_20261017T001905_stand_0/model_0.pt",
+    "iteration": 0,
+    "sha256": "36813e7fa48bd964981e05ad4e5eed3e5a52509b20848de2c11b619b10582918",
+    "validation": null
+  },
+  "formal_skill_validation_completed": false
+}

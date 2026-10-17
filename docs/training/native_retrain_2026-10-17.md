@@ -49,3 +49,5 @@ systemctl --user stop q1-native-training
 ```
 
 短測推估 Stand 約 4–5 小時，完整四階段約 3–5 天；後三技能接觸、GPU 溫度與後續迭代速度可能不同，需以實際 log 修正。每 1000 更新評估，latest.pt 與已驗證 model.pt 分開；完成預算但沒通過會記為 completed_with_unvalidated_skills。尚未遷移的 Slide／四種 Recovery 不在此四階段預算內，也沒有宣稱已開始新 URDF 大訓練。
+
+2026-10-17 08:19:05 +08:00 已在主專案啟動 run 20261017T001905；08:20 實測服務 active/running、NRestarts=0，6144 env 正在更新 Stand PPO，GPU 5496 MiB。詳見 launch_status.json；首次正式 1000-update 動作評估仍待完成。此檔是啟動當下紀錄，即時進度以本機 status/log 為準。
