@@ -1,0 +1,31 @@
+{
+  "service": "q1-native-deadline.service",
+  "active_verified": true,
+  "old_training_and_slide_waiter_inactive_verified": true,
+  "started_at": "2026-10-18T00:24:37+08:00",
+  "code_commit": "c396f9f",
+  "envs": 6144,
+  "training_cutoff": "2026-10-19T04:00:00+08:00",
+  "delivery_cutoff": "2026-10-19T08:30:00+08:00",
+  "state_path": "outputs/native_deadline_20261019/status.json",
+  "preserved_stand_saved_iterations": 4101,
+  "current_at_snapshot": {
+    "index": 0,
+    "skill": "stand",
+    "task": "Isaac-Q1-Native-Stand-v0",
+    "phase": "validation",
+    "completed_iterations": 4101,
+    "total_iterations": 4000,
+    "fresh_warm_start": false,
+    "stage_deadline": null,
+    "pid": 90761,
+    "log": "logs/native_manager_queue/20261017T001905/stand_004101_validation.log"
+  },
+  "remaining_budget": {
+    "walk": 3000,
+    "standup": 4000,
+    "slide": 4000,
+    "backflip": 12000
+  },
+  "delivery_status": "scheduled, not yet completed"
+}
