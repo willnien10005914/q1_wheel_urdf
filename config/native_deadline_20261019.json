@@ -1,0 +1,62 @@
+{
+  "contract": "q1-native-manager-v2-23x90",
+  "num_envs": 6144,
+  "chunk_iterations": 1000,
+  "seed": 42,
+  "evaluation_envs": 64,
+  "evaluation_steps": 500,
+  "max_retries": 1,
+  "source_paths": [
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/native_slide/__init__.py",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/native_slide/env_cfg.py",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/native_slide/gait.py",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/native_slide/mdp.py",
+    "scripts/reinforcement_learning/rsl_rl/evaluate_native_slide.py",
+    "tools/queue_native_slide.py",
+    "tools/native_training_queue.py",
+    "tools/deadline_campaign.py",
+    "tests/verify_deadline_web.cjs",
+    "config/native_deadline_20261019.json",
+    "tools/check_deadline_legacy.py"
+  ],
+  "stages": [
+    {
+      "skill": "stand",
+      "task": "Isaac-Q1-Native-Stand-v0",
+      "iterations": 4000
+    },
+    {
+      "skill": "walk",
+      "task": "Isaac-Q1-Native-Walk-v0",
+      "iterations": 4000,
+      "warm_from": "stand",
+      "max_wall_seconds": 18000
+    },
+    {
+      "skill": "standup",
+      "task": "Isaac-Q1-Native-Standup-v0",
+      "iterations": 5000,
+      "warm_from": "stand",
+      "max_wall_seconds": 21600
+    },
+    {
+      "skill": "slide",
+      "task": "Isaac-Q1-Native-Slide-v0",
+      "iterations": 5000,
+      "policy_contract": "q1-native-slide-v1-23x90",
+      "evaluate_script": "scripts/reinforcement_learning/rsl_rl/evaluate_native_slide.py",
+      "evaluation_steps": 1000,
+      "max_wall_seconds": 21600
+    },
+    {
+      "skill": "backflip",
+      "task": "Isaac-Q1-Native-Backflip-v0",
+      "iterations": 14000,
+      "warm_from": "stand",
+      "max_wall_seconds": 50400
+    }
+  ],
+  "training_deadline": "2026-10-19T04:00:00+08:00",
+  "delivery_deadline": "2026-10-19T08:30:00+08:00",
+  "continue_on_stage_failure": true
+}

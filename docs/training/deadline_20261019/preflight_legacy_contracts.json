@@ -1,0 +1,34 @@
+{
+  "supine_elbow": {
+    "status": "requires_native_task_migration",
+    "actor_obs_dim": 118,
+    "action_dim": 24,
+    "sha256": "4a1544612bed16c02b25d1a37c040694fb02b83537b0c3d585ea855d7dc8ec5e",
+    "new_urdf_motion_executed": false,
+    "native_90x23_compatible": false
+  },
+  "prone_elbow": {
+    "status": "requires_native_task_migration",
+    "actor_obs_dim": 118,
+    "action_dim": 24,
+    "sha256": "01e8f695c6cd7526646130b09298497b8ae9fca92257884cb8ca79b1b3a1d934",
+    "new_urdf_motion_executed": false,
+    "native_90x23_compatible": false
+  },
+  "supine_gripper": {
+    "status": "requires_native_task_migration",
+    "actor_obs_dim": 118,
+    "action_dim": 24,
+    "sha256": "10dc050fc80e888457c2afba5e72666f5749f84d08272935e90fb5c63ddcc7c3",
+    "new_urdf_motion_executed": false,
+    "native_90x23_compatible": false
+  },
+  "prone_gripper": {
+    "status": "requires_native_task_migration",
+    "actor_obs_dim": 118,
+    "action_dim": 24,
+    "sha256": "3c9d197478d6cdac4c65842bf5b4c4a518c617f57d2f9ace4cb5bcdd19b76f7e",
+    "new_urdf_motion_executed": false,
+    "native_90x23_compatible": false
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "cpu_unittest_counts": {
+    "native_queue": 12,
+    "deadline_delivery": 2,
+    "manager_regression": 8,
+    "slide_rewards": 6,
+    "slide_web_gate": 4,
+    "runtime_compat": 3,
+    "skill_controls": 6
+  },
+  "cpu_unittest_total": 41,
+  "legacy_actor_parity_models": 6,
+  "shell_syntax": "passed",
+  "browser_script_syntax": "passed",
+  "delivery_test": "real local Git bare remote and isolated worktree; simulator calls stubbed; not evidence of future GitHub delivery",
+  "gpu_smoke": "running separately; see smoke_summary.json when complete",
+  "latest_models_not_claimed_successful": true
+}

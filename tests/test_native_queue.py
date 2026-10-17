@@ -141,6 +141,45 @@ class NativeQueueTest(unittest.TestCase):
             path.write_text('version=2')
             self.assertNotEqual(first,queue.plan_source_manifest({'source_paths':['slide.py']}))
 
+    def test_deadline_terminates_training_without_retrying(self):
+        child=MagicMock();child.pid=12345;child.poll.return_value=None
+        state={'plan':{'training_deadline':'2000-01-01T00:00:00+00:00'},'current':{}}
+        with patch.object(queue.subprocess,'Popen',return_value=child),patch.object(queue.os,'killpg') as kill:
+            code=queue.run_child(['sim'],self.root/'child.log',state,self.root/'status.json',stage={'skill':'walk'})
+        self.assertEqual(code,queue.DEADLINE_EXIT)
+        self.assertTrue(state['current']['deadline_reached'])
+        kill.assert_called_once_with(12345,queue.signal.SIGTERM)
+
+    def test_failed_skill_does_not_block_later_stages(self):
+        plan=dict(contract=queue.CONTRACT,num_envs=4,chunk_iterations=1,seed=42,evaluation_envs=2,
+                  evaluation_steps=4,max_retries=0,continue_on_stage_failure=True,
+                  stages=[dict(skill=n,task=n,iterations=1) for n in ('walk','standup')])
+        config=self.root/'plan.json';config.write_text(json.dumps(plan));state=self.root/'state/status.json'
+        argv=['queue','--config',str(config),'--state',str(state),'--models',str(self.root/'models')]
+        called=[]
+        def failed(command,log,status,*args,**kwargs):
+            called.append(status['current']['skill']);log.parent.mkdir(parents=True,exist_ok=True);log.write_text('startup failed');return 1
+        with patch.object(sys,'argv',argv),patch.object(queue,'source_manifest',return_value={}), \
+             patch.object(queue,'run_child',side_effect=failed),patch.object(queue.signal,'signal'),patch.object(queue.fcntl,'flock'):
+            self.assertEqual(queue.main(),0)
+        self.assertEqual(called,['walk','standup'])
+        status=json.loads(state.read_text())
+        self.assertEqual(status['status'],'completed_with_unvalidated_skills')
+        self.assertIn('error',status['stages']['walk'])
+
+    def test_expired_campaign_skips_all_remaining_training(self):
+        plan=dict(contract=queue.CONTRACT,num_envs=4,chunk_iterations=1,seed=42,evaluation_envs=2,
+                  evaluation_steps=4,max_retries=0,training_deadline='2000-01-01T00:00:00+00:00',
+                  stages=[dict(skill=n,task=n,iterations=1) for n in ('walk','slide','backflip')])
+        config=self.root/'plan.json';config.write_text(json.dumps(plan));state=self.root/'state/status.json'
+        with patch.object(sys,'argv',['queue','--config',str(config),'--state',str(state)]), \
+             patch.object(queue,'source_manifest',return_value={}),patch.object(queue,'run_child') as child, \
+             patch.object(queue.signal,'signal'),patch.object(queue.fcntl,'flock'):
+            self.assertEqual(queue.main(),0)
+        child.assert_not_called()
+        self.assertTrue(all(s['stopped_at_deadline'] for s in json.loads(state.read_text())['stages'].values()))
+
+
     def test_slide_publication_keeps_distinct_policy_contract(self):
         source=self.root/'run/model_2.pt';checkpoint(source)
         queue.publish(source,self.root/'slide',policy_contract='q1-native-slide-v1-23x90')

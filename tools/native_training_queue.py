@@ -26,6 +26,7 @@ CHILD=None
 STATE_PATH=None
 CHECKPOINT_CACHE={}
 TERMINAL_FAILURE=78  # systemd must not restart exhausted retries/config errors.
+DEADLINE_EXIT=75
 STALL_TIMEOUT=600.  # A live supervisor heartbeat is not simulator progress.
 
 
@@ -90,6 +91,22 @@ def interrupted(signum,frame):
         except ProcessLookupError:pass
 
 
+def training_deadline(status):
+    """UTC deadline and per-stage wall time both survive supervisor restarts."""
+    limits = [status.get('plan', {}).get('training_deadline'),
+              status.get('current', {}).get('stage_deadline')]
+    return min((datetime.fromisoformat(v).timestamp() for v in limits if v), default=float('inf'))
+
+
+def stop_child():
+    if CHILD is None: return
+    try: os.killpg(CHILD.pid, signal.SIGTERM)
+    except ProcessLookupError: pass
+    try: CHILD.wait(timeout=30)
+    except subprocess.TimeoutExpired:
+        os.killpg(CHILD.pid, signal.SIGKILL); CHILD.wait()
+
+
 def run_child(command,log,status,state_path,stage=None,prefix=None,models=None):
     global CHILD
     log.parent.mkdir(parents=True,exist_ok=True)
@@ -102,6 +119,11 @@ def run_child(command,log,status,state_path,stage=None,prefix=None,models=None):
         status["current"]["pid"]=CHILD.pid;status["current"]["log"]=str(log.relative_to(ROOT))
         last_published=None
         while CHILD.poll() is None:
+            if stage and time.time() >= training_deadline(status):
+                status['current']['deadline_reached'] = True
+                atomic_json(state_path, status)
+                stop_child(); CHILD = None
+                return DEADLINE_EXIT
             size=log.stat().st_size
             if size!=last_size:
                 last_size=size;last_output=time.monotonic()
@@ -172,21 +194,31 @@ def main():
         record=status["stages"].setdefault(name,dict(completed_iterations=0,evaluations=[],attempts=0))
         prefix=f"native_{status['run_id']}_{name}_"
         directory=ROOT/"logs/rsl_rl"/f"q1_native_{name}"
+        if stage.get('max_wall_seconds') and not record.get('started_at'):
+            record['started_at'] = time.time()
+        stage_limit = (datetime.fromtimestamp(record['started_at'] + stage['max_wall_seconds'], timezone.utc).isoformat()
+                       if stage.get('max_wall_seconds') else None)
         while not STOP:
             if plan_source_manifest(plan)!=source:raise RuntimeError("Controller sources changed during active training")
             checkpoint=latest_checkpoint(directory,prefix)
             if checkpoint:record["completed_iterations"]=max(record["completed_iterations"],int(re.search(r"model_(\d+)",checkpoint.name)[1])+1)
             done=record["completed_iterations"]
             pending_evaluation=done>record.get("last_evaluated_iteration",0)
+            limits = dict(plan=plan, current=dict(stage_deadline=stage_limit))
+            if time.time() >= training_deadline(limits) and not pending_evaluation:
+                record['stopped_at_deadline'] = True
+                break
             if done>=stage["iterations"] and not pending_evaluation:break
             if not pending_evaluation and record["attempts"]>plan["max_retries"]:
                 status["status"]="failed"
                 status["error"]=f"Retry budget exhausted for {name}; inspect logs before starting a new experiment"
+                if plan.get('continue_on_stage_failure'):
+                    record['error'] = status.pop('error'); status['status'] = 'running'; break
                 atomic_json(args.state,status);return TERMINAL_FAILURE
             count=min(plan["chunk_iterations"],stage["iterations"]-done)
             log=ROOT/"logs/native_manager_queue"/status["run_id"]/f"{name}_{done:06d}.log"
             status["current"]=dict(index=index,skill=name,task=stage["task"],phase="training",
-                                   completed_iterations=done,total_iterations=stage["iterations"],fresh_warm_start=False)
+                                   completed_iterations=done,total_iterations=stage["iterations"],fresh_warm_start=False,stage_deadline=stage_limit)
             command=[str(ROOT/"run_isaac.sh"),"scripts/reinforcement_learning/rsl_rl/train.py","--headless",
                      "--task",stage["task"],"--num_envs",str(status["effective_num_envs"]),"--max_iterations",str(count),
                      "--seed",str(plan["seed"]),"--run_name",prefix+str(done),"--experiment_name",f"q1_native_{name}",
@@ -203,12 +235,18 @@ def main():
                 print("QUEUE_TRAIN",name,done,count,flush=True)
                 code=run_child(command,log,status,args.state,stage,prefix,args.models)
                 if STOP:break
-                if code:
+                if code == DEADLINE_EXIT:
+                    record['stopped_at_deadline'] = True
+                    checkpoint=latest_checkpoint(directory,prefix)
+                    if checkpoint is None or int(re.search(r'model_(\d+)',checkpoint.name)[1])+1 <= record.get('last_evaluated_iteration',0): break
+                elif code:
                     record["attempts"]+=1
                     text=log.read_text(errors="replace").lower()
                     if "out of memory" in text:status["effective_num_envs"]=max(64,status["effective_num_envs"]//2)
                     if record["attempts"]>plan["max_retries"]:
                         status["status"]="failed";status["error"]=f"Training failed: {log.relative_to(ROOT)}"
+                        if plan.get('continue_on_stage_failure'):
+                            record['error'] = status.pop('error'); status['status'] = 'running'; break
                         atomic_json(args.state,status);return TERMINAL_FAILURE
                     continue
                 record["attempts"]=0
@@ -222,7 +260,7 @@ def main():
             report=args.state.parent/f"{name}_{record['completed_iterations']:06d}_validation.json"
             evaluate=[str(ROOT/"run_isaac.sh"),stage.get('evaluate_script',"scripts/reinforcement_learning/rsl_rl/evaluate_native.py"),
                       "--skill",name,"--checkpoint",str(checkpoint),"--num_envs",str(plan["evaluation_envs"]),
-                      "--steps",str(plan["evaluation_steps"]),"--out",str(report)]
+                      "--steps",str(stage.get("evaluation_steps",plan["evaluation_steps"])),"--out",str(report)]
             code=run_child(evaluate,log.with_name(log.stem+"_validation.log"),status,args.state)
             if STOP:break
             if code==0 and report.exists():
@@ -232,11 +270,15 @@ def main():
                 if result["pass_validation"] and result["score"]>record.get("best_score",-1.e9):
                     publish(checkpoint,args.models/name,True,str(report.relative_to(ROOT)),policy_contract=stage.get('policy_contract',CONTRACT))
                     record["best_score"]=result["score"];record["validated"]=True
-            else:raise RuntimeError(f"Evaluation process failed: {log.with_name(log.stem+'_validation.log')}")
+            else:
+                if plan.get('continue_on_stage_failure'):
+                    record['error'] = f"Evaluation process failed: {log.with_name(log.stem+'_validation.log')}"
+                    break
+                raise RuntimeError(f"Evaluation process failed: {log.with_name(log.stem+'_validation.log')}")
             atomic_json(args.state,status)
         record["budget_completed"]=record["completed_iterations"]>=stage["iterations"]
         if STOP:break
-    status["status"]="stopped" if STOP else "completed" if all(s.get("validated") for s in status["stages"].values()) else "completed_with_unvalidated_skills"
+    status["status"]="stopped" if STOP else "completed" if all(s.get("validated") and s.get("budget_completed") and not s.get("error") for s in status["stages"].values()) else "completed_with_unvalidated_skills"
     status["updated_at"]=datetime.now(timezone.utc).isoformat();atomic_json(args.state,status)
     return 0
 
