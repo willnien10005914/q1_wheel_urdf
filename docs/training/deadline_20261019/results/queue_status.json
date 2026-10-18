@@ -1,0 +1,198 @@
+{
+  "contract": "q1-native-manager-v2-23x90",
+  "run_id": "20261017T001905",
+  "plan": {
+    "contract": "q1-native-manager-v2-23x90",
+    "num_envs": 6144,
+    "chunk_iterations": 1000,
+    "seed": 42,
+    "evaluation_envs": 64,
+    "evaluation_steps": 500,
+    "max_retries": 1,
+    "source_paths": [
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/native_slide/__init__.py",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/native_slide/env_cfg.py",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/native_slide/gait.py",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/native_slide/mdp.py",
+      "scripts/reinforcement_learning/rsl_rl/evaluate_native_slide.py",
+      "tools/queue_native_slide.py",
+      "tools/native_training_queue.py",
+      "tools/deadline_campaign.py",
+      "tests/verify_deadline_web.cjs",
+      "config/native_deadline_20261019.json",
+      "tools/check_deadline_legacy.py"
+    ],
+    "stages": [
+      {
+        "skill": "stand",
+        "task": "Isaac-Q1-Native-Stand-v0",
+        "iterations": 4000
+      },
+      {
+        "skill": "walk",
+        "task": "Isaac-Q1-Native-Walk-v0",
+        "iterations": 3000,
+        "warm_from": "stand",
+        "max_wall_seconds": 12600
+      },
+      {
+        "skill": "standup",
+        "task": "Isaac-Q1-Native-Standup-v0",
+        "iterations": 4000,
+        "warm_from": "stand",
+        "max_wall_seconds": 16200
+      },
+      {
+        "skill": "slide",
+        "task": "Isaac-Q1-Native-Slide-v0",
+        "iterations": 4000,
+        "policy_contract": "q1-native-slide-v1-23x90",
+        "evaluate_script": "scripts/reinforcement_learning/rsl_rl/evaluate_native_slide.py",
+        "evaluation_steps": 1000,
+        "max_wall_seconds": 16200
+      },
+      {
+        "skill": "backflip",
+        "task": "Isaac-Q1-Native-Backflip-v0",
+        "iterations": 12000,
+        "warm_from": "stand",
+        "max_wall_seconds": 43200
+      }
+    ],
+    "training_deadline": "2026-10-19T04:00:00+08:00",
+    "delivery_deadline": "2026-10-19T08:30:00+08:00",
+    "continue_on_stage_failure": true
+  },
+  "source_sha256": {
+    "config/q1_wheel_components.yaml": "c3a40df3d52268d52c798a6b708d4948b109bca1feb81a4a48954ae22efa422a",
+    "scripts/reinforcement_learning/rsl_rl/evaluate_native.py": "491cd73036a8c85a32ee5a9d8812da621e41bfe5b3b12a5119ce7601797c8b67",
+    "scripts/reinforcement_learning/rsl_rl/runtime_compat.py": "a38a848388551989a700f1f7db0ce4b7bfaa54571ede7be1123007cb9a271a6c",
+    "scripts/reinforcement_learning/rsl_rl/train.py": "f26b9ad86a609719e0375096721faa899bc17e5f058de941ac446abbed0de9d3",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/actuators/__init__.py": "eeb66051e5a4ffea0bb9e637603ffa76c1bb0614e4dce1406d0e60f0868a8e70",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/actuators/cubemars.py": "319720db20ca5de9bcba89b39968f1170065d5fedc185145359aafa482037b37",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/actuators/cubemars_cfg.py": "c7dfa44b36cadf6cc903a657b9f717bddc6e06273369e65e200523b26bec62dc",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/assets/q1_inertia.py": "c22d22a7a3ccd33214fdacebe41a9c20851f0d1b18a2171103558ad8bb8aac30",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/assets/q1_spec.py": "6cae50219c99349696e67adeae153e1465a126a29df18e4dee3b47e2c611171b",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/assets/wheel_humanoid.py": "c3cc3a5928ca2e136defdb50284342c42b084780f754d4ad160d8c8ccdb7d60f",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/__init__.py": "c1343c7531135de2dadccc44256fd66415edc3e2c86dc12ad0d92cc60c80a8b7",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/agents/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/agents/native_ppo_cfg.py": "575664b37922d8441b369c43909fd6d54a99a2e729e34cfb6a756050055e36be",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/agents/rsl_rl_ppo_cfg.py": "02895a0b68e103e787880f87c8a768a6a0e42c201636d920421b454de3325964",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/inertia_env_cfg.py": "7b53086df18f09b4c77a5a0cfdc641c0eb41cac7485bda83be60ca1d567443e2",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/mdp.py": "ce39a8e4f6ef93ebd682ab4f13ab88164de0b86ffe4c12174c5effbd71c2bf73",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/native_env_cfg.py": "ecc881b7959e0f91df1ef7a493aba26a49e3b3fbd38517f7b7ab6b9768784e50",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/inertia/native_skills.py": "67c05d8a0abcb81dc83ede85f2e4f6247f1c3921a78c2b3dbca86aa59971a13c",
+    "urdf/q1_inertia/quanta_robot_wheeled.urdf": "0a6c9219bf0d7ade77c3a52b1d7334232ee5adc23528f8afe86679bfc2e794e9",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/native_slide/__init__.py": "2137d3a187a540c64b9a3a319c09ccc230a730b3a5e9ab7a6eee636269b16d38",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/native_slide/env_cfg.py": "26b3a777f3981b9a5cd37eb44cce051d3b714bf894d17993c6092c9d77c5fc9e",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/native_slide/gait.py": "d76cae5ade6cb3ccf7ae79510addd31ace02fed9b2212c44ab8a87e2130bf928",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/native_slide/mdp.py": "d971380ac95ac11b11583506f17b966ee47ee673ff8a982383bc301ec9de00a9",
+    "scripts/reinforcement_learning/rsl_rl/evaluate_native_slide.py": "46369ec183ec8d44f103c91bcbf75c4373758d10e12f23aaf8739bf426178274",
+    "tools/queue_native_slide.py": "8cff4df293a57eb3791902ddea9b9082c2d6c24a0501bcb48eb099abd70dbc5c",
+    "tools/native_training_queue.py": "ac82c875b24c626adfa79aadca2fdb0f1293b919915364fb88f3515841c2121c",
+    "tools/deadline_campaign.py": "6226a97bd4c75960e361410cdbcfac8722104702bb7157c143af7d15e452a42d",
+    "tests/verify_deadline_web.cjs": "afcaafd50a023d7309a5962cd8f7cef89dbd6df9280b7258fbf993e842989868",
+    "config/native_deadline_20261019.json": "f74acc015330c2f3454aaadee2b4faf651fb6d4de1e5931053454ce9971d07af",
+    "tools/check_deadline_legacy.py": "89550013a19313303baef8a11390dc2fdf6ece6300cd96a531951a77aa6909d3"
+  },
+  "stages": {
+    "stand": {
+      "completed_iterations": 4101,
+      "evaluations": [
+        "outputs/native_manager/queue/stand_001000_validation.json",
+        "outputs/native_manager/queue/stand_002000_validation.json",
+        "outputs/native_manager/queue/stand_003000_validation.json",
+        "outputs/native_manager/queue/stand_004000_validation.json",
+        "outputs/native_deadline_20261019/stand_004101_validation.json"
+      ],
+      "attempts": 0,
+      "last_evaluated_iteration": 4101,
+      "last_validation_pass": false,
+      "best_score": 1.994090679592453,
+      "validated": true,
+      "budget_completed": true
+    },
+    "walk": {
+      "completed_iterations": 3000,
+      "evaluations": [
+        "outputs/native_deadline_20261019/walk_001000_validation.json",
+        "outputs/native_deadline_20261019/walk_002000_validation.json",
+        "outputs/native_deadline_20261019/walk_003000_validation.json"
+      ],
+      "attempts": 0,
+      "started_at": 1792254307.1578043,
+      "last_evaluated_iteration": 3000,
+      "last_validation_pass": true,
+      "best_score": 1.8269383702874185,
+      "validated": true,
+      "budget_completed": true
+    },
+    "standup": {
+      "completed_iterations": 4000,
+      "evaluations": [
+        "outputs/native_deadline_20261019/standup_001000_validation.json",
+        "outputs/native_deadline_20261019/standup_002000_validation.json",
+        "outputs/native_deadline_20261019/standup_003000_validation.json",
+        "outputs/native_deadline_20261019/standup_004000_validation.json"
+      ],
+      "attempts": 0,
+      "started_at": 1792264187.5405545,
+      "last_evaluated_iteration": 4000,
+      "last_validation_pass": false,
+      "budget_completed": true
+    },
+    "slide": {
+      "completed_iterations": 4000,
+      "evaluations": [
+        "outputs/native_deadline_20261019/slide_001000_validation.json",
+        "outputs/native_deadline_20261019/slide_002000_validation.json",
+        "outputs/native_deadline_20261019/slide_003000_validation.json",
+        "outputs/native_deadline_20261019/slide_004000_validation.json"
+      ],
+      "attempts": 0,
+      "started_at": 1792277553.941345,
+      "last_evaluated_iteration": 4000,
+      "last_validation_pass": false,
+      "budget_completed": true
+    },
+    "backflip": {
+      "completed_iterations": 12000,
+      "evaluations": [
+        "outputs/native_deadline_20261019/backflip_001000_validation.json",
+        "outputs/native_deadline_20261019/backflip_002000_validation.json",
+        "outputs/native_deadline_20261019/backflip_003000_validation.json",
+        "outputs/native_deadline_20261019/backflip_004000_validation.json",
+        "outputs/native_deadline_20261019/backflip_005000_validation.json",
+        "outputs/native_deadline_20261019/backflip_006000_validation.json",
+        "outputs/native_deadline_20261019/backflip_007000_validation.json",
+        "outputs/native_deadline_20261019/backflip_008000_validation.json",
+        "outputs/native_deadline_20261019/backflip_009000_validation.json",
+        "outputs/native_deadline_20261019/backflip_010000_validation.json",
+        "outputs/native_deadline_20261019/backflip_011000_validation.json",
+        "outputs/native_deadline_20261019/backflip_012000_validation.json"
+      ],
+      "attempts": 0,
+      "started_at": 1792291195.205708,
+      "last_evaluated_iteration": 12000,
+      "last_validation_pass": false,
+      "budget_completed": true
+    }
+  },
+  "effective_num_envs": 6144,
+  "current": {
+    "index": 4,
+    "skill": "backflip",
+    "task": "Isaac-Q1-Native-Backflip-v0",
+    "phase": "validation",
+    "completed_iterations": 12000,
+    "total_iterations": 12000,
+    "fresh_warm_start": false,
+    "stage_deadline": "2026-10-18T14:39:55.205708+00:00",
+    "pid": 168133,
+    "log": "logs/native_manager_queue/20261017T001905/backflip_011000_validation.log"
+  },
+  "status": "completed_with_unvalidated_skills",
+  "updated_at": "2026-10-18T13:40:26.182145+00:00",
+  "migrated_from": "outputs/native_manager/queue/status.json",
+  "migration_reason": "2026-10-19 09:00 Taipei reboot deadline"
+}

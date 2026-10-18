@@ -1,0 +1,26 @@
+.QUEUE_TRAIN stand 0 1
+QUEUE_TRAIN stand 0 1
+QUEUE_TRAIN stand 0 1
+.../home/will/isaacsim/kit/python/lib/python3.11/unittest/mock.py:475: ResourceWarning: unclosed file <_io.FileIO name='/tmp/tmpcuzhbd5f/state/queue.lock' mode='wb' closefd=True>
+  _safe_super(NonCallableMock, self).__init__(
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+QUEUE_TRAIN walk 0 1
+QUEUE_TRAIN standup 0 1
+..../home/will/isaacsim/kit/python/lib/python3.11/unittest/mock.py:2133: ResourceWarning: unclosed file <_io.FileIO name='/tmp/tmp90phytht/state/queue.lock' mode='wb' closefd=True>
+  setattr(_type, entry, MagicProxy(entry, self))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+QUEUE_TRAIN stand 0 3
+..QUEUE_STALL Child produced no log output for 600s /tmp/tmp9u3r7wq7/child.log
+.QUEUE_TRAIN stand 0 1
+/home/will/isaacsim/kit/python/lib/python3.11/json/encoder.py:323: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmpq12l6w__/state/queue.lock' mode='w' encoding='UTF-8'>
+  chunks = _iterencode_dict(value, _current_indent_level)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/will/isaacsim/kit/python/lib/python3.11/json/encoder.py:323: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmpz3_13qfc/state/queue.lock' mode='w' encoding='UTF-8'>
+  chunks = _iterencode_dict(value, _current_indent_level)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+QUEUE_TRAIN stand 1 1
+.
+----------------------------------------------------------------------
+Ran 12 tests in 0.028s
+
+OK

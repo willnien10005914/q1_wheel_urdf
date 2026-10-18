@@ -1,0 +1,9 @@
+NATIVE_WEB_MODEL slide {"path": "models/slide/model.pt", "sha256": "e8b733191d4ee1be664d84637c45be72f6fd225de76054a9788f62dc8823b02a", "iteration": 2, "validated": true, "contract": "q1-native-slide-v1-23x90", "fingerprint": ["/tmp/tmpfm5j7_e1/models/slide/model.pt", 1792330828946592346]}
+.NATIVE_WEB_MODEL_WAIT slide Sliding model is missing its own verified gait contract
+.NATIVE_WEB_MODEL slide {"path": "models/slide/latest.pt", "sha256": "e8b733191d4ee1be664d84637c45be72f6fd225de76054a9788f62dc8823b02a", "iteration": 2, "validated": false, "contract": "q1-native-slide-v1-23x90", "fingerprint": ["/tmp/tmpaz4niy25/models/slide/latest.pt", 1792330828950592346]}
+.NATIVE_WEB_MODEL slide {"path": "models/slide/model.pt", "sha256": "e8b733191d4ee1be664d84637c45be72f6fd225de76054a9788f62dc8823b02a", "iteration": 2, "validated": true, "contract": "q1-native-slide-v1-23x90", "fingerprint": ["/tmp/tmpzjyzcrkv/models/slide/model.pt", 1792330828951592347]}
+.
+----------------------------------------------------------------------
+Ran 4 tests in 0.008s
+
+OK

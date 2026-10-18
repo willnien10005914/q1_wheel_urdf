@@ -1,0 +1,200 @@
+[INFO][AppLauncher]: Using device: cuda:0
+[INFO][AppLauncher]: Loading experience file: /home/will/IsaacLab/apps/isaaclab.python.headless.kit
+Loading user config located at: '/home/will/isaacsim/kit/data/Kit/Isaac-Sim/5.1/user.config.json'
+[Info] [carb] Logging to file: /home/will/isaacsim/kit/logs/Kit/Isaac-Sim/5.1/kit_20261018_214033.log
+2026-10-18T13:40:33Z [0ms] [Warning] [carb.crashreporter-breakpad.plugin] [previous crash] preventing upload of minidump due to user opt-out: '/home/will/isaacsim/kit/data/Kit/Isaac-Sim/5.1/4da8f396-ec23-46cf-4d1a0292-2e19b434.dmp'
+2026-10-18T13:40:33Z [206ms] [Warning] [omni.usd_config.extension] Enable omni.materialx.libs extension to use MaterialX
+2026-10-18T13:40:34Z [608ms] [Warning] [carb] Acquiring non optional plugin interface which is not listed as dependency: [omni::physx::IPhysxBenchmarks v1.0] (plugin: <default plugin>), by client: omni.physics.physx.plugin. Add it to CARB_PLUGIN_IMPL_DEPS() macro of a client.
+2026-10-18T13:40:34Z [814ms] [Warning] [omni.isaac.dynamic_control] omni.isaac.dynamic_control is deprecated as of Isaac Sim 4.5. No action is needed from end-users.
+2026-10-18T13:40:37Z [4,289ms] [Warning] [gpu.foundation.plugin] Skipping unsupported non-NVIDIA GPU: Intel(R) Arc(tm) Graphics (MTL)
+2026-10-18T13:40:37Z [4,289ms] [Warning] [gpu.foundation.plugin] Skipping unsupported non-NVIDIA GPU: Intel(R) Arc(tm) Graphics (MTL)
+
+|---------------------------------------------------------------------------------------------|
+| Driver Version: 570.211.01    | Graphics API: Vulkan
+|=============================================================================================|
+| GPU | Name                             | Active | LDA | GPU Memory | Vendor-ID | LUID       |
+|     |                                  |        |     |            | Device-ID | UUID       |
+|     |                                  |        |     |            | Bus-ID    |            |
+|---------------------------------------------------------------------------------------------|
+| 0   | NVIDIA GeForce RTX 4090 Laptop.. | Yes: 0 |     | 16376   MB | 10de      | 0          |
+|     |                                  |        |     |            | 2757      | bfdfe4d5.. |
+|     |                                  |        |     |            | 1         |            |
+|---------------------------------------------------------------------------------------------|
+| 1   | Intel(R) Arc(tm) Graphics (MTL)  |        |     | 23626   MB | 8086      | 0          |
+|     |                                  |        |     |            | 7d55      | 8680557d.. |
+|     |                                  |        |     |            | 0         |            |
+|=============================================================================================|
+| OS: 22.04.5 LTS (Jammy Jellyfish) ubuntu, Version: 22.04.5, Kernel: 6.8.0-138-generic
+| XServer Vendor: The X.Org Foundation, XServer Version: 12101004 (1.21.1.4)
+| Processor: Intel(R) Core(TM) Ultra 7 155H
+| Bare Metal Cores: 16 | Bare Metal Logical Cores: 32
+| Available Cores:  22 
+|---------------------------------------------------------------------------------------------|
+| Total Memory (MB): 31502 | Free Memory: 26366
+| Total Page/Swap (MB): 32767 | Free Page/Swap: 32767
+|---------------------------------------------------------------------------------------------|
+2026-10-18T13:40:38Z [4,978ms] [Warning] [gpu.foundation.plugin] CPU performance profile is set to powersave. This profile sets the CPU to the lowest frequency reducing performance.
+2026-10-18T13:40:38Z [4,988ms] [Warning] [gpu.foundation.plugin] PCIe link width current (8) and maximum (16) for device 0 don't match.
+[INFO]: Parsing configuration from: wheel_humanoid_lab.tasks.manager_based.inertia.native_env_cfg:NativeStandEnvCfg
+
+[36m======================================================================================[0m
+[36m[1m[INFO][IsaacLab]: Logging to file: /tmp/isaaclab/logs/isaaclab_2026-10-18_21-40-39.log[0m
+[36m======================================================================================[0m
+
+[33m21:40:39 [simulation_context.py] WARNING: The `enable_external_forces_every_iteration` parameter in the PhysxCfg is set to False. If you are experiencing noisy velocities, consider enabling this flag. You may need to slightly increase the number of velocity iterations (setting it to 1 or 2 rather than 0), together with this flag, to improve the accuracy of velocity updates.[0m
+[INFO]: Base environment:
+	Environment device    : cuda:0
+	Environment seed      : 9127
+	Physics step-size     : 0.005
+	Rendering step-size   : 0.02
+	Environment step-size : 0.02
+2026-10-18T13:40:39Z [6,261ms] [Warning] [gpu.foundation.plugin] Skipping unsupported non-NVIDIA GPU: Intel(R) Arc(tm) Graphics (MTL)
+2026-10-18T13:40:39Z [6,261ms] [Warning] [gpu.foundation.plugin] Skipping unsupported non-NVIDIA GPU: Intel(R) Arc(tm) Graphics (MTL)
+
+|---------------------------------------------------------------------------------------------|
+| Driver Version: 570.211.01    | Graphics API: Vulkan
+|=============================================================================================|
+| GPU | Name                             | Active | LDA | GPU Memory | Vendor-ID | LUID       |
+|     |                                  |        |     |            | Device-ID | UUID       |
+|     |                                  |        |     |            | Bus-ID    |            |
+|---------------------------------------------------------------------------------------------|
+| 0   | NVIDIA GeForce RTX 4090 Laptop.. | Yes: 0 |     | 16376   MB | 10de      | 0          |
+|     |                                  |        |     |            | 2757      | bfdfe4d5.. |
+|     |                                  |        |     |            | 1         |            |
+|---------------------------------------------------------------------------------------------|
+| 1   | Intel(R) Arc(tm) Graphics (MTL)  |        |     | 23626   MB | 8086      | 0          |
+|     |                                  |        |     |            | 7d55      | 8680557d.. |
+|     |                                  |        |     |            | 0         |            |
+|=============================================================================================|
+| OS: 22.04.5 LTS (Jammy Jellyfish) ubuntu, Version: 22.04.5, Kernel: 6.8.0-138-generic
+| XServer Vendor: The X.Org Foundation, XServer Version: 12101004 (1.21.1.4)
+| Processor: Intel(R) Core(TM) Ultra 7 155H
+| Bare Metal Cores: 16 | Bare Metal Logical Cores: 32
+| Available Cores:  22 
+|---------------------------------------------------------------------------------------------|
+| Total Memory (MB): 31502 | Free Memory: 26165
+| Total Page/Swap (MB): 32767 | Free Page/Swap: 32767
+|---------------------------------------------------------------------------------------------|
+2026-10-18T13:40:40Z [6,505ms] [Warning] [gpu.foundation.plugin] CPU performance profile is set to powersave. This profile sets the CPU to the lowest frequency reducing performance.
+2026-10-18T13:40:40Z [6,505ms] [Warning] [gpu.foundation.plugin] PCIe link width current (8) and maximum (16) for device 0 don't match.
+2026-10-18T13:40:40Z [7,123ms] [Warning] [omni.graph.visualization.nodes._impl.extension] No Viewport Window to add omni.graph.visualization.nodes-2.1.3 scene to
+[INFO]: Time taken for scene creation : 3.006375 seconds
+[INFO]: Scene manager:  <class InteractiveScene>
+	Number of environments: 64
+	Environment spacing   : 3.0
+	Source prim name      : /World/envs/env_0
+	Global prim paths     : ['/World/ground']
+	Replicate physics     : True
+[INFO]: Starting the simulation. This may take a few seconds. Please wait...
+[INFO]: Time taken for simulation start : 0.837077 seconds
+[INFO] Command Manager:  <CommandManager> contains 2 active terms.
++------------------------------------------------+
+|              Active Command Terms              |
++-------+---------------+------------------------+
+| Index | Name          |          Type          |
++-------+---------------+------------------------+
+|   0   | base_velocity | UniformVelocityCommand |
+|   1   | skill         |   NativeSkillCommand   |
++-------+---------------+------------------------+
+
+[INFO] Event Manager:  <EventManager> contains 1 active terms.
++-------------------------------+
+| Active Event Terms in Mode: 'reset' |
++---------------+---------------+
+|     Index     | Name          |
++---------------+---------------+
+|       0       | reset         |
++---------------+---------------+
+
+[INFO] Recorder Manager:  <RecorderManager> contains 0 active terms.
++---------------------+
+| Active Recorder Terms |
++-----------+---------+
+|   Index   | Name    |
++-----------+---------+
++-----------+---------+
+
+[INFO] Action Manager:  <ActionManager> contains 2 active terms.
++-----------------------------------+
+|  Active Action Terms (shape: 23)  |
++---------+----------+--------------+
+|  Index  | Name     |    Dimension |
++---------+----------+--------------+
+|    0    | motors   |           23 |
+|    1    | mimic    |            0 |
++---------+----------+--------------+
+
+[INFO] Observation Manager: <ObservationManager> contains 2 groups.
++-------------------------------------------------------+
+| Active Observation Terms in Group: 'policy' (shape: (90,)) |
++-------------+---------------------------+-------------+
+|    Index    | Name                      |    Shape    |
++-------------+---------------------------+-------------+
+|      0      | base_ang_vel              |     (3,)    |
+|      1      | gravity                   |     (3,)    |
+|      2      | command                   |     (3,)    |
+|      3      | joint_pos                 |    (23,)    |
+|      4      | joint_vel                 |    (23,)    |
+|      5      | last_action               |    (23,)    |
+|      6      | skill                     |     (8,)    |
+|      7      | base_lin_vel              |     (3,)    |
+|      8      | height                    |     (1,)    |
++-------------+---------------------------+-------------+
++-------------------------------------------------------+
+| Active Observation Terms in Group: 'critic' (shape: (90,)) |
++-------------+---------------------------+-------------+
+|    Index    | Name                      |    Shape    |
++-------------+---------------------------+-------------+
+|      0      | base_ang_vel              |     (3,)    |
+|      1      | gravity                   |     (3,)    |
+|      2      | command                   |     (3,)    |
+|      3      | joint_pos                 |    (23,)    |
+|      4      | joint_vel                 |    (23,)    |
+|      5      | last_action               |    (23,)    |
+|      6      | base_lin_vel              |     (3,)    |
+|      7      | skill                     |     (8,)    |
+|      8      | height                    |     (1,)    |
++-------------+---------------------------+-------------+
+
+[INFO] Termination Manager:  <TerminationManager> contains 3 active terms.
++------------------------------+
+|   Active Termination Terms   |
++-------+-----------+----------+
+| Index | Name      | Time Out |
++-------+-----------+----------+
+|   0   | time_out  |   True   |
+|   1   | failure   |  False   |
+|   2   | nonfinite |  False   |
++-------+-----------+----------+
+
+[INFO] Reward Manager:  <RewardManager> contains 13 active terms.
++-------------------------------+
+|      Active Reward Terms      |
++-------+-------------+---------+
+| Index | Name        |  Weight |
++-------+-------------+---------+
+|   0   | alive       |     1.0 |
+|   1   | upright     |     2.0 |
+|   2   | height      |     1.0 |
+|   3   | pose        |     1.0 |
+|   4   | stand       |     3.0 |
+|   5   | flip        |     2.0 |
+|   6   | velocity    |     2.0 |
+|   7   | yaw         |     0.5 |
+|   8   | action_rate |   -0.03 |
+|   9   | action_size |   -0.01 |
+|   10  | joint_speed | -0.0001 |
+|   11  | limits      |    -1.0 |
+|   12  | termination |    -4.0 |
++-------+-------------+---------+
+
+[INFO] Curriculum Manager:  <CurriculumManager> contains 0 active terms.
++----------------------+
+| Active Curriculum Terms |
++-----------+----------+
+|   Index   | Name     |
++-----------+----------+
++-----------+----------+
+
+[INFO]: Completed setting up the environment...
+NATIVE_EVALUATION {"contract": "q1-native-manager-v2-23x90", "skill": "stand", "task": "Isaac-Q1-Native-Stand-v0", "manager_based": true, "first_trial_only": true, "checkpoint_sha256": "1f171c4f2babce0e8930ade2489e5085339a35223fd95fa61a29de26a50e86a3", "checkpoint_iteration": 999, "seed": 9127, "trials": 64, "steps": 500, "successes": 64, "takeoffs": 0, "failures": 0, "illegal": 0, "nonfinite": 0, "upright_fraction": 1.0, "velocity_error_mps": 0.005909320407547057, "yaw_error_rps": 0.03804059722274542, "best_hold_s": [9.940037727355957, 9.900036811828613, 9.900036811828613, 9.900036811828613, 9.920037269592285, 9.920037269592285, 9.960038185119629, 9.920037269592285, 9.9800386428833, 10.020039558410645, 9.900036811828613, 9.900036811828613, 9.920037269592285, 9.920037269592285, 7.119994163513184, 9.960038185119629, 9.960038185119629, 9.920037269592285, 9.920037269592285, 10.020039558410645, 9.940037727355957, 9.900036811828613, 10.020039558410645, 9.9800386428833, 9.960038185119629, 9.900036811828613, 9.960038185119629, 10.020039558410645, 9.920037269592285, 9.940037727355957, 9.940037727355957, 9.940037727355957, 9.940037727355957, 9.9800386428833, 9.920037269592285, 9.9800386428833, 9.920037269592285, 9.9800386428833, 9.940037727355957, 9.960038185119629, 9.920037269592285, 9.960038185119629, 9.920037269592285, 9.9800386428833, 9.940037727355957, 9.940037727355957, 9.940037727355957, 9.9800386428833, 9.940037727355957, 9.940037727355957, 9.940037727355957, 9.920037269592285, 10.020039558410645, 9.900036811828613, 9.9800386428833, 9.940037727355957, 9.940037727355957, 9.940037727355957, 9.920037269592285, 9.940037727355957, 9.920037269592285, 9.940037727355957, 9.960038185119629, 9.960038185119629], "max_backturn_rad": [0.08858820050954819, 0.08709488064050674, 0.057714030146598816, 0.08653263002634048, 0.06690841168165207, 0.06217168644070625, 0.06227982044219971, 0.0636100247502327, 0.049110207706689835, 0.05089832469820976, 0.09049241244792938, 0.08750884979963303, 0.06565463542938232, 0.05270804092288017, 0.1475779265165329, 0.05821269005537033, 0.04885102063417435, 0.04327009245753288, 0.056340351700782776, 0.047040365636348724, 0.0533268079161644, 0.05196397379040718, 0.05207681655883789, 0.052741970866918564, 0.06915979087352753, 0.10698378831148148, 0.05141597241163254, 0.05292864888906479, 0.053506407886743546, 0.053859494626522064, 0.052459195256233215, 0.07230278849601746, 0.05541153624653816, 0.05819058045744896, 0.0639926865696907, 0.051651112735271454, 0.06197235360741615, 0.051816388964653015, 0.06261789798736572, 0.08301065117120743, 0.05805140733718872, 0.060503482818603516, 0.044177763164043427, 0.05224064737558365, 0.0741923451423645, 0.05892724171280861, 0.061078619211912155, 0.058911796659231186, 0.055153992027044296, 0.052460379898548126, 0.06435487419366837, 0.1187097504734993, 0.04846019670367241, 0.09607639908790588, 0.049919262528419495, 0.050565749406814575, 0.06842661648988724, 0.05344163626432419, 0.13127915561199188, 0.06758655607700348, 0.0553460568189621, 0.06531137228012085, 0.06046329811215401, 0.060535646975040436], "pass_validation": true, "score": 1.994090679592453}

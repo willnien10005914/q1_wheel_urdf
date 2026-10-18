@@ -1,0 +1,10 @@
+{
+  "contract": "q1-native-manager-v2-23x90",
+  "manager_based": true,
+  "new_urdf": true,
+  "validated": false,
+  "source": "logs/rsl_rl/q1_native_stand/2026-10-17_18-55-01_native_20261017T001905_stand_4000/model_4100.pt",
+  "iteration": 4100,
+  "sha256": "42cd2d8507f575adddfdf0b037cbe7c65d85ba1ac999ab2e90815392719370a0",
+  "validation": null
+}

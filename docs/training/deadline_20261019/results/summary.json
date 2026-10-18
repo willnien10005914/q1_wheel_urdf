@@ -1,0 +1,276 @@
+{
+  "review_started_at": "2026-10-18T13:40:26.204317+00:00",
+  "checks": {
+    "test_native_queue": {
+      "exit_code": 0,
+      "status": "passed",
+      "log": "outputs/native_deadline_20261019/final_review/test_native_queue.log"
+    },
+    "test_manager_regression": {
+      "exit_code": 0,
+      "status": "passed",
+      "log": "outputs/native_deadline_20261019/final_review/test_manager_regression.log"
+    },
+    "test_native_slide_rewards": {
+      "exit_code": 0,
+      "status": "passed",
+      "log": "outputs/native_deadline_20261019/final_review/test_native_slide_rewards.log"
+    },
+    "test_native_slide_web_gate": {
+      "exit_code": 0,
+      "status": "passed",
+      "log": "outputs/native_deadline_20261019/final_review/test_native_slide_web_gate.log"
+    },
+    "test_runtime_compat": {
+      "exit_code": 0,
+      "status": "passed",
+      "log": "outputs/native_deadline_20261019/final_review/test_runtime_compat.log"
+    },
+    "test_deadline_campaign": {
+      "exit_code": 0,
+      "status": "passed",
+      "log": "outputs/native_deadline_20261019/final_review/test_deadline_campaign.log"
+    },
+    "test_skill_controls": {
+      "exit_code": 0,
+      "status": "passed",
+      "log": "outputs/native_deadline_20261019/final_review/test_skill_controls.log"
+    },
+    "test_skill_policy": {
+      "exit_code": 0,
+      "status": "passed",
+      "log": "outputs/native_deadline_20261019/final_review/test_skill_policy.log"
+    },
+    "stand_final_validation": {
+      "exit_code": 0,
+      "status": "passed",
+      "log": "outputs/native_deadline_20261019/final_review/stand_final_validation.log"
+    },
+    "walk_final_validation": {
+      "exit_code": 0,
+      "status": "passed",
+      "log": "outputs/native_deadline_20261019/final_review/walk_final_validation.log"
+    },
+    "standup_final_validation": {
+      "exit_code": 0,
+      "status": "passed",
+      "log": "outputs/native_deadline_20261019/final_review/standup_final_validation.log"
+    },
+    "slide_final_validation": {
+      "exit_code": 0,
+      "status": "passed",
+      "log": "outputs/native_deadline_20261019/final_review/slide_final_validation.log"
+    },
+    "backflip_final_validation": {
+      "exit_code": 0,
+      "status": "passed",
+      "log": "outputs/native_deadline_20261019/final_review/backflip_final_validation.log"
+    },
+    "legacy_recovery_contracts": {
+      "exit_code": 0,
+      "status": "passed",
+      "log": "outputs/native_deadline_20261019/final_review/legacy_recovery_contracts.log"
+    },
+    "all_web_action_requests": {
+      "exit_code": 0,
+      "status": "passed",
+      "log": "outputs/native_deadline_20261019/final_review/all_web_action_requests.log"
+    },
+    "real_browser": {
+      "exit_code": 127,
+      "status": "failed",
+      "log": "outputs/native_deadline_20261019/final_review/real_browser.log"
+    },
+    "kneel_and_unbox_recording": {
+      "exit_code": 0,
+      "status": "passed",
+      "log": "outputs/native_deadline_20261019/final_review/kneel_and_unbox_recording.log"
+    }
+  },
+  "skills": {
+    "stand": {
+      "checkpoint": "checkpoints/native_manager/stand/model.pt",
+      "sha256": "1f171c4f2babce0e8930ade2489e5085339a35223fd95fa61a29de26a50e86a3",
+      "pass_validation": true,
+      "evaluated_published_best": true
+    },
+    "walk": {
+      "checkpoint": "checkpoints/native_manager/walk/model.pt",
+      "sha256": "7c50257d0ff8b627a1bd9bac8293fb9c05e8eee04e2c15719f252ecb8880233e",
+      "pass_validation": true,
+      "evaluated_published_best": true
+    },
+    "standup": {
+      "checkpoint": "checkpoints/native_manager/standup/latest.pt",
+      "sha256": "3cf178b3a75671d1560be3574fe6ee478d0c8fa268a166fa7c08735ee58921ee",
+      "pass_validation": false,
+      "evaluated_published_best": false
+    },
+    "slide": {
+      "checkpoint": "checkpoints/native_manager/slide/latest.pt",
+      "sha256": "f55018295d169ffd6e18fa677ae8a5ec2b9dffa672a1f1da16dbab9fffe1d954",
+      "pass_validation": false,
+      "evaluated_published_best": false
+    },
+    "backflip": {
+      "checkpoint": "checkpoints/native_manager/backflip/latest.pt",
+      "sha256": "d93011f63ad73a3d8c8d014f3d6541be759a26001542a30ae7e7e13a5fe3a417",
+      "pass_validation": false,
+      "evaluated_published_best": false
+    }
+  },
+  "not_new_urdf_trained": [
+    "kneel_independent_ppo",
+    "supine_elbow",
+    "prone_elbow",
+    "supine_gripper",
+    "prone_gripper"
+  ],
+  "warning": "Budget completion is not proof of successful motion; see each evaluation.",
+  "code_commit": "c396f9f942077aaeea71e0d8b5b4296df72b2651",
+  "plan": {
+    "contract": "q1-native-manager-v2-23x90",
+    "num_envs": 6144,
+    "chunk_iterations": 1000,
+    "seed": 42,
+    "evaluation_envs": 64,
+    "evaluation_steps": 500,
+    "max_retries": 1,
+    "source_paths": [
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/native_slide/__init__.py",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/native_slide/env_cfg.py",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/native_slide/gait.py",
+      "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/native_slide/mdp.py",
+      "scripts/reinforcement_learning/rsl_rl/evaluate_native_slide.py",
+      "tools/queue_native_slide.py",
+      "tools/native_training_queue.py",
+      "tools/deadline_campaign.py",
+      "tests/verify_deadline_web.cjs",
+      "config/native_deadline_20261019.json",
+      "tools/check_deadline_legacy.py"
+    ],
+    "stages": [
+      {
+        "skill": "stand",
+        "task": "Isaac-Q1-Native-Stand-v0",
+        "iterations": 4000
+      },
+      {
+        "skill": "walk",
+        "task": "Isaac-Q1-Native-Walk-v0",
+        "iterations": 3000,
+        "warm_from": "stand",
+        "max_wall_seconds": 12600
+      },
+      {
+        "skill": "standup",
+        "task": "Isaac-Q1-Native-Standup-v0",
+        "iterations": 4000,
+        "warm_from": "stand",
+        "max_wall_seconds": 16200
+      },
+      {
+        "skill": "slide",
+        "task": "Isaac-Q1-Native-Slide-v0",
+        "iterations": 4000,
+        "policy_contract": "q1-native-slide-v1-23x90",
+        "evaluate_script": "scripts/reinforcement_learning/rsl_rl/evaluate_native_slide.py",
+        "evaluation_steps": 1000,
+        "max_wall_seconds": 16200
+      },
+      {
+        "skill": "backflip",
+        "task": "Isaac-Q1-Native-Backflip-v0",
+        "iterations": 12000,
+        "warm_from": "stand",
+        "max_wall_seconds": 43200
+      }
+    ],
+    "training_deadline": "2026-10-19T04:00:00+08:00",
+    "delivery_deadline": "2026-10-19T08:30:00+08:00",
+    "continue_on_stage_failure": true
+  },
+  "web_request_coverage": {
+    "all_scheduled_actions_requested": true,
+    "four_legacy_recoveries_rejected": true,
+    "requests": [
+      {
+        "step": 0,
+        "name": "reset",
+        "accepted": true
+      },
+      {
+        "step": 50,
+        "name": "stand",
+        "accepted": true
+      },
+      {
+        "step": 100,
+        "name": "walk",
+        "accepted": true
+      },
+      {
+        "step": 175,
+        "name": "reset",
+        "accepted": true
+      },
+      {
+        "step": 225,
+        "name": "kneel",
+        "accepted": true
+      },
+      {
+        "step": 400,
+        "name": "unbox",
+        "accepted": true
+      },
+      {
+        "step": 550,
+        "name": "reset",
+        "accepted": true
+      },
+      {
+        "step": 600,
+        "name": "backflip",
+        "accepted": true
+      },
+      {
+        "step": 900,
+        "name": "reset",
+        "accepted": true
+      },
+      {
+        "step": 950,
+        "name": "slide",
+        "accepted": false
+      },
+      {
+        "step": 1300,
+        "name": "reset",
+        "accepted": true
+      },
+      {
+        "step": 1350,
+        "name": "recovery_supine_elbow",
+        "accepted": false
+      },
+      {
+        "step": 1370,
+        "name": "recovery_prone_elbow",
+        "accepted": false
+      },
+      {
+        "step": 1390,
+        "name": "recovery_supine_gripper",
+        "accepted": false
+      },
+      {
+        "step": 1410,
+        "name": "recovery_prone_gripper",
+        "accepted": false
+      }
+    ]
+  },
+  "review_finished_at": "2026-10-18T13:46:11.009468+00:00",
+  "all_scheduled_motion_validations_passed": false
+}

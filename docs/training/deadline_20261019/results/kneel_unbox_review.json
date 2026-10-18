@@ -1,0 +1,2639 @@
+{
+  "kneel": {
+    "label": "NO KNEEL PPO / native motor controller",
+    "mode": "kneel",
+    "seed": 9127,
+    "steps": 500,
+    "checkpoint": null,
+    "checkpoint_sha256": null,
+    "checkpoint_iteration": null,
+    "first_failure_step": 309,
+    "achieved_before_failure": true,
+    "kneel_no_foot_contact_frames": 214,
+    "best_task_hold_s": 1.0000000000000004,
+    "final": {
+      "step": 499,
+      "mode": "kneel",
+      "height": 0.16948933899402618,
+      "upright": -0.2699981927871704,
+      "vx": 0.0031823350582271814,
+      "x": 4.8105950355529785,
+      "failure": true,
+      "success": true,
+      "illegal": true,
+      "winding": 1.8814462423324585,
+      "hold_s": 1.4999991655349731,
+      "feet": [
+        false,
+        false
+      ],
+      "command_vx": 0.0,
+      "command_yaw": 0.0
+    },
+    "trace": [
+      {
+        "step": 0,
+        "mode": "stand",
+        "height": 0.8547468185424805,
+        "upright": 0.9996901154518127,
+        "vx": 0.12989094853401184,
+        "x": 0.003210264490917325,
+        "failure": false,
+        "success": false,
+        "illegal": false,
+        "winding": -0.02488844469189644,
+        "hold_s": 0.019999999552965164,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 10,
+        "mode": "stand",
+        "height": 0.8453161716461182,
+        "upright": 0.9999803304672241,
+        "vx": 0.03366801515221596,
+        "x": 0.004015645943582058,
+        "failure": false,
+        "success": false,
+        "illegal": false,
+        "winding": 0.004177931696176529,
+        "hold_s": 0.15999998152256012,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 20,
+        "mode": "stand",
+        "height": 0.8459080457687378,
+        "upright": 0.9999695420265198,
+        "vx": 0.07696319371461868,
+        "x": 0.013302366249263287,
+        "failure": false,
+        "success": false,
+        "illegal": false,
+        "winding": 0.004993882961571217,
+        "hold_s": 0.36000001430511475,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 30,
+        "mode": "stand",
+        "height": 0.8463690280914307,
+        "upright": 0.9999674558639526,
+        "vx": 0.0840846374630928,
+        "x": 0.029054809361696243,
+        "failure": false,
+        "success": false,
+        "illegal": false,
+        "winding": 0.005772577133029699,
+        "hold_s": 0.5600000023841858,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 40,
+        "mode": "stand",
+        "height": 0.846560001373291,
+        "upright": 0.9999783039093018,
+        "vx": 0.1079137921333313,
+        "x": 0.04882536083459854,
+        "failure": false,
+        "success": false,
+        "illegal": false,
+        "winding": 0.0034663144033402205,
+        "hold_s": 0.7599998116493225,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 50,
+        "mode": "stand",
+        "height": 0.8466554880142212,
+        "upright": 0.9999977946281433,
+        "vx": 0.13870970904827118,
+        "x": 0.07338641583919525,
+        "failure": false,
+        "success": false,
+        "illegal": false,
+        "winding": -0.00015777742373757064,
+        "hold_s": 0.9599996209144592,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 60,
+        "mode": "stand",
+        "height": 0.8453984260559082,
+        "upright": 0.9999539852142334,
+        "vx": 0.15185971558094025,
+        "x": 0.1030903235077858,
+        "failure": false,
+        "success": true,
+        "illegal": false,
+        "winding": -0.00858081690967083,
+        "hold_s": 1.1599994897842407,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 70,
+        "mode": "stand",
+        "height": 0.8448923826217651,
+        "upright": 0.999793529510498,
+        "vx": 0.20730428397655487,
+        "x": 0.1351296603679657,
+        "failure": false,
+        "success": true,
+        "illegal": false,
+        "winding": -0.020058153197169304,
+        "hold_s": 1.3599992990493774,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 80,
+        "mode": "stand",
+        "height": 0.8456992506980896,
+        "upright": 0.9996936917304993,
+        "vx": 0.18708600103855133,
+        "x": 0.17145653069019318,
+        "failure": false,
+        "success": true,
+        "illegal": false,
+        "winding": -0.0247204452753067,
+        "hold_s": 1.5599991083145142,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 90,
+        "mode": "stand",
+        "height": 0.8442201614379883,
+        "upright": 0.9993605017662048,
+        "vx": 0.20298194885253906,
+        "x": 0.20761403441429138,
+        "failure": false,
+        "success": true,
+        "illegal": false,
+        "winding": -0.035380154848098755,
+        "hold_s": 1.7599989175796509,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 100,
+        "mode": "kneel",
+        "height": 0.8452950119972229,
+        "upright": 0.9993774890899658,
+        "vx": 0.16144725680351257,
+        "x": 0.24439363181591034,
+        "failure": false,
+        "success": false,
+        "illegal": false,
+        "winding": -0.0012124403147026896,
+        "hold_s": 0.019999999552965164,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 110,
+        "mode": "kneel",
+        "height": 0.8436699509620667,
+        "upright": 0.9993743300437927,
+        "vx": 0.1809183657169342,
+        "x": 0.2786395251750946,
+        "failure": false,
+        "success": false,
+        "illegal": false,
+        "winding": -0.0012879560235887766,
+        "hold_s": 0.21999996900558472,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 120,
+        "mode": "kneel",
+        "height": 0.8403446078300476,
+        "upright": 0.9993140697479248,
+        "vx": 0.19054871797561646,
+        "x": 0.3134165406227112,
+        "failure": false,
+        "success": false,
+        "illegal": false,
+        "winding": -0.003027489176020026,
+        "hold_s": 0.4200000464916229,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 130,
+        "mode": "kneel",
+        "height": 0.8332797884941101,
+        "upright": 0.9992188215255737,
+        "vx": 0.18423382937908173,
+        "x": 0.347220778465271,
+        "failure": false,
+        "success": false,
+        "illegal": false,
+        "winding": -0.005452805198729038,
+        "hold_s": 0.6199999451637268,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 140,
+        "mode": "kneel",
+        "height": 0.8200179934501648,
+        "upright": 0.9991474151611328,
+        "vx": 0.17364570498466492,
+        "x": 0.38174891471862793,
+        "failure": false,
+        "success": false,
+        "illegal": false,
+        "winding": -0.007134374231100082,
+        "hold_s": 0.8199997544288635,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 150,
+        "mode": "kneel",
+        "height": 0.7965442538261414,
+        "upright": 0.9983218908309937,
+        "vx": 0.2099992334842682,
+        "x": 0.41967228055000305,
+        "failure": false,
+        "success": true,
+        "illegal": false,
+        "winding": -0.023710889741778374,
+        "hold_s": 1.019999623298645,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 160,
+        "mode": "kneel",
+        "height": 0.7633501291275024,
+        "upright": 0.996471643447876,
+        "vx": 0.25167638063430786,
+        "x": 0.46474528312683105,
+        "failure": false,
+        "success": true,
+        "illegal": false,
+        "winding": -0.049697164446115494,
+        "hold_s": 1.2199994325637817,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 170,
+        "mode": "kneel",
+        "height": 0.719817042350769,
+        "upright": 0.9934490919113159,
+        "vx": 0.28732946515083313,
+        "x": 0.5194828510284424,
+        "failure": false,
+        "success": true,
+        "illegal": false,
+        "winding": -0.08031024783849716,
+        "hold_s": 1.4199992418289185,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 180,
+        "mode": "kneel",
+        "height": 0.6765410900115967,
+        "upright": 0.9902130961418152,
+        "vx": 0.33713918924331665,
+        "x": 0.5829672813415527,
+        "failure": false,
+        "success": true,
+        "illegal": false,
+        "winding": -0.1058739647269249,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 190,
+        "mode": "kneel",
+        "height": 0.6224934458732605,
+        "upright": 0.9873722195625305,
+        "vx": 0.39877578616142273,
+        "x": 0.6633426547050476,
+        "failure": false,
+        "success": true,
+        "illegal": false,
+        "winding": -0.12499510496854782,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 200,
+        "mode": "kneel",
+        "height": 0.576655924320221,
+        "upright": 0.9862780570983887,
+        "vx": 0.540252685546875,
+        "x": 0.7654930353164673,
+        "failure": false,
+        "success": true,
+        "illegal": false,
+        "winding": -0.13161210715770721,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 210,
+        "mode": "kneel",
+        "height": 0.5383382439613342,
+        "upright": 0.9865517616271973,
+        "vx": 0.7139116525650024,
+        "x": 0.8991187214851379,
+        "failure": false,
+        "success": true,
+        "illegal": false,
+        "winding": -0.12936529517173767,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 220,
+        "mode": "kneel",
+        "height": 0.5121577978134155,
+        "upright": 0.9874832630157471,
+        "vx": 0.9266716241836548,
+        "x": 1.0694835186004639,
+        "failure": false,
+        "success": true,
+        "illegal": false,
+        "winding": -0.12181032449007034,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 230,
+        "mode": "kneel",
+        "height": 0.48919677734375,
+        "upright": 0.9870002865791321,
+        "vx": 1.1629430055618286,
+        "x": 1.281984567642212,
+        "failure": false,
+        "success": true,
+        "illegal": false,
+        "winding": -0.12184270471334457,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 240,
+        "mode": "kneel",
+        "height": 0.4841371774673462,
+        "upright": 0.9861074686050415,
+        "vx": 1.4109292030334473,
+        "x": 1.5403081178665161,
+        "failure": false,
+        "success": true,
+        "illegal": false,
+        "winding": -0.12727361917495728,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 250,
+        "mode": "kneel",
+        "height": 0.48230260610580444,
+        "upright": 0.9852437376976013,
+        "vx": 1.591042399406433,
+        "x": 1.8392164707183838,
+        "failure": false,
+        "success": true,
+        "illegal": false,
+        "winding": -0.13484439253807068,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 260,
+        "mode": "kneel",
+        "height": 0.4854775667190552,
+        "upright": 0.9836789965629578,
+        "vx": 1.7351694107055664,
+        "x": 2.1756772994995117,
+        "failure": false,
+        "success": true,
+        "illegal": false,
+        "winding": -0.14466214179992676,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 270,
+        "mode": "kneel",
+        "height": 0.4830135405063629,
+        "upright": 0.9829064607620239,
+        "vx": 1.8940038681030273,
+        "x": 2.542012929916382,
+        "failure": false,
+        "success": true,
+        "illegal": false,
+        "winding": -0.1449592113494873,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 280,
+        "mode": "kneel",
+        "height": 0.4831409454345703,
+        "upright": 0.9874202013015747,
+        "vx": 2.017789125442505,
+        "x": 2.939011573791504,
+        "failure": false,
+        "success": true,
+        "illegal": false,
+        "winding": -0.1197345033288002,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 290,
+        "mode": "kneel",
+        "height": 0.4859963059425354,
+        "upright": 0.9989697933197021,
+        "vx": 2.181424379348755,
+        "x": 3.372230052947998,
+        "failure": false,
+        "success": true,
+        "illegal": false,
+        "winding": -0.001979786902666092,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 300,
+        "mode": "kneel",
+        "height": 0.47857946157455444,
+        "upright": 0.9682588577270508,
+        "vx": 2.432098388671875,
+        "x": 3.863903045654297,
+        "failure": false,
+        "success": true,
+        "illegal": false,
+        "winding": 0.2905850410461426,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 310,
+        "mode": "kneel",
+        "height": 0.44242435693740845,
+        "upright": 0.47851914167404175,
+        "vx": 0.8888828754425049,
+        "x": 4.384210109710693,
+        "failure": true,
+        "success": true,
+        "illegal": true,
+        "winding": 1.1097824573516846,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 320,
+        "mode": "kneel",
+        "height": 0.19742614030838013,
+        "upright": -0.3278564214706421,
+        "vx": 0.0913158655166626,
+        "x": 4.757591724395752,
+        "failure": true,
+        "success": true,
+        "illegal": true,
+        "winding": 1.9416248798370361,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 330,
+        "mode": "kneel",
+        "height": 0.16575095057487488,
+        "upright": -0.2614004611968994,
+        "vx": -0.01149572990834713,
+        "x": 4.814260959625244,
+        "failure": true,
+        "success": true,
+        "illegal": true,
+        "winding": 1.8725627660751343,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 340,
+        "mode": "kneel",
+        "height": 0.16868269443511963,
+        "upright": -0.26823508739471436,
+        "vx": 0.0011364745441824198,
+        "x": 4.811408519744873,
+        "failure": true,
+        "success": true,
+        "illegal": true,
+        "winding": 1.8795896768569946,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 350,
+        "mode": "kneel",
+        "height": 0.16876550018787384,
+        "upright": -0.26840925216674805,
+        "vx": -0.001332275103777647,
+        "x": 4.811334133148193,
+        "failure": true,
+        "success": true,
+        "illegal": true,
+        "winding": 1.879783034324646,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 360,
+        "mode": "kneel",
+        "height": 0.16884660720825195,
+        "upright": -0.26861846446990967,
+        "vx": 0.0020358471665531397,
+        "x": 4.811247825622559,
+        "failure": true,
+        "success": true,
+        "illegal": true,
+        "winding": 1.880003809928894,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 370,
+        "mode": "kneel",
+        "height": 0.16886304318904877,
+        "upright": -0.26863253116607666,
+        "vx": -0.002169946441426873,
+        "x": 4.811233997344971,
+        "failure": true,
+        "success": true,
+        "illegal": true,
+        "winding": 1.8800184726715088,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 380,
+        "mode": "kneel",
+        "height": 0.16896356642246246,
+        "upright": -0.26884961128234863,
+        "vx": 0.001985203241929412,
+        "x": 4.811129570007324,
+        "failure": true,
+        "success": true,
+        "illegal": true,
+        "winding": 1.8802478313446045,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 390,
+        "mode": "kneel",
+        "height": 0.1690349131822586,
+        "upright": -0.2690161466598511,
+        "vx": 0.0008389910217374563,
+        "x": 4.811049938201904,
+        "failure": true,
+        "success": true,
+        "illegal": true,
+        "winding": 1.880422830581665,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 400,
+        "mode": "kneel",
+        "height": 0.16911083459854126,
+        "upright": -0.2691081762313843,
+        "vx": 0.0002996312396135181,
+        "x": 4.810972213745117,
+        "failure": true,
+        "success": true,
+        "illegal": true,
+        "winding": 1.88052237033844,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 410,
+        "mode": "kneel",
+        "height": 0.16918398439884186,
+        "upright": -0.2693216800689697,
+        "vx": 0.0021725601982325315,
+        "x": 4.810896396636963,
+        "failure": true,
+        "success": true,
+        "illegal": true,
+        "winding": 1.8807435035705566,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 420,
+        "mode": "kneel",
+        "height": 0.16924446821212769,
+        "upright": -0.2694605588912964,
+        "vx": 0.0008819009526632726,
+        "x": 4.810834884643555,
+        "failure": true,
+        "success": true,
+        "illegal": true,
+        "winding": 1.8808879852294922,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 430,
+        "mode": "kneel",
+        "height": 0.16926804184913635,
+        "upright": -0.2695120573043823,
+        "vx": -0.00204268260858953,
+        "x": 4.810809135437012,
+        "failure": true,
+        "success": true,
+        "illegal": true,
+        "winding": 1.8809407949447632,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 440,
+        "mode": "kneel",
+        "height": 0.1692977100610733,
+        "upright": -0.26959478855133057,
+        "vx": 0.002643012907356024,
+        "x": 4.810781478881836,
+        "failure": true,
+        "success": true,
+        "illegal": true,
+        "winding": 1.8810267448425293,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 450,
+        "mode": "kneel",
+        "height": 0.16932718455791473,
+        "upright": -0.2696802616119385,
+        "vx": -0.0005769032286480069,
+        "x": 4.8107476234436035,
+        "failure": true,
+        "success": true,
+        "illegal": true,
+        "winding": 1.8811159133911133,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 460,
+        "mode": "kneel",
+        "height": 0.1693858653306961,
+        "upright": -0.26982176303863525,
+        "vx": -0.0002063316060230136,
+        "x": 4.810689926147461,
+        "failure": true,
+        "success": true,
+        "illegal": true,
+        "winding": 1.8812625408172607,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 470,
+        "mode": "kneel",
+        "height": 0.16940850019454956,
+        "upright": -0.2698204517364502,
+        "vx": 0.0030306584667414427,
+        "x": 4.810675144195557,
+        "failure": true,
+        "success": true,
+        "illegal": true,
+        "winding": 1.8812617063522339,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 480,
+        "mode": "kneel",
+        "height": 0.16945603489875793,
+        "upright": -0.269900918006897,
+        "vx": -0.002060128143057227,
+        "x": 4.8106303215026855,
+        "failure": true,
+        "success": true,
+        "illegal": true,
+        "winding": 1.8813447952270508,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 490,
+        "mode": "kneel",
+        "height": 0.16947564482688904,
+        "upright": -0.26997292041778564,
+        "vx": 0.002095357282087207,
+        "x": 4.81060791015625,
+        "failure": true,
+        "success": true,
+        "illegal": true,
+        "winding": 1.8814196586608887,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      }
+    ],
+    "no_automatic_resets": true,
+    "handover_no_pose_writes": true
+  },
+  "kneel_to_standup": {
+    "label": "END-TO-END CONTROLLER / NO STANDUP PPO",
+    "mode": "stand",
+    "seed": 9127,
+    "steps": 850,
+    "checkpoint": null,
+    "checkpoint_sha256": null,
+    "checkpoint_iteration": null,
+    "first_failure_step": 311,
+    "achieved_before_failure": false,
+    "kneel_no_foot_contact_frames": 106,
+    "best_task_hold_s": 0.0,
+    "final": {
+      "step": 849,
+      "mode": "standup",
+      "height": 0.1396898478269577,
+      "upright": -0.20531678199768066,
+      "vx": 0.004314580466598272,
+      "x": 4.892343997955322,
+      "failure": true,
+      "success": false,
+      "illegal": true,
+      "winding": -0.15345661342144012,
+      "hold_s": 0.0,
+      "feet": [
+        true,
+        false
+      ],
+      "command_vx": 0.0,
+      "command_yaw": 0.0
+    },
+    "trace": [
+      {
+        "step": 0,
+        "mode": "stand",
+        "height": 0.8420395851135254,
+        "upright": 0.9998368620872498,
+        "vx": -0.05712415650486946,
+        "x": -0.004291403107345104,
+        "failure": false,
+        "success": false,
+        "illegal": false,
+        "winding": 0.018053432926535606,
+        "hold_s": 0.0,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 10,
+        "mode": "stand",
+        "height": 0.8463363647460938,
+        "upright": 0.9999988079071045,
+        "vx": 0.06157674640417099,
+        "x": 0.009101493284106255,
+        "failure": false,
+        "success": false,
+        "illegal": false,
+        "winding": 0.0015584800858050585,
+        "hold_s": 0.17999997735023499,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 20,
+        "mode": "stand",
+        "height": 0.8465688824653625,
+        "upright": 0.999976396560669,
+        "vx": 0.0814969390630722,
+        "x": 0.023994408547878265,
+        "failure": false,
+        "success": false,
+        "illegal": false,
+        "winding": 0.006294991355389357,
+        "hold_s": 0.3800000250339508,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 30,
+        "mode": "stand",
+        "height": 0.8457369208335876,
+        "upright": 0.9999990463256836,
+        "vx": 0.12563499808311462,
+        "x": 0.04414857551455498,
+        "failure": false,
+        "success": false,
+        "illegal": false,
+        "winding": -0.0013448327081277966,
+        "hold_s": 0.5799999833106995,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 40,
+        "mode": "stand",
+        "height": 0.8465490341186523,
+        "upright": 0.9999967217445374,
+        "vx": 0.12453612685203552,
+        "x": 0.06883952766656876,
+        "failure": false,
+        "success": false,
+        "illegal": false,
+        "winding": -0.00255719106644392,
+        "hold_s": 0.7799997925758362,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 50,
+        "mode": "stand",
+        "height": 0.8464590311050415,
+        "upright": 0.9999722242355347,
+        "vx": 0.14822733402252197,
+        "x": 0.09744586795568466,
+        "failure": false,
+        "success": false,
+        "illegal": false,
+        "winding": -0.006857176311314106,
+        "hold_s": 0.9799996018409729,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 60,
+        "mode": "stand",
+        "height": 0.8464028835296631,
+        "upright": 0.9998980760574341,
+        "vx": 0.15976476669311523,
+        "x": 0.1297171264886856,
+        "failure": false,
+        "success": true,
+        "illegal": false,
+        "winding": -0.013724438846111298,
+        "hold_s": 1.1799994707107544,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 70,
+        "mode": "stand",
+        "height": 0.8457732796669006,
+        "upright": 0.9997408390045166,
+        "vx": 0.1704835295677185,
+        "x": 0.16512611508369446,
+        "failure": false,
+        "success": true,
+        "illegal": false,
+        "winding": -0.02270648628473282,
+        "hold_s": 1.3799992799758911,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 80,
+        "mode": "stand",
+        "height": 0.8452793955802917,
+        "upright": 0.9994696378707886,
+        "vx": 0.19333575665950775,
+        "x": 0.20132598280906677,
+        "failure": false,
+        "success": true,
+        "illegal": false,
+        "winding": -0.032577283680438995,
+        "hold_s": 1.5799990892410278,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 90,
+        "mode": "stand",
+        "height": 0.8431428670883179,
+        "upright": 0.9990756511688232,
+        "vx": 0.1979353427886963,
+        "x": 0.23879650235176086,
+        "failure": false,
+        "success": true,
+        "illegal": false,
+        "winding": -0.04300551116466522,
+        "hold_s": 1.7799988985061646,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 100,
+        "mode": "kneel",
+        "height": 0.8447319865226746,
+        "upright": 0.9991124868392944,
+        "vx": 0.16763965785503387,
+        "x": 0.27186116576194763,
+        "failure": false,
+        "success": false,
+        "illegal": false,
+        "winding": -0.0029180473648011684,
+        "hold_s": 0.019999999552965164,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 110,
+        "mode": "kneel",
+        "height": 0.8438010215759277,
+        "upright": 0.9993362426757812,
+        "vx": 0.14953531324863434,
+        "x": 0.30418258905410767,
+        "failure": false,
+        "success": false,
+        "illegal": false,
+        "winding": 0.0026036258786916733,
+        "hold_s": 0.21999996900558472,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 120,
+        "mode": "kneel",
+        "height": 0.8405684232711792,
+        "upright": 0.999366819858551,
+        "vx": 0.15464787185192108,
+        "x": 0.3366709351539612,
+        "failure": false,
+        "success": false,
+        "illegal": false,
+        "winding": 0.003452062141150236,
+        "hold_s": 0.4200000464916229,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 130,
+        "mode": "kneel",
+        "height": 0.832177996635437,
+        "upright": 0.9990563988685608,
+        "vx": 0.18255960941314697,
+        "x": 0.3681344985961914,
+        "failure": false,
+        "success": false,
+        "illegal": false,
+        "winding": -0.004365530330687761,
+        "hold_s": 0.6199999451637268,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 140,
+        "mode": "kneel",
+        "height": 0.8196041584014893,
+        "upright": 0.9990140199661255,
+        "vx": 0.17365287244319916,
+        "x": 0.4001007080078125,
+        "failure": false,
+        "success": false,
+        "illegal": false,
+        "winding": -0.005304304882884026,
+        "hold_s": 0.8199997544288635,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 150,
+        "mode": "kneel",
+        "height": 0.7965380549430847,
+        "upright": 0.998322606086731,
+        "vx": 0.19725029170513153,
+        "x": 0.4358052909374237,
+        "failure": false,
+        "success": true,
+        "illegal": false,
+        "winding": -0.01839771866798401,
+        "hold_s": 1.019999623298645,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 160,
+        "mode": "kneel",
+        "height": 0.7632468342781067,
+        "upright": 0.9964451193809509,
+        "vx": 0.23289854824543,
+        "x": 0.4790056347846985,
+        "failure": false,
+        "success": true,
+        "illegal": false,
+        "winding": -0.04449992999434471,
+        "hold_s": 1.2199994325637817,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 170,
+        "mode": "kneel",
+        "height": 0.7197244763374329,
+        "upright": 0.9931738376617432,
+        "vx": 0.28592944145202637,
+        "x": 0.5320039391517639,
+        "failure": false,
+        "success": true,
+        "illegal": false,
+        "winding": -0.07734231650829315,
+        "hold_s": 1.4199992418289185,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 180,
+        "mode": "kneel",
+        "height": 0.6758503317832947,
+        "upright": 0.9900819659233093,
+        "vx": 0.3320496678352356,
+        "x": 0.5950313806533813,
+        "failure": false,
+        "success": true,
+        "illegal": false,
+        "winding": -0.10160249471664429,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 190,
+        "mode": "kneel",
+        "height": 0.622169017791748,
+        "upright": 0.9871110916137695,
+        "vx": 0.39310795068740845,
+        "x": 0.6747897863388062,
+        "failure": false,
+        "success": true,
+        "illegal": false,
+        "winding": -0.12154266238212585,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 200,
+        "mode": "kneel",
+        "height": 0.5766074061393738,
+        "upright": 0.9863029718399048,
+        "vx": 0.5395984053611755,
+        "x": 0.7760970592498779,
+        "failure": false,
+        "success": true,
+        "illegal": false,
+        "winding": -0.12619493901729584,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 210,
+        "mode": "kneel",
+        "height": 0.5376166105270386,
+        "upright": 0.9863055944442749,
+        "vx": 0.715178370475769,
+        "x": 0.9091272950172424,
+        "failure": false,
+        "success": true,
+        "illegal": false,
+        "winding": -0.12512752413749695,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 220,
+        "mode": "kneel",
+        "height": 0.5118747353553772,
+        "upright": 0.9871553778648376,
+        "vx": 0.9160292148590088,
+        "x": 1.0793007612228394,
+        "failure": false,
+        "success": true,
+        "illegal": false,
+        "winding": -0.11712352931499481,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 230,
+        "mode": "kneel",
+        "height": 0.4884887635707855,
+        "upright": 0.9862097501754761,
+        "vx": 1.1567984819412231,
+        "x": 1.292056679725647,
+        "failure": false,
+        "success": true,
+        "illegal": false,
+        "winding": -0.11764395236968994,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 240,
+        "mode": "kneel",
+        "height": 0.483702689409256,
+        "upright": 0.9860262870788574,
+        "vx": 1.3889278173446655,
+        "x": 1.5503876209259033,
+        "failure": false,
+        "success": true,
+        "illegal": false,
+        "winding": -0.11957771331071854,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 250,
+        "mode": "kneel",
+        "height": 0.48372504115104675,
+        "upright": 0.9859095811843872,
+        "vx": 1.5728312730789185,
+        "x": 1.8502172231674194,
+        "failure": false,
+        "success": true,
+        "illegal": false,
+        "winding": -0.12468302249908447,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 260,
+        "mode": "kneel",
+        "height": 0.4846855103969574,
+        "upright": 0.9838181138038635,
+        "vx": 1.749272346496582,
+        "x": 2.1866936683654785,
+        "failure": false,
+        "success": true,
+        "illegal": false,
+        "winding": -0.13342250883579254,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 270,
+        "mode": "kneel",
+        "height": 0.48169374465942383,
+        "upright": 0.9822219014167786,
+        "vx": 1.9120463132858276,
+        "x": 2.5551445484161377,
+        "failure": false,
+        "success": true,
+        "illegal": false,
+        "winding": -0.1345512419939041,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 280,
+        "mode": "kneel",
+        "height": 0.48491424322128296,
+        "upright": 0.9873762130737305,
+        "vx": 2.045621633529663,
+        "x": 2.954465389251709,
+        "failure": false,
+        "success": true,
+        "illegal": false,
+        "winding": -0.10929878801107407,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 290,
+        "mode": "kneel",
+        "height": 0.4886876940727234,
+        "upright": 0.9965353608131409,
+        "vx": 2.192941427230835,
+        "x": 3.388244867324829,
+        "failure": false,
+        "success": true,
+        "illegal": false,
+        "winding": -0.026126643642783165,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 300,
+        "mode": "kneel",
+        "height": 0.47893184423446655,
+        "upright": 0.9821704626083374,
+        "vx": 2.393242359161377,
+        "x": 3.87123703956604,
+        "failure": false,
+        "success": true,
+        "illegal": false,
+        "winding": 0.2314547896385193,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          true,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 310,
+        "mode": "kneel",
+        "height": 0.4488890469074249,
+        "upright": 0.5634845495223999,
+        "vx": 1.1618505716323853,
+        "x": 4.397000312805176,
+        "failure": false,
+        "success": true,
+        "illegal": false,
+        "winding": 1.0247087478637695,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 320,
+        "mode": "kneel",
+        "height": 0.23244088888168335,
+        "upright": -0.4080404043197632,
+        "vx": 0.09523516893386841,
+        "x": 4.771803855895996,
+        "failure": true,
+        "success": true,
+        "illegal": true,
+        "winding": 2.043415069580078,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 330,
+        "mode": "kneel",
+        "height": 0.20717602968215942,
+        "upright": -0.3525000810623169,
+        "vx": 0.0016001202166080475,
+        "x": 4.8135905265808105,
+        "failure": true,
+        "success": true,
+        "illegal": true,
+        "winding": 1.9833849668502808,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 340,
+        "mode": "kneel",
+        "height": 0.20717653632164001,
+        "upright": -0.35249197483062744,
+        "vx": 0.0009879728313535452,
+        "x": 4.813587665557861,
+        "failure": true,
+        "success": true,
+        "illegal": true,
+        "winding": 1.9833765029907227,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 350,
+        "mode": "kneel",
+        "height": 0.20717711746692657,
+        "upright": -0.3524906635284424,
+        "vx": 0.0009818433318287134,
+        "x": 4.813589096069336,
+        "failure": true,
+        "success": true,
+        "illegal": true,
+        "winding": 1.9833755493164062,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 360,
+        "mode": "kneel",
+        "height": 0.20717674493789673,
+        "upright": -0.35249245166778564,
+        "vx": 0.0009519680752418935,
+        "x": 4.813589572906494,
+        "failure": true,
+        "success": true,
+        "illegal": true,
+        "winding": 1.98337721824646,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 370,
+        "mode": "kneel",
+        "height": 0.20717638731002808,
+        "upright": -0.3524940013885498,
+        "vx": 0.0008775228634476662,
+        "x": 4.813588619232178,
+        "failure": true,
+        "success": true,
+        "illegal": true,
+        "winding": 1.9833786487579346,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 380,
+        "mode": "kneel",
+        "height": 0.2071770429611206,
+        "upright": -0.3524906635284424,
+        "vx": 0.0009973554406315088,
+        "x": 4.813588619232178,
+        "failure": true,
+        "success": true,
+        "illegal": true,
+        "winding": 1.9833751916885376,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 390,
+        "mode": "kneel",
+        "height": 0.20717619359493256,
+        "upright": -0.3524940013885498,
+        "vx": 0.0008837644709274173,
+        "x": 4.813589096069336,
+        "failure": true,
+        "success": true,
+        "illegal": true,
+        "winding": 1.983378529548645,
+        "hold_s": 1.4999991655349731,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 400,
+        "mode": "standup",
+        "height": 0.20732709765434265,
+        "upright": -0.35288870334625244,
+        "vx": -0.012122400104999542,
+        "x": 4.813376426696777,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": 0.000422564655309543,
+        "hold_s": 0.0,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 410,
+        "mode": "standup",
+        "height": 0.2071855217218399,
+        "upright": -0.352536678314209,
+        "vx": 0.002451749052852392,
+        "x": 4.813490390777588,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": 4.8455516662215814e-05,
+        "hold_s": 0.0,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 420,
+        "mode": "standup",
+        "height": 0.20718640089035034,
+        "upright": -0.3525282144546509,
+        "vx": 0.0025708205066621304,
+        "x": 4.813491344451904,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": 3.954218846047297e-05,
+        "hold_s": 0.0,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 430,
+        "mode": "standup",
+        "height": 0.20719094574451447,
+        "upright": -0.35251057147979736,
+        "vx": 0.005449394695460796,
+        "x": 4.813492298126221,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": 2.0625268007279374e-05,
+        "hold_s": 0.0,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 440,
+        "mode": "standup",
+        "height": 0.20718888938426971,
+        "upright": -0.3525141477584839,
+        "vx": 0.004574441350996494,
+        "x": 4.813492298126221,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": 2.4556238713557832e-05,
+        "hold_s": 0.0,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 450,
+        "mode": "standup",
+        "height": 0.2071874886751175,
+        "upright": -0.35251665115356445,
+        "vx": 0.003937852568924427,
+        "x": 4.8134918212890625,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": 2.7236448659095913e-05,
+        "hold_s": 0.0,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 460,
+        "mode": "standup",
+        "height": 0.2071852684020996,
+        "upright": -0.3525211811065674,
+        "vx": 0.002889566821977496,
+        "x": 4.813492298126221,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": 3.213809759472497e-05,
+        "hold_s": 0.0,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 470,
+        "mode": "standup",
+        "height": 0.20718467235565186,
+        "upright": -0.3525286912918091,
+        "vx": 0.0025253770872950554,
+        "x": 4.813493251800537,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": 4.017628452857025e-05,
+        "hold_s": 0.0,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 480,
+        "mode": "standup",
+        "height": 0.20683889091014862,
+        "upright": -0.3517800569534302,
+        "vx": 0.011938625946640968,
+        "x": 4.813960552215576,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": -0.0007598753436468542,
+        "hold_s": 0.0,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 490,
+        "mode": "standup",
+        "height": 0.19778871536254883,
+        "upright": -0.33190274238586426,
+        "vx": 0.04966813325881958,
+        "x": 4.825709819793701,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": -0.021899161860346794,
+        "hold_s": 0.0,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 500,
+        "mode": "standup",
+        "height": 0.18783405423164368,
+        "upright": -0.31009912490844727,
+        "vx": 0.04262642562389374,
+        "x": 4.83779239654541,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": -0.04494069889187813,
+        "hold_s": 0.0,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 510,
+        "mode": "standup",
+        "height": 0.17847129702568054,
+        "upright": -0.28963756561279297,
+        "vx": 0.04589419066905975,
+        "x": 4.848191738128662,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": -0.06639494746923447,
+        "hold_s": 0.0,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 520,
+        "mode": "standup",
+        "height": 0.16962595283985138,
+        "upright": -0.2703425884246826,
+        "vx": 0.044404707849025726,
+        "x": 4.857182502746582,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": -0.08648906648159027,
+        "hold_s": 0.0,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 530,
+        "mode": "standup",
+        "height": 0.16205298900604248,
+        "upright": -0.25385916233062744,
+        "vx": 0.03682093322277069,
+        "x": 4.864328861236572,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": -0.10356701910495758,
+        "hold_s": 0.0,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 540,
+        "mode": "standup",
+        "height": 0.15355493128299713,
+        "upright": -0.23538506031036377,
+        "vx": 0.03973526880145073,
+        "x": 4.871792793273926,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": -0.12262070178985596,
+        "hold_s": 0.0,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 550,
+        "mode": "standup",
+        "height": 0.14633160829544067,
+        "upright": -0.21969830989837646,
+        "vx": 0.028235534206032753,
+        "x": 4.877752780914307,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": -0.13872279226779938,
+        "hold_s": 0.0,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 560,
+        "mode": "standup",
+        "height": 0.1426456719636917,
+        "upright": -0.211714506149292,
+        "vx": 0.0006718039512634277,
+        "x": 4.8809051513671875,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": -0.14690102636814117,
+        "hold_s": 0.0,
+        "feet": [
+          false,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 570,
+        "mode": "standup",
+        "height": 0.14112167060375214,
+        "upright": -0.20837807655334473,
+        "vx": 0.012493656948208809,
+        "x": 4.882455348968506,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": -0.15030810236930847,
+        "hold_s": 0.0,
+        "feet": [
+          true,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 580,
+        "mode": "standup",
+        "height": 0.1403837502002716,
+        "upright": -0.20679843425750732,
+        "vx": 0.015232168138027191,
+        "x": 4.883334636688232,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": -0.1519222855567932,
+        "hold_s": 0.0,
+        "feet": [
+          true,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 590,
+        "mode": "standup",
+        "height": 0.14010265469551086,
+        "upright": -0.20622026920318604,
+        "vx": 0.00766154658049345,
+        "x": 4.883802890777588,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": -0.1525069624185562,
+        "hold_s": 0.0,
+        "feet": [
+          false,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 600,
+        "mode": "standup",
+        "height": 0.1398245394229889,
+        "upright": -0.20560383796691895,
+        "vx": 0.008286707103252411,
+        "x": 4.884397983551025,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": -0.1531399041414261,
+        "hold_s": 0.0,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 610,
+        "mode": "standup",
+        "height": 0.1398870199918747,
+        "upright": -0.20573973655700684,
+        "vx": -0.0037315459921956062,
+        "x": 4.884646415710449,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": -0.15299969911575317,
+        "hold_s": 0.0,
+        "feet": [
+          false,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 620,
+        "mode": "standup",
+        "height": 0.13977378606796265,
+        "upright": -0.20545637607574463,
+        "vx": 0.005626830738037825,
+        "x": 4.885108947753906,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": -0.1532914787530899,
+        "hold_s": 0.0,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 630,
+        "mode": "standup",
+        "height": 0.13970689475536346,
+        "upright": -0.20536911487579346,
+        "vx": -0.006315895821899176,
+        "x": 4.885502338409424,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": -0.15338057279586792,
+        "hold_s": 0.0,
+        "feet": [
+          true,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 640,
+        "mode": "standup",
+        "height": 0.1397375911474228,
+        "upright": -0.2054215669631958,
+        "vx": -0.013229711912572384,
+        "x": 4.88577127456665,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": -0.15332484245300293,
+        "hold_s": 0.0,
+        "feet": [
+          false,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 650,
+        "mode": "standup",
+        "height": 0.13970381021499634,
+        "upright": -0.20533502101898193,
+        "vx": -0.000550324097275734,
+        "x": 4.886111736297607,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": -0.1534215211868286,
+        "hold_s": 0.0,
+        "feet": [
+          false,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 660,
+        "mode": "standup",
+        "height": 0.1397138237953186,
+        "upright": -0.2053539752960205,
+        "vx": 0.007410511374473572,
+        "x": 4.886343955993652,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": -0.1534007042646408,
+        "hold_s": 0.0,
+        "feet": [
+          false,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 670,
+        "mode": "standup",
+        "height": 0.13960663974285126,
+        "upright": -0.205130934715271,
+        "vx": -0.006987178232520819,
+        "x": 4.886567115783691,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": -0.1536303460597992,
+        "hold_s": 0.0,
+        "feet": [
+          true,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 680,
+        "mode": "standup",
+        "height": 0.13964684307575226,
+        "upright": -0.2052243947982788,
+        "vx": 0.008304891176521778,
+        "x": 4.8868608474731445,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": -0.15353582799434662,
+        "hold_s": 0.0,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 690,
+        "mode": "standup",
+        "height": 0.13966628909111023,
+        "upright": -0.20525789260864258,
+        "vx": 0.008158036507666111,
+        "x": 4.8871564865112305,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": -0.15349744260311127,
+        "hold_s": 0.0,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 700,
+        "mode": "standup",
+        "height": 0.13957983255386353,
+        "upright": -0.205061674118042,
+        "vx": 0.0011650756932795048,
+        "x": 4.887613773345947,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": -0.15369777381420135,
+        "hold_s": 0.0,
+        "feet": [
+          true,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 710,
+        "mode": "standup",
+        "height": 0.13965539634227753,
+        "upright": -0.205236554145813,
+        "vx": -0.0034745107404887676,
+        "x": 4.887910842895508,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": -0.15352362394332886,
+        "hold_s": 0.0,
+        "feet": [
+          false,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 720,
+        "mode": "standup",
+        "height": 0.13965821266174316,
+        "upright": -0.20524942874908447,
+        "vx": -0.00731784850358963,
+        "x": 4.888134479522705,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": -0.15351340174674988,
+        "hold_s": 0.0,
+        "feet": [
+          true,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 730,
+        "mode": "standup",
+        "height": 0.1396370828151703,
+        "upright": -0.20516717433929443,
+        "vx": 0.005530535243451595,
+        "x": 4.88850212097168,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": -0.1535983383655548,
+        "hold_s": 0.0,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 740,
+        "mode": "standup",
+        "height": 0.13967549800872803,
+        "upright": -0.20529413223266602,
+        "vx": -0.009163232520222664,
+        "x": 4.888769149780273,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": -0.1534683257341385,
+        "hold_s": 0.0,
+        "feet": [
+          true,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 750,
+        "mode": "standup",
+        "height": 0.13955126702785492,
+        "upright": -0.20501911640167236,
+        "vx": 0.007751308381557465,
+        "x": 4.889236927032471,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": -0.1537514626979828,
+        "hold_s": 0.0,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 760,
+        "mode": "standup",
+        "height": 0.13959072530269623,
+        "upright": -0.20510733127593994,
+        "vx": 0.011463742703199387,
+        "x": 4.8896307945251465,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": -0.15365922451019287,
+        "hold_s": 0.0,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 770,
+        "mode": "standup",
+        "height": 0.1396152228116989,
+        "upright": -0.20516371726989746,
+        "vx": 0.005263911094516516,
+        "x": 4.889861106872559,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": -0.1536024957895279,
+        "hold_s": 0.0,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 780,
+        "mode": "standup",
+        "height": 0.13960564136505127,
+        "upright": -0.2051483392715454,
+        "vx": 0.006245925556868315,
+        "x": 4.890211582183838,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": -0.15362413227558136,
+        "hold_s": 0.0,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 790,
+        "mode": "standup",
+        "height": 0.13960526883602142,
+        "upright": -0.2051231861114502,
+        "vx": 0.002313289325684309,
+        "x": 4.890501022338867,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": -0.15365228056907654,
+        "hold_s": 0.0,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 800,
+        "mode": "standup",
+        "height": 0.1396787315607071,
+        "upright": -0.20530307292938232,
+        "vx": -0.008953806012868881,
+        "x": 4.890761852264404,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": -0.15346771478652954,
+        "hold_s": 0.0,
+        "feet": [
+          false,
+          true
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 810,
+        "mode": "standup",
+        "height": 0.13969919085502625,
+        "upright": -0.20535171031951904,
+        "vx": 0.006298515014350414,
+        "x": 4.891025543212891,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": -0.15341968834400177,
+        "hold_s": 0.0,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 820,
+        "mode": "standup",
+        "height": 0.1397663950920105,
+        "upright": -0.20548105239868164,
+        "vx": 0.010757886804640293,
+        "x": 4.891347885131836,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": -0.15328556299209595,
+        "hold_s": 0.0,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 830,
+        "mode": "standup",
+        "height": 0.13962909579277039,
+        "upright": -0.20516836643218994,
+        "vx": 0.007998925633728504,
+        "x": 4.891749382019043,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": -0.15360501408576965,
+        "hold_s": 0.0,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      },
+      {
+        "step": 840,
+        "mode": "standup",
+        "height": 0.1396571397781372,
+        "upright": -0.20526933670043945,
+        "vx": 0.0055984798818826675,
+        "x": 4.892059803009033,
+        "failure": true,
+        "success": false,
+        "illegal": true,
+        "winding": -0.15350231528282166,
+        "hold_s": 0.0,
+        "feet": [
+          false,
+          false
+        ],
+        "command_vx": 0.0,
+        "command_yaw": 0.0
+      }
+    ],
+    "no_automatic_resets": true,
+    "handover_no_pose_writes": true
+  }
+}

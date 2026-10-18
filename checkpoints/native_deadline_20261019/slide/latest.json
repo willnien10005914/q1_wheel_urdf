@@ -1,0 +1,10 @@
+{
+  "contract": "q1-native-slide-v1-23x90",
+  "manager_based": true,
+  "new_urdf": true,
+  "validated": false,
+  "source": "logs/rsl_rl/q1_native_slide/2026-10-18_09-42-08_native_20261017T001905_slide_3000/model_3999.pt",
+  "iteration": 3999,
+  "sha256": "f55018295d169ffd6e18fa677ae8a5ec2b9dffa672a1f1da16dbab9fffe1d954",
+  "validation": null
+}

@@ -1,0 +1,6 @@
+DEADLINE_DELIVERY {"status": "pushed", "deadline": "2099-01-01T00:00:00+00:00", "commit": "f2d7bfee0f34d148a0c06f66afecc4d3824ce2bd"}
+..
+----------------------------------------------------------------------
+Ran 2 tests in 0.134s
+
+OK

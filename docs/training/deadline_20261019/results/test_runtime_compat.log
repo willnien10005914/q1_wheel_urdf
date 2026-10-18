@@ -1,0 +1,213 @@
+...
+----------------------------------------------------------------------
+Ran 3 tests in 0.065s
+
+OK
+--------------------------------------------------------------------------------
+Resolved observation sets: 
+	 critic :  ['critic']
+	 actor :  ['policy']
+--------------------------------------------------------------------------------
+Actor Model: MLPModel(
+  (obs_normalizer): Identity()
+  (distribution): GaussianDistribution()
+  (mlp): MLP(
+    (0): Linear(in_features=92, out_features=64, bias=True)
+    (1): ELU(alpha=1.0)
+    (2): Linear(in_features=64, out_features=32, bias=True)
+    (3): ELU(alpha=1.0)
+    (4): Linear(in_features=32, out_features=24, bias=True)
+  )
+)
+Critic Model: MLPModel(
+  (obs_normalizer): Identity()
+  (mlp): MLP(
+    (0): Linear(in_features=111, out_features=64, bias=True)
+    (1): ELU(alpha=1.0)
+    (2): Linear(in_features=64, out_features=32, bias=True)
+    (3): ELU(alpha=1.0)
+    (4): Linear(in_features=32, out_features=1, bias=True)
+  )
+)
+--------------------------------------------------------------------------------
+Resolved observation sets: 
+	 critic :  ['critic']
+	 actor :  ['policy']
+--------------------------------------------------------------------------------
+Actor Model: MLPModel(
+  (obs_normalizer): Identity()
+  (distribution): GaussianDistribution()
+  (mlp): MLP(
+    (0): Linear(in_features=92, out_features=64, bias=True)
+    (1): ELU(alpha=1.0)
+    (2): Linear(in_features=64, out_features=32, bias=True)
+    (3): ELU(alpha=1.0)
+    (4): Linear(in_features=32, out_features=24, bias=True)
+  )
+)
+Critic Model: MLPModel(
+  (obs_normalizer): Identity()
+  (mlp): MLP(
+    (0): Linear(in_features=111, out_features=64, bias=True)
+    (1): ELU(alpha=1.0)
+    (2): Linear(in_features=64, out_features=32, bias=True)
+    (3): ELU(alpha=1.0)
+    (4): Linear(in_features=32, out_features=1, bias=True)
+  )
+)
+--------------------------------------------------------------------------------
+Resolved observation sets: 
+	 critic :  ['critic']
+	 actor :  ['policy']
+--------------------------------------------------------------------------------
+Actor Model: MLPModel(
+  (obs_normalizer): Identity()
+  (distribution): GaussianDistribution()
+  (mlp): MLP(
+    (0): Linear(in_features=92, out_features=64, bias=True)
+    (1): ELU(alpha=1.0)
+    (2): Linear(in_features=64, out_features=32, bias=True)
+    (3): ELU(alpha=1.0)
+    (4): Linear(in_features=32, out_features=24, bias=True)
+  )
+)
+Critic Model: MLPModel(
+  (obs_normalizer): Identity()
+  (mlp): MLP(
+    (0): Linear(in_features=111, out_features=64, bias=True)
+    (1): ELU(alpha=1.0)
+    (2): Linear(in_features=64, out_features=32, bias=True)
+    (3): ELU(alpha=1.0)
+    (4): Linear(in_features=32, out_features=1, bias=True)
+  )
+)
+--------------------------------------------------------------------------------
+Resolved observation sets: 
+	 critic :  ['critic']
+	 actor :  ['policy']
+--------------------------------------------------------------------------------
+Actor Model: MLPModel(
+  (obs_normalizer): Identity()
+  (distribution): GaussianDistribution()
+  (mlp): MLP(
+    (0): Linear(in_features=92, out_features=64, bias=True)
+    (1): ELU(alpha=1.0)
+    (2): Linear(in_features=64, out_features=32, bias=True)
+    (3): ELU(alpha=1.0)
+    (4): Linear(in_features=32, out_features=24, bias=True)
+  )
+)
+Critic Model: MLPModel(
+  (obs_normalizer): Identity()
+  (mlp): MLP(
+    (0): Linear(in_features=111, out_features=64, bias=True)
+    (1): ELU(alpha=1.0)
+    (2): Linear(in_features=64, out_features=32, bias=True)
+    (3): ELU(alpha=1.0)
+    (4): Linear(in_features=32, out_features=1, bias=True)
+  )
+)
+--------------------------------------------------------------------------------
+Resolved observation sets: 
+	 critic :  ['critic']
+	 actor :  ['policy']
+--------------------------------------------------------------------------------
+Actor Model: MLPModel(
+  (obs_normalizer): EmpiricalNormalization()
+  (distribution): GaussianDistribution()
+  (mlp): MLP(
+    (0): Linear(in_features=92, out_features=64, bias=True)
+    (1): ELU(alpha=1.0)
+    (2): Linear(in_features=64, out_features=32, bias=True)
+    (3): ELU(alpha=1.0)
+    (4): Linear(in_features=32, out_features=24, bias=True)
+  )
+)
+Critic Model: MLPModel(
+  (obs_normalizer): EmpiricalNormalization()
+  (mlp): MLP(
+    (0): Linear(in_features=111, out_features=64, bias=True)
+    (1): ELU(alpha=1.0)
+    (2): Linear(in_features=64, out_features=32, bias=True)
+    (3): ELU(alpha=1.0)
+    (4): Linear(in_features=32, out_features=1, bias=True)
+  )
+)
+--------------------------------------------------------------------------------
+Resolved observation sets: 
+	 critic :  ['critic']
+	 actor :  ['policy']
+--------------------------------------------------------------------------------
+Actor Model: MLPModel(
+  (obs_normalizer): EmpiricalNormalization()
+  (distribution): GaussianDistribution()
+  (mlp): MLP(
+    (0): Linear(in_features=92, out_features=64, bias=True)
+    (1): ELU(alpha=1.0)
+    (2): Linear(in_features=64, out_features=32, bias=True)
+    (3): ELU(alpha=1.0)
+    (4): Linear(in_features=32, out_features=24, bias=True)
+  )
+)
+Critic Model: MLPModel(
+  (obs_normalizer): EmpiricalNormalization()
+  (mlp): MLP(
+    (0): Linear(in_features=111, out_features=64, bias=True)
+    (1): ELU(alpha=1.0)
+    (2): Linear(in_features=64, out_features=32, bias=True)
+    (3): ELU(alpha=1.0)
+    (4): Linear(in_features=32, out_features=1, bias=True)
+  )
+)
+--------------------------------------------------------------------------------
+Resolved observation sets: 
+	 critic :  ['critic']
+	 actor :  ['policy']
+--------------------------------------------------------------------------------
+Actor Model: MLPModel(
+  (obs_normalizer): EmpiricalNormalization()
+  (distribution): GaussianDistribution()
+  (mlp): MLP(
+    (0): Linear(in_features=92, out_features=64, bias=True)
+    (1): ELU(alpha=1.0)
+    (2): Linear(in_features=64, out_features=32, bias=True)
+    (3): ELU(alpha=1.0)
+    (4): Linear(in_features=32, out_features=24, bias=True)
+  )
+)
+Critic Model: MLPModel(
+  (obs_normalizer): EmpiricalNormalization()
+  (mlp): MLP(
+    (0): Linear(in_features=111, out_features=64, bias=True)
+    (1): ELU(alpha=1.0)
+    (2): Linear(in_features=64, out_features=32, bias=True)
+    (3): ELU(alpha=1.0)
+    (4): Linear(in_features=32, out_features=1, bias=True)
+  )
+)
+--------------------------------------------------------------------------------
+Resolved observation sets: 
+	 critic :  ['critic']
+	 actor :  ['policy']
+--------------------------------------------------------------------------------
+Actor Model: MLPModel(
+  (obs_normalizer): EmpiricalNormalization()
+  (distribution): GaussianDistribution()
+  (mlp): MLP(
+    (0): Linear(in_features=92, out_features=64, bias=True)
+    (1): ELU(alpha=1.0)
+    (2): Linear(in_features=64, out_features=32, bias=True)
+    (3): ELU(alpha=1.0)
+    (4): Linear(in_features=32, out_features=24, bias=True)
+  )
+)
+Critic Model: MLPModel(
+  (obs_normalizer): EmpiricalNormalization()
+  (mlp): MLP(
+    (0): Linear(in_features=111, out_features=64, bias=True)
+    (1): ELU(alpha=1.0)
+    (2): Linear(in_features=64, out_features=32, bias=True)
+    (3): ELU(alpha=1.0)
+    (4): Linear(in_features=32, out_features=1, bias=True)
+  )
+)

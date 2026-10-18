@@ -1,0 +1,10 @@
+{
+  "contract": "q1-native-manager-v2-23x90",
+  "manager_based": true,
+  "new_urdf": true,
+  "validated": true,
+  "source": "logs/rsl_rl/q1_native_walk/2026-10-18_02-14-35_native_20261017T001905_walk_2000/model_2999.pt",
+  "iteration": 2999,
+  "sha256": "7c50257d0ff8b627a1bd9bac8293fb9c05e8eee04e2c15719f252ecb8880233e",
+  "validation": "outputs/native_deadline_20261019/walk_003000_validation.json"
+}

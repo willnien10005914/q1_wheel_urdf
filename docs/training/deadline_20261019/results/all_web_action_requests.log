@@ -1,0 +1,218 @@
+[INFO][AppLauncher]: Using device: cuda:0
+[INFO][AppLauncher]: Loading experience file: /home/will/IsaacLab/apps/isaaclab.python.headless.kit
+Loading user config located at: '/home/will/isaacsim/kit/data/Kit/Isaac-Sim/5.1/user.config.json'
+[Info] [carb] Logging to file: /home/will/isaacsim/kit/logs/Kit/Isaac-Sim/5.1/kit_20261018_214317.log
+2026-10-18T13:43:17Z [0ms] [Warning] [carb.crashreporter-breakpad.plugin] [previous crash] preventing upload of minidump due to user opt-out: '/home/will/isaacsim/kit/data/Kit/Isaac-Sim/5.1/4da8f396-ec23-46cf-4d1a0292-2e19b434.dmp'
+2026-10-18T13:43:17Z [185ms] [Warning] [omni.usd_config.extension] Enable omni.materialx.libs extension to use MaterialX
+2026-10-18T13:43:17Z [545ms] [Warning] [carb] Acquiring non optional plugin interface which is not listed as dependency: [omni::physx::IPhysxBenchmarks v1.0] (plugin: <default plugin>), by client: omni.physics.physx.plugin. Add it to CARB_PLUGIN_IMPL_DEPS() macro of a client.
+2026-10-18T13:43:17Z [715ms] [Warning] [omni.isaac.dynamic_control] omni.isaac.dynamic_control is deprecated as of Isaac Sim 4.5. No action is needed from end-users.
+2026-10-18T13:43:21Z [4,190ms] [Warning] [gpu.foundation.plugin] Skipping unsupported non-NVIDIA GPU: Intel(R) Arc(tm) Graphics (MTL)
+2026-10-18T13:43:21Z [4,191ms] [Warning] [gpu.foundation.plugin] Skipping unsupported non-NVIDIA GPU: Intel(R) Arc(tm) Graphics (MTL)
+
+|---------------------------------------------------------------------------------------------|
+| Driver Version: 570.211.01    | Graphics API: Vulkan
+|=============================================================================================|
+| GPU | Name                             | Active | LDA | GPU Memory | Vendor-ID | LUID       |
+|     |                                  |        |     |            | Device-ID | UUID       |
+|     |                                  |        |     |            | Bus-ID    |            |
+|---------------------------------------------------------------------------------------------|
+| 0   | NVIDIA GeForce RTX 4090 Laptop.. | Yes: 0 |     | 16376   MB | 10de      | 0          |
+|     |                                  |        |     |            | 2757      | bfdfe4d5.. |
+|     |                                  |        |     |            | 1         |            |
+|---------------------------------------------------------------------------------------------|
+| 1   | Intel(R) Arc(tm) Graphics (MTL)  |        |     | 23626   MB | 8086      | 0          |
+|     |                                  |        |     |            | 7d55      | 8680557d.. |
+|     |                                  |        |     |            | 0         |            |
+|=============================================================================================|
+| OS: 22.04.5 LTS (Jammy Jellyfish) ubuntu, Version: 22.04.5, Kernel: 6.8.0-138-generic
+| XServer Vendor: The X.Org Foundation, XServer Version: 12101004 (1.21.1.4)
+| Processor: Intel(R) Core(TM) Ultra 7 155H
+| Bare Metal Cores: 16 | Bare Metal Logical Cores: 32
+| Available Cores:  22 
+|---------------------------------------------------------------------------------------------|
+| Total Memory (MB): 31502 | Free Memory: 26376
+| Total Page/Swap (MB): 32767 | Free Page/Swap: 32767
+|---------------------------------------------------------------------------------------------|
+2026-10-18T13:43:22Z [5,021ms] [Warning] [gpu.foundation.plugin] CPU performance profile is set to powersave. This profile sets the CPU to the lowest frequency reducing performance.
+2026-10-18T13:43:22Z [5,031ms] [Warning] [gpu.foundation.plugin] PCIe link width current (8) and maximum (16) for device 0 don't match.
+[INFO]: Parsing configuration from: wheel_humanoid_lab.tasks.manager_based.native_slide.env_cfg:NativeSlideWebEnvCfg
+
+[36m======================================================================================[0m
+[36m[1m[INFO][IsaacLab]: Logging to file: /tmp/isaaclab/logs/isaaclab_2026-10-18_21-43-22.log[0m
+[36m======================================================================================[0m
+
+[33m21:43:22 [simulation_context.py] WARNING: The `enable_external_forces_every_iteration` parameter in the PhysxCfg is set to False. If you are experiencing noisy velocities, consider enabling this flag. You may need to slightly increase the number of velocity iterations (setting it to 1 or 2 rather than 0), together with this flag, to improve the accuracy of velocity updates.[0m
+[INFO]: Base environment:
+	Environment device    : cuda:0
+	Environment seed      : 42
+	Physics step-size     : 0.005
+	Rendering step-size   : 0.02
+	Environment step-size : 0.02
+2026-10-18T13:43:23Z [6,217ms] [Warning] [gpu.foundation.plugin] Skipping unsupported non-NVIDIA GPU: Intel(R) Arc(tm) Graphics (MTL)
+2026-10-18T13:43:23Z [6,217ms] [Warning] [gpu.foundation.plugin] Skipping unsupported non-NVIDIA GPU: Intel(R) Arc(tm) Graphics (MTL)
+
+|---------------------------------------------------------------------------------------------|
+| Driver Version: 570.211.01    | Graphics API: Vulkan
+|=============================================================================================|
+| GPU | Name                             | Active | LDA | GPU Memory | Vendor-ID | LUID       |
+|     |                                  |        |     |            | Device-ID | UUID       |
+|     |                                  |        |     |            | Bus-ID    |            |
+|---------------------------------------------------------------------------------------------|
+| 0   | NVIDIA GeForce RTX 4090 Laptop.. | Yes: 0 |     | 16376   MB | 10de      | 0          |
+|     |                                  |        |     |            | 2757      | bfdfe4d5.. |
+|     |                                  |        |     |            | 1         |            |
+|---------------------------------------------------------------------------------------------|
+| 1   | Intel(R) Arc(tm) Graphics (MTL)  |        |     | 23626   MB | 8086      | 0          |
+|     |                                  |        |     |            | 7d55      | 8680557d.. |
+|     |                                  |        |     |            | 0         |            |
+|=============================================================================================|
+| OS: 22.04.5 LTS (Jammy Jellyfish) ubuntu, Version: 22.04.5, Kernel: 6.8.0-138-generic
+| XServer Vendor: The X.Org Foundation, XServer Version: 12101004 (1.21.1.4)
+| Processor: Intel(R) Core(TM) Ultra 7 155H
+| Bare Metal Cores: 16 | Bare Metal Logical Cores: 32
+| Available Cores:  22 
+|---------------------------------------------------------------------------------------------|
+| Total Memory (MB): 31502 | Free Memory: 26154
+| Total Page/Swap (MB): 32767 | Free Page/Swap: 32767
+|---------------------------------------------------------------------------------------------|
+2026-10-18T13:43:23Z [6,461ms] [Warning] [gpu.foundation.plugin] CPU performance profile is set to powersave. This profile sets the CPU to the lowest frequency reducing performance.
+2026-10-18T13:43:23Z [6,462ms] [Warning] [gpu.foundation.plugin] PCIe link width current (8) and maximum (16) for device 0 don't match.
+2026-10-18T13:43:24Z [7,063ms] [Warning] [omni.graph.visualization.nodes._impl.extension] No Viewport Window to add omni.graph.visualization.nodes-2.1.3 scene to
+[INFO]: Time taken for scene creation : 2.641244 seconds
+[INFO]: Scene manager:  <class InteractiveScene>
+	Number of environments: 1
+	Environment spacing   : 3.0
+	Source prim name      : /World/envs/env_0
+	Global prim paths     : ['/World/ground']
+	Replicate physics     : True
+[INFO]: Starting the simulation. This may take a few seconds. Please wait...
+[INFO]: Time taken for simulation start : 0.787094 seconds
+[INFO] Command Manager:  <CommandManager> contains 2 active terms.
++------------------------------------------------+
+|              Active Command Terms              |
++-------+---------------+------------------------+
+| Index | Name          |          Type          |
++-------+---------------+------------------------+
+|   0   | base_velocity | UniformVelocityCommand |
+|   1   | skill         |      SlideCommand      |
++-------+---------------+------------------------+
+
+[INFO] Event Manager:  <EventManager> contains 1 active terms.
++-------------------------------+
+| Active Event Terms in Mode: 'reset' |
++---------------+---------------+
+|     Index     | Name          |
++---------------+---------------+
+|       0       | reset         |
++---------------+---------------+
+
+[INFO] Recorder Manager:  <RecorderManager> contains 0 active terms.
++---------------------+
+| Active Recorder Terms |
++-----------+---------+
+|   Index   | Name    |
++-----------+---------+
++-----------+---------+
+
+[INFO] Action Manager:  <ActionManager> contains 2 active terms.
++-----------------------------------+
+|  Active Action Terms (shape: 23)  |
++---------+----------+--------------+
+|  Index  | Name     |    Dimension |
++---------+----------+--------------+
+|    0    | motors   |           23 |
+|    1    | mimic    |            0 |
++---------+----------+--------------+
+
+[INFO] Observation Manager: <ObservationManager> contains 2 groups.
++-------------------------------------------------------+
+| Active Observation Terms in Group: 'policy' (shape: (90,)) |
++-------------+---------------------------+-------------+
+|    Index    | Name                      |    Shape    |
++-------------+---------------------------+-------------+
+|      0      | base_ang_vel              |     (3,)    |
+|      1      | gravity                   |     (3,)    |
+|      2      | command                   |     (3,)    |
+|      3      | joint_pos                 |    (23,)    |
+|      4      | joint_vel                 |    (23,)    |
+|      5      | last_action               |    (23,)    |
+|      6      | skill                     |     (8,)    |
+|      7      | base_lin_vel              |     (3,)    |
+|      8      | height                    |     (1,)    |
++-------------+---------------------------+-------------+
++-------------------------------------------------------+
+| Active Observation Terms in Group: 'critic' (shape: (90,)) |
++-------------+---------------------------+-------------+
+|    Index    | Name                      |    Shape    |
++-------------+---------------------------+-------------+
+|      0      | base_ang_vel              |     (3,)    |
+|      1      | gravity                   |     (3,)    |
+|      2      | command                   |     (3,)    |
+|      3      | joint_pos                 |    (23,)    |
+|      4      | joint_vel                 |    (23,)    |
+|      5      | last_action               |    (23,)    |
+|      6      | base_lin_vel              |     (3,)    |
+|      7      | skill                     |     (8,)    |
+|      8      | height                    |     (1,)    |
++-------------+---------------------------+-------------+
+
+[INFO] Termination Manager:  <TerminationManager> contains 1 active terms.
++------------------------------+
+|   Active Termination Terms   |
++-------+-----------+----------+
+| Index | Name      | Time Out |
++-------+-----------+----------+
+|   0   | nonfinite |  False   |
++-------+-----------+----------+
+
+[INFO] Reward Manager:  <RewardManager> contains 13 active terms.
++-------------------------------+
+|      Active Reward Terms      |
++-------+-------------+---------+
+| Index | Name        |  Weight |
++-------+-------------+---------+
+|   0   | alive       |     1.0 |
+|   1   | upright     |     2.0 |
+|   2   | height      |     1.0 |
+|   3   | pose        |     1.0 |
+|   4   | stand       |     3.0 |
+|   5   | flip        |     2.0 |
+|   6   | velocity    |     2.0 |
+|   7   | yaw         |     0.5 |
+|   8   | action_rate |   -0.03 |
+|   9   | action_size |   -0.01 |
+|   10  | joint_speed | -0.0001 |
+|   11  | limits      |    -1.0 |
+|   12  | termination |    -4.0 |
++-------+-------------+---------+
+
+[INFO] Curriculum Manager:  <CurriculumManager> contains 0 active terms.
++----------------------+
+| Active Curriculum Terms |
++-----------+----------+
+|   Index   | Name     |
++-----------+----------+
++-----------+----------+
+
+[INFO]: Completed setting up the environment...
+[INFO] Web motor UI: http://127.0.0.1:8794/web/  (root=/home/will/projects/q1_wheel_urdf)
+NATIVE_WEB_REQUEST {"step": 0, "name": "reset", "accepted": true}
+NATIVE_WEB_MODEL stand {"path": "checkpoints/native_manager/stand/model.pt", "sha256": "1f171c4f2babce0e8930ade2489e5085339a35223fd95fa61a29de26a50e86a3", "iteration": 999, "validated": true, "contract": "q1-native-manager-v2-23x90", "fingerprint": ["/home/will/projects/q1_wheel_urdf/checkpoints/native_manager/stand/model.pt", 1792199662757384299]}
+NATIVE_WEB_MODEL walk {"path": "checkpoints/native_manager/walk/model.pt", "sha256": "7c50257d0ff8b627a1bd9bac8293fb9c05e8eee04e2c15719f252ecb8880233e", "iteration": 2999, "validated": true, "contract": "q1-native-manager-v2-23x90", "fingerprint": ["/home/will/projects/q1_wheel_urdf/checkpoints/native_manager/walk/model.pt", 1792264143810894154]}
+NATIVE_WEB_MODEL standup {"path": "checkpoints/native_manager/standup/latest.pt", "sha256": "3cf178b3a75671d1560be3574fe6ee478d0c8fa268a166fa7c08735ee58921ee", "iteration": 3999, "validated": false, "contract": "q1-native-manager-v2-23x90", "fingerprint": ["/home/will/projects/q1_wheel_urdf/checkpoints/native_manager/standup/latest.pt", 1792277525064037571]}
+NATIVE_WEB_MODEL backflip {"path": "checkpoints/native_manager/backflip/latest.pt", "sha256": "d93011f63ad73a3d8c8d014f3d6541be759a26001542a30ae7e7e13a5fe3a417", "iteration": 11999, "validated": false, "contract": "q1-native-manager-v2-23x90", "fingerprint": ["/home/will/projects/q1_wheel_urdf/checkpoints/native_manager/backflip/latest.pt", 1792330804902590292]}
+NATIVE_WEB_MODEL slide {"path": "checkpoints/native_manager/slide/latest.pt", "sha256": "f55018295d169ffd6e18fa677ae8a5ec2b9dffa672a1f1da16dbab9fffe1d954", "iteration": 3999, "validated": false, "contract": "q1-native-slide-v1-23x90", "fingerprint": ["/home/will/projects/q1_wheel_urdf/checkpoints/native_manager/slide/latest.pt", 1792291120610199300]}
+NATIVE_WEB_REQUEST {"step": 50, "name": "stand", "accepted": true}
+NATIVE_WEB_REQUEST {"step": 100, "name": "walk", "accepted": true}
+NATIVE_WEB_REQUEST {"step": 175, "name": "reset", "accepted": true}
+NATIVE_WEB_REQUEST {"step": 225, "name": "kneel", "accepted": true}
+NATIVE_WEB_REQUEST {"step": 400, "name": "unbox", "accepted": true}
+NATIVE_WEB_REQUEST {"step": 550, "name": "reset", "accepted": true}
+NATIVE_WEB_REQUEST {"step": 600, "name": "backflip", "accepted": true}
+NATIVE_WEB_REQUEST {"step": 900, "name": "reset", "accepted": true}
+NATIVE_WEB_REQUEST {"step": 950, "name": "slide", "accepted": false}
+NATIVE_WEB_REQUEST {"step": 1300, "name": "reset", "accepted": true}
+NATIVE_WEB_REQUEST {"step": 1350, "name": "recovery_supine_elbow", "accepted": false}
+NATIVE_WEB_REQUEST {"step": 1370, "name": "recovery_prone_elbow", "accepted": false}
+NATIVE_WEB_REQUEST {"step": 1390, "name": "recovery_supine_gripper", "accepted": false}
+NATIVE_WEB_REQUEST {"step": 1410, "name": "recovery_prone_gripper", "accepted": false}
