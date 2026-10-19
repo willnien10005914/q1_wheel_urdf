@@ -7,12 +7,15 @@ from __future__ import annotations
 
 from dataclasses import MISSING
 import math
+from functools import lru_cache
+import xml.etree.ElementTree as ET
 import torch
 from isaaclab.managers import ActionTerm, ActionTermCfg, CommandTerm, CommandTermCfg
 from isaaclab.utils import configclass
 from isaaclab.utils.math import quat_apply, quat_conjugate, quat_mul
 from wheel_humanoid_lab.assets.q1_inertia import (
     Q1_INERTIA_DEFAULT_POS, Q1_INERTIA_POSITION_JOINTS, Q1_INERTIA_WHEEL_JOINTS,
+    Q1_INERTIA_URDF, Q1_INERTIA_WHEEL_RADIUS,
     Q1_INERTIA_MIMIC_JOINTS, Q1_INERTIA_MIMIC_DRIVERS, Q1_INERTIA_MIMIC_MULTIPLIERS,
 )
 
@@ -43,6 +46,27 @@ def pose_values(kind):
         q[f"{side}_shoulder_Pitch_joint"] = arm_sign*shoulder
         q[f"{side}_elbow_Pitch_joint"] = -arm_sign*elbow
     return q
+
+
+@lru_cache(maxsize=None)
+def reset_root_height(kind):
+    """Ground the wheels using the actual upright, zero-roll CAD leg chain.
+
+    This is reset geometry, not an external force or a dynamic balance solution.
+    Horizontal hip-roll/knee origin offsets cancel in this source chain.
+    """
+    urdf=ET.parse(Q1_INERTIA_URDF).getroot()
+    def origin(name):
+        return [float(v) for v in urdf.find(f"joint[@name='{name}']/origin").get('xyz').split()]
+    hip_origin=origin('left_hip_Pitch_joint')
+    thigh_a=origin('left_hip_Roll_joint');thigh_b=origin('left_knee_1_Pitch_joint')
+    shin=origin('left_wheel_Pitch_joint')
+    q=pose_values(kind);hip=q['left_hip_Pitch_joint'];knee=q['left_knee_1_Pitch_joint']
+    # R_y(-q) applied to [x,0,z] has z = x*sin(q)+z*cos(q).
+    wheel_z=(hip_origin[2]+(thigh_a[0]+thigh_b[0])*math.sin(hip)
+             +(thigh_a[2]+thigh_b[2])*math.cos(hip)
+             +shin[0]*math.sin(hip+knee)+shin[2]*math.cos(hip+knee))
+    return Q1_INERTIA_WHEEL_RADIUS-wheel_z+.002
 
 
 class NativeSkillCommand(CommandTerm):
@@ -295,7 +319,7 @@ def reset_native(env, env_ids):
         q[:, robot.joint_names.index(follower)] = q[:, robot.joint_names.index(driver)]*multiplier
     root = robot.data.default_root_state[env_ids].clone()
     root[:, :3] += env.scene.env_origins[env_ids]
-    root[:, 2] = env.scene.env_origins[env_ids, 2]+(.45 if kind == "kneel" else .848686)
+    root[:, 2] = env.scene.env_origins[env_ids, 2]+reset_root_height(kind)
     root[:, 7:] = 0.
     robot.write_root_pose_to_sim(root[:, :7], env_ids=env_ids)
     robot.write_root_velocity_to_sim(root[:, 7:], env_ids=env_ids)

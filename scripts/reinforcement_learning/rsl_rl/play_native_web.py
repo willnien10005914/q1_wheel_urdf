@@ -110,8 +110,8 @@ class NativeWeb:
         self.mode=target; self.failed=False; self.motors.manual={}
         if target == "slide": self.command[:]=torch.tensor([.4,0.,0.],device=self.env.device)
         elif target != "walk": self.command.zero_()
-        trained=self.models.get("standup" if target=="kneel" else target)
-        detail="已驗證 PPO" if trained and trained["validated"] else "訓練中的 PPO" if trained else "姿態／平衡控制，PPO 尚待訓練"
+        trained=self.models.get(target)
+        detail="已驗證 PPO" if trained and trained["validated"] else "未通過驗證 PPO" if trained else "姿態／平衡控制，PPO 尚待訓練"
         self.message=f"{target} · 新版 URDF · {detail}"
         return True
 
@@ -122,7 +122,7 @@ class NativeWeb:
         if any(abs(x) > 1.e-6 for x in v) and self.mode not in ("walk","slide"): self.request("walk")
         if self.mode=="slide":
             bounded=[max(0.,min(.6,v[0])),0.,max(-.15,min(.15,v[2]))]
-        else: bounded=[max(-.4,min(1.2,v[0])),0.,max(-.5,min(.5,v[2]))]
+        else: bounded=[max(-.2,min(.4,v[0])),0.,max(-.15,min(.15,v[2]))]
         self.command[0]=torch.tensor(bounded,device=self.env.device)
         return True
 
@@ -133,7 +133,7 @@ class NativeWeb:
         term.time_left.fill_(1.e9); term.is_standing_env.fill_(not bool(self.command.abs().max() > 0.))
         self.skill._update_command()
         obs=self.env.observation_manager.compute()["policy"]
-        key="standup" if self.mode=="kneel" else self.mode
+        key=self.mode  # Kneel has no trained native policy; never run the standup actor.
         actor=self.actors.get(key)
         if actor is None: return torch.zeros(1,23,device=self.env.device)
         return actor(obs)
@@ -144,8 +144,8 @@ class NativeWeb:
         if self.mode=="standup" and bool(s.success[0]): pose="unbox_hold"
         if bool(s.illegal[0]): self.failed=True
         if self.failed: self.message="動作未通過接觸驗證；可按 Reset sim 重試。"
-        model=self.models.get("standup" if self.mode=="kneel" else self.mode)
-        mode_label="已驗證 PPO" if model and model["validated"] else "訓練中 PPO" if model else "平衡／姿態控制"
+        model=self.models.get(self.mode)
+        mode_label="已驗證 PPO" if model and model["validated"] else "未通過驗證 PPO" if model else "平衡／姿態控制"
         if not self.failed: self.message=f"{self.mode} · {mode_label}"+ (" · 已站穩" if pose=="unbox_hold" else "")
         if self.mode=="slide" and not self.failed:
             left,right=s.cycles.cycles[0].tolist()

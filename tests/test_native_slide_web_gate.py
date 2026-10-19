@@ -65,5 +65,24 @@ class WebSlidingGateTest(unittest.TestCase):
         self.assertAlmostEqual(float(self.web.command[0,2]),.15)
         self.web.drive({'vx':-.55});self.assertEqual(float(self.web.command[0,0]),0.)
 
+    def test_kneel_never_uses_unrelated_standup_actor(self):
+        self.web.mode='kneel';self.web.last_refresh=time.monotonic()
+        def wrong_actor(obs):raise AssertionError('Standup actor used while lowering')
+        self.web.actors={'standup':wrong_actor}
+        command=SimpleNamespace(command=torch.zeros(1,3),time_left=torch.zeros(1),is_standing_env=torch.ones(1,dtype=torch.bool))
+        self.web.env.command_manager=SimpleNamespace(get_term=lambda _:command)
+        self.web.env.observation_manager=SimpleNamespace(compute=lambda :{'policy':torch.zeros(1,90)})
+        self.web.skill._update_command=lambda :None
+        torch.testing.assert_close(self.web.action(),torch.zeros(1,23))
+
+    def test_forward_key_cannot_jump_to_three_times_evaluated_speed(self):
+        self.web.mode='walk'
+        self.assertTrue(self.web.drive({'vx':1.2,'yaw':.5}))
+        self.assertAlmostEqual(float(self.web.command[0,0]),.4)
+        self.assertAlmostEqual(float(self.web.command[0,2]),.15)
+        self.web.drive({'vx':-.55,'yaw':-.5})
+        self.assertAlmostEqual(float(self.web.command[0,0]),-.2)
+        self.assertAlmostEqual(float(self.web.command[0,2]),-.15)
+
 
 if __name__=='__main__':unittest.main()
