@@ -114,7 +114,7 @@ def finalize():
             try:
                 # The helper waits for readiness and runs Chromium itself.
                 previous=dict(os.environ);os.environ.update(env)
-                try: check('real_browser',['node','tests/verify_deadline_web.cjs'],300)
+                try: check('real_browser',[os.environ.get('NODE_BIN') or shutil.which('node') or 'node','tests/verify_deadline_web.cjs'],300)
                 finally: os.environ.clear();os.environ.update(previous)
             finally:
                 try: os.killpg(player.pid,signal.SIGTERM)

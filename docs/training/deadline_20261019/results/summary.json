@@ -77,14 +77,22 @@
       "log": "outputs/native_deadline_20261019/final_review/all_web_action_requests.log"
     },
     "real_browser": {
-      "exit_code": 127,
-      "status": "failed",
-      "log": "outputs/native_deadline_20261019/final_review/real_browser.log"
+      "exit_code": 0,
+      "status": "passed",
+      "log": "docs/training/deadline_20261019/results/real_browser_recheck.log",
+      "result": "docs/training/deadline_20261019/results/web_browser/result.json",
+      "rechecked_at": "2026-10-19T09:37:17.729453+00:00",
+      "note": "Reran against real archived models; original service could not resolve node. Launcher now passes NODE_BIN explicitly."
     },
     "kneel_and_unbox_recording": {
       "exit_code": 0,
       "status": "passed",
       "log": "outputs/native_deadline_20261019/final_review/kneel_and_unbox_recording.log"
+    },
+    "real_browser_initial_attempt": {
+      "exit_code": 127,
+      "status": "failed",
+      "log": "outputs/native_deadline_20261019/final_review/real_browser.log"
     }
   },
   "skills": {
@@ -272,5 +280,6 @@
     ]
   },
   "review_finished_at": "2026-10-18T13:46:11.009468+00:00",
-  "all_scheduled_motion_validations_passed": false
+  "all_scheduled_motion_validations_passed": false,
+  "archived_models_sha256_verified": 7
 }

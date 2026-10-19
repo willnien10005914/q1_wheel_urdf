@@ -1,0 +1,9 @@
+{
+  "real_api": true,
+  "contract": "q1-native-manager-v2-23x90",
+  "sliding_gate_matches_api": true,
+  "keyboard_requests_sent": true,
+  "button_animation": true,
+  "mobile_scrollable": true,
+  "page_errors": []
+}
