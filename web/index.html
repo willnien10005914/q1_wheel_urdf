@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Q1 Native Manager control</title>
-  <link rel="stylesheet" href="./style.css?v=20261017-sliding">
+  <link rel="stylesheet" href="./style.css?v=20261024-video-reference">
   <base href="/web/">
 </head>
 <body>
@@ -76,7 +76,7 @@
   </div>
   <script type="module">
     // Bundled viewer and local controls; no bare three imports / import maps.
-    import("./app.bundle.js?v=20261017-sliding").catch((err) => {
+    import("./app.bundle.js?v=20261024-video-reference").catch((err) => {
       const status = document.getElementById("load-status");
       const error = document.getElementById("error");
       const detail = (err && (err.stack || err.message)) ? (err.stack || err.message) : String(err);

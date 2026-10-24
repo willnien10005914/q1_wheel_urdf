@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "source_verified": true,
+  "mediapipe_executed": true,
+  "approved_for_training": true,
+  "source": {
+    "mediapipe": "0.10.35",
+    "detector_cpu": true,
+    "model_sha256": "64437af838a65d18e5ba7a0d39b465540069bc8aae8308de3e318aad31fcbc7b",
+    "real_clip_sha256": "353cbd387525bdc144b9595ec40650c914b5ad3b07468ed33440d0a705ef1efd",
+    "video_id": "iPItgmg4RBw",
+    "url": "https://youtu.be/iPItgmg4RBw",
+    "clip_start_s": 15.0,
+    "clip_end_s": 23.0,
+    "mediapipe_executed": true
+  },
+  "reference_sha256": "e485ee443870f2200eebf3a31ce3f856c81a86ef01137085092ca74c9813fe76",
+  "urdf_sha256": "0a6c9219bf0d7ade77c3a52b1d7334232ee5adc23528f8afe86679bfc2e794e9",
+  "quality": {
+    "approved_for_training": true,
+    "valid_detected_fraction": 0.9917355371900827,
+    "median_confidence": 0.6331811465788633,
+    "visually_reviewed_subject": "CUE7 robot inside fixed ROI, no background people",
+    "dynamic_stability_verified": false,
+    "non_monotonic_source_retained": true,
+    "single_camera_depth_ambiguity": true
+  },
+  "artifacts": {
+    "reference.json": "e485ee443870f2200eebf3a31ce3f856c81a86ef01137085092ca74c9813fe76",
+    "reference.npz": "5d12207193dec55826ba92c0a4ed9b230a07db3369d4309786fc36232ec73279",
+    "landmarks.json": "3884d8842065ef0482d73b6f687a44b7960a19789a8a1b7f8284cf9ce9692edb"
+  },
+  "raw_video_committed": false,
+  "extraction_gl_backend": "Mesa llvmpipe / TFLite XNNPACK CPU, max 2 threads"
+}

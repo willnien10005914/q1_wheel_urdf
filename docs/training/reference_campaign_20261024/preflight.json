@@ -1,0 +1,13 @@
+{
+  "cpu_reference_tests_passed": 25,
+  "existing_queue_regression_tests_passed": 12,
+  "shell_syntax": "passed",
+  "js_source_and_bundle_syntax": "passed",
+  "isaac_gpu_smoke": "deferred until Q1 leg handover; not yet executed",
+  "mediapipe_decoded_sample_frames": 121,
+  "mediapipe_actual_detections": 120,
+  "cpu_xnnpack_and_software_gl": true,
+  "upstream_priority": "explicitly confirmed: wait for full Q1 leg completion, not merely interrupted",
+  "training_started": false,
+  "upstream_monitor_follows_latest_same_project_run": true
+}

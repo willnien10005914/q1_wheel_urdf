@@ -1,4 +1,4 @@
-// button_feedback.mjs?v=20261017-sliding
+// button_feedback.mjs?v=20261024-video-reference
 // One-shot feedback and live execution status are separate: these are commands,
 // not toggle switches. Completion never leaves an action looking enabled/selected.
 function actionStatus(action, state) {
@@ -22561,15 +22561,16 @@ function applyIsaacState(state) {
   lastIsaac = state;
   const training = document.getElementById("training-readout");
   if (training) {
-    const activeQueue = state.training?.slide_queue?.status === "running" ? state.training.slide_queue : state.training;
+    const activeQueue = state.training?.queue || (state.training?.slide_queue?.status === "running" ? state.training.slide_queue : state.training);
     const current = activeQueue?.current;
-    training.textContent = current ? `訓練 ${current.skill} · ${current.completed_iterations ?? 0}/${current.total_iterations ?? "--"} updates · ${activeQueue.status}` : "訓練佇列尚未啟動";
+    const queueLabels = {waiting_for_q1_leg: "等待 Q1 leg 訓練結束", waiting_for_upstream: "等待 Q1 leg 訓練結束", waiting_for_reference: "影片軌跡準備中", waiting_for_gpu: "等待 GPU 空閒", smoke: "小批量驗證中", training: "訓練中", completed: "訓練及交付完成", completed_with_unvalidated_skills: "本輪完成，部分動作待改善"};
+    training.textContent = current ? `訓練 ${current.skill} · ${current.completed_iterations ?? 0}/${current.total_iterations ?? "--"} updates · ${activeQueue.status}` : (queueLabels[state.training?.status] || "訓練佇列尚未啟動");
     if (state.training?.slide_queue?.status) {
       const labels = {waiting_for_native_queue:"排隊中", running:"訓練中", failed:"訓練中斷", blocked_upstream_failed:"前項訓練中斷", completed:"已完成", completed_with_unvalidated_skills:"待改善"};
       training.textContent += ` · Sliding ${labels[state.training.slide_queue.status] || "準備中"}`;
     }
   }
-  if (state.contract && state.contract !== "q1-native-manager-v2-23x90") {
+  if (state.contract && !["q1-native-manager-v2-23x90", "q1-native-video-v1-23x90"].includes(state.contract)) {
     els.pose.textContent = "\u8ACB\u555F\u52D5\u65B0\u7248 Q1 Manager \u64AD\u653E\u5668";
     return;
   }

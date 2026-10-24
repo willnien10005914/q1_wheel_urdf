@@ -5,4 +5,9 @@ source "$ROOT/scripts/isaac_env.sh"
 export WHEEL_HUMANOID_ROOT="$ROOT"
 export PYTHONPATH="$ROOT:${PYTHONPATH:-}"
 cd "$ROOT"
-exec "$ISAAC_PYTHON" -u scripts/reinforcement_learning/rsl_rl/play_native_web.py --real-time "$@"
+PLAYER="scripts/reinforcement_learning/rsl_rl/play_reference_web.py"
+if [[ "${1:-}" == --legacy-native ]]; then
+  shift
+  PLAYER="scripts/reinforcement_learning/rsl_rl/play_native_web.py"
+fi
+exec "$ISAAC_PYTHON" -u "$PLAYER" --real-time "$@"

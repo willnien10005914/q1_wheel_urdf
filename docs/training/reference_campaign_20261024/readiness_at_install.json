@@ -1,0 +1,99 @@
+{
+  "upstream": {
+    "checked_at": "2026-10-24T11:20:19.897383+00:00",
+    "ready": false,
+    "reasons": [
+      "Upstream supervisor not terminal: validating",
+      "Upstream supervisor not terminal: validating",
+      "Upstream service remains active: q1-leg-upper-training.service",
+      "Upstream training/supervisor process still exists",
+      "Configured GPU still has compute consumers"
+    ],
+    "status_files": [
+      {
+        "path": "/home/will/projects/q1_leg_urdf/outputs/upper_body_training_status.json",
+        "state": "validating",
+        "run": "/home/will/projects/q1_leg_urdf/checkpoints/isaac/upper_body_v6/runs/v6r1_stable_contact_20261024",
+        "updated_at": "2026-10-24T11:20:19.529375+00:00"
+      },
+      {
+        "path": "/home/will/projects/q1_leg_urdf/checkpoints/isaac/upper_body_v6/runs/v6r1_stable_contact_20261024/supervisor_state.json",
+        "state": "validating",
+        "run": "/home/will/projects/q1_leg_urdf/checkpoints/isaac/upper_body_v6/runs/v6r1_stable_contact_20261024",
+        "updated_at": "2026-10-24T11:20:19.529375+00:00"
+      }
+    ],
+    "services": {
+      "q1-leg-upper-training.service": "active"
+    },
+    "processes": [
+      {
+        "pid": 289194,
+        "start_ticks": 13558403,
+        "session_id": 289194,
+        "cmdline_sha256": "67f6b3e50c0029caf80774977bc9e641207fdc3558f338dbb4c27e9838699e49",
+        "cmdline": "/home/will/projects/q1_leg_urdf/.venv/bin/python -u /home/will/projects/q1_leg_urdf/tools/run_upper_body_training.py --resume-run /home/will/projects/q1_leg_urdf/checkpoints/isaac/upper_body_v6/runs/v6r1_stable_contact_20261024",
+        "cwd": "/home/will/projects/q1_leg_urdf"
+      },
+      {
+        "pid": 304505,
+        "start_ticks": 14246603,
+        "session_id": 304490,
+        "cmdline_sha256": "5eb7d74ed3c70a269c3a7c660f2af4d9d3314ba3a9c067bdbb326afb27d88dc7",
+        "cmdline": "/home/will/IsaacLab/_isaac_sim/kit/python/bin/python3 -u scripts/reinforcement_learning/rsl_rl/train_upper_body.py --evaluate --episodes 32 --training-profile /home/will/projects/q1_leg_urdf/config/upper_body_v6.json --num_envs 32 --seed 287805 --completed 16805 --checkpoint /home/will/projects/q1_leg_urdf/checkpoints/isaac/upper_body_v6/runs/v6r1_stable_contact_20261024/resume.pt --output-dir /home/will/projects/q1_leg_urdf/checkpoints/isaac/upper_body_v6/runs/v6r1_stable_contact_20261024 --reward-revision 2 --curriculum-stage 0 --headless",
+        "cwd": "/home/will/projects/q1_leg_urdf"
+      },
+      {
+        "pid": 310015,
+        "start_ticks": 14452958,
+        "session_id": 310000,
+        "cmdline_sha256": "25ef7faaef44c4ec5aaa850cbcc9884298eaf03c4cfed99b8528d249efe2983d",
+        "cmdline": "/home/will/IsaacLab/_isaac_sim/kit/python/bin/python3 -u scripts/reinforcement_learning/rsl_rl/train_upper_body.py --evaluate --episodes 32 --training-profile /home/will/projects/q1_leg_urdf/config/upper_body_v6.json --num_envs 32 --seed 288205 --completed 17205 --checkpoint /home/will/projects/q1_leg_urdf/checkpoints/isaac/upper_body_v6/runs/v6r1_stable_contact_20261024/resume.pt --output-dir /home/will/projects/q1_leg_urdf/checkpoints/isaac/upper_body_v6/runs/v6r1_stable_contact_20261024 --reward-revision 2 --curriculum-stage 0 --headless",
+        "cwd": "/home/will/projects/q1_leg_urdf"
+      }
+    ],
+    "tracked_run": "/home/will/projects/q1_leg_urdf/checkpoints/isaac/upper_body_v6/runs/v6r1_stable_contact_20261024",
+    "gpu": {
+      "gpus": [
+        {
+          "index": 0,
+          "uuid": "GPU-bfdfe4d5-0f93-3488-ce06-602130767153",
+          "name": "NVIDIA GeForce RTX 4090 Laptop GPU",
+          "memory_total_mib": 16376,
+          "memory_used_mib": 5297,
+          "utilization_percent": 44
+        }
+      ],
+      "selected_gpu": {
+        "index": 0,
+        "uuid": "GPU-bfdfe4d5-0f93-3488-ce06-602130767153",
+        "name": "NVIDIA GeForce RTX 4090 Laptop GPU",
+        "memory_total_mib": 16376,
+        "memory_used_mib": 5297,
+        "utilization_percent": 44
+      },
+      "compute_apps": [
+        {
+          "gpu_uuid": "GPU-bfdfe4d5-0f93-3488-ce06-602130767153",
+          "pid": 304505,
+          "name": "/home/will/IsaacLab/_isaac_sim/kit/python/bin/python3",
+          "memory_mib": "2538"
+        },
+        {
+          "gpu_uuid": "GPU-bfdfe4d5-0f93-3488-ce06-602130767153",
+          "pid": 310015,
+          "name": "/home/will/IsaacLab/_isaac_sim/kit/python/bin/python3",
+          "memory_mib": "2634"
+        }
+      ],
+      "parallel_training_enabled": false,
+      "reason": "Single shared GPU: no memory/compute isolation; do not benchmark or co-run a 6144-env job."
+    }
+  },
+  "reference": {
+    "ready": true,
+    "reasons": [],
+    "reference_sha256": "e485ee443870f2200eebf3a31ce3f856c81a86ef01137085092ca74c9813fe76",
+    "manifest_sha256": "d9e42adb9888b9f922167de33c5e29bbeca93cb4597eb1874be756f2a6fd5dee"
+  }
+}

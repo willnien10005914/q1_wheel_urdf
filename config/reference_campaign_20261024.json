@@ -1,0 +1,111 @@
+{
+  "campaign": "wheel-video-reference-20261024",
+  "output_dir": "outputs/reference_campaign_20261024",
+  "models_dir": "checkpoints/reference_campaign_20261024",
+  "report_dir": "docs/training/reference_campaign_20261024/results",
+  "poll_seconds": 15,
+  "quiet_seconds": 60,
+  "gpu_lock": "/tmp/q1_gpu_training.lock",
+  "upstream": {
+    "repo": "/home/will/projects/q1_leg_urdf",
+    "gpu_index": 0,
+    "services": [
+      "q1-leg-upper-training.service"
+    ],
+    "lock_file": "/home/will/projects/q1_leg_urdf/outputs/upper_body_training.lock",
+    "status_files": [
+      {
+        "path": "/home/will/projects/q1_leg_urdf/outputs/upper_body_training_status.json",
+        "expected_run": "/home/will/projects/q1_leg_urdf/checkpoints/isaac/upper_body_v6/runs/20261022T204705_454380Z"
+      },
+      {
+        "path": "/home/will/projects/q1_leg_urdf/checkpoints/isaac/upper_body_v6/runs/20261022T204705_454380Z/supervisor_state.json",
+        "expected_run": "/home/will/projects/q1_leg_urdf/checkpoints/isaac/upper_body_v6/runs/20261022T204705_454380Z"
+      }
+    ],
+    "priority_policy": "User confirmed 2026-10-24: keep Q1 leg priority; interrupted is never completion",
+    "follow_latest_run": {
+      "status_path": "/home/will/projects/q1_leg_urdf/outputs/upper_body_training_status.json",
+      "run_root": "/home/will/projects/q1_leg_urdf/checkpoints/isaac/upper_body_v6/runs",
+      "expected_robot": "q1_leg_upper_body_v6"
+    }
+  },
+  "reference": {
+    "manifest": "data/reference/native_unbox_20261024/manifest.json",
+    "trajectory": "data/reference/native_unbox_20261024/reference.json",
+    "required_files": [
+      "data/reference/native_unbox_20261024/manifest.json",
+      "data/reference/native_unbox_20261024/reference.json",
+      "data/reference/native_unbox_20261024/reference.npz",
+      "data/reference/native_unbox_20261024/landmarks.json"
+    ]
+  },
+  "source_globs": [
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/native_reference/*.py",
+    "source/wheel_humanoid_lab/wheel_humanoid_lab/tasks/manager_based/native_slide/*.py"
+  ],
+  "source_paths": [
+    "tools/reference_campaign.py",
+    "tools/reference_campaign_guard.py",
+    "tools/reference_campaign_record.py",
+    "scripts/reinforcement_learning/rsl_rl/evaluate_reference.py",
+    "skills/reference_web_runtime.py",
+    "scripts/reinforcement_learning/rsl_rl/play_reference_web.py",
+    "play_skills.sh",
+    "config/reference_campaign_20261024.json",
+    "start_reference_training.sh",
+    "config/systemd/q1-wheel-reference-training.service.in"
+  ],
+  "queue": {
+    "contract": "q1-native-manager-v2-23x90",
+    "num_envs": 6144,
+    "chunk_iterations": 1000,
+    "seed": 42,
+    "evaluation_envs": 64,
+    "evaluation_steps": 750,
+    "max_retries": 1,
+    "continue_on_stage_failure": true,
+    "stages": [
+      {
+        "skill": "standup",
+        "task": "Isaac-Q1-Reference-Standup-v0",
+        "iterations": 10000,
+        "policy_contract": "q1-native-video-v1-23x90",
+        "evaluate_script": "scripts/reinforcement_learning/rsl_rl/evaluate_reference.py",
+        "evaluation_steps": 750
+      },
+      {
+        "skill": "kneel",
+        "task": "Isaac-Q1-Reference-Kneel-v0",
+        "iterations": 10000,
+        "policy_contract": "q1-native-video-v1-23x90",
+        "evaluate_script": "scripts/reinforcement_learning/rsl_rl/evaluate_reference.py",
+        "evaluation_steps": 750
+      },
+      {
+        "skill": "walk",
+        "task": "Isaac-Q1-Reference-Walk-v0",
+        "iterations": 10000,
+        "policy_contract": "q1-native-video-v1-23x90",
+        "evaluate_script": "scripts/reinforcement_learning/rsl_rl/evaluate_reference.py",
+        "evaluation_steps": 750
+      },
+      {
+        "skill": "backflip",
+        "task": "Isaac-Q1-Reference-Backflip-v0",
+        "iterations": 10000,
+        "policy_contract": "q1-native-video-v1-23x90",
+        "evaluate_script": "scripts/reinforcement_learning/rsl_rl/evaluate_reference.py",
+        "evaluation_steps": 400
+      },
+      {
+        "skill": "skate",
+        "task": "Isaac-Q1-Reference-Skate-v0",
+        "iterations": 10000,
+        "policy_contract": "q1-native-video-v1-23x90",
+        "evaluate_script": "scripts/reinforcement_learning/rsl_rl/evaluate_reference.py",
+        "evaluation_steps": 750
+      }
+    ]
+  }
+}

@@ -1,0 +1,18 @@
+# Managed by Q1 wheel reference campaign launcher
+[Unit]
+Description=Q1 wheel video-reference training after completed Q1 leg handover
+StartLimitIntervalSec=300
+StartLimitBurst=3
+[Service]
+Type=simple
+WorkingDirectory=@ROOT@
+ExecStart=/usr/bin/python3 -u @ROOT@/tools/reference_campaign.py
+Environment=PYTHONUNBUFFERED=1
+Nice=5
+Restart=on-failure
+RestartSec=60
+RestartPreventExitStatus=78
+KillMode=control-group
+TimeoutStopSec=90
+[Install]
+WantedBy=default.target
