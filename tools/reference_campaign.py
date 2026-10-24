@@ -218,6 +218,37 @@ def deliver(config, report_dir, model_dir, state, state_path):
     raise RuntimeError('GitHub delivery failed after three attempts: '+str(last_error))
 
 
+def final_validation_gate(checkpoint, report_path, stage, state, exit_code):
+    """A failed independent final trial revokes Web access, preserving weights."""
+    checkpoint=Path(checkpoint);report_path=Path(report_path)
+    try:result=load_json(report_path) if exit_code==0 and report_path.is_file() else {}
+    except (OSError,ValueError):result={}
+    digest=sha256(checkpoint)
+    expected=dict(contract=stage['policy_contract'],skill=stage['skill'],checkpoint_sha256=digest,
+                  reference_sha256=state['reference_sha256'],urdf_sha256=state['urdf_sha256'],
+                  first_trial_only=True,seed=10424,trials=64,nonfinite=0,pass_validation=True)
+    mismatches=[key for key,value in expected.items() if result.get(key)!=value]
+    passed=exit_code==0 and not mismatches
+    decision=dict(exit_code=exit_code,pass_validation=passed,checkpoint_sha256=digest,
+                  preview=checkpoint.name!='model.pt',failed_identity_or_acceptance_fields=mismatches)
+    if checkpoint.name=='model.pt':
+        path=checkpoint.parent/'validated.json'
+        metadata=load_json(path) if path.is_file() else {}
+        identity={key:expected[key] for key in ('contract','skill','reference_sha256','urdf_sha256')}
+        identity['sha256']=digest
+        if any(metadata.get(key)!=value for key,value in identity.items()):
+            decision.update(pass_validation=False,metadata_error='Formal model identity does not match final trial')
+            return decision
+        training_validated=metadata.get('training_validated',metadata.get('validated')) is True
+        metadata.update(training_validated=training_validated,validated=bool(passed and training_validated),
+                        validation=str(report_path.relative_to(ROOT)),
+                        final_validation=dict(checked_at=utcnow(),**decision))
+        atomic_json(path,metadata)
+        decision['web_enabled']=metadata['validated']
+    else:decision['web_enabled']=False
+    return decision
+
+
 def finalize(config, output, models, queue_state, state, state_path, seal):
     reports=ROOT/config['report_dir'];reports.mkdir(parents=True,exist_ok=True)
     state['final_checks']=state.get('final_checks',{})
@@ -230,9 +261,27 @@ def finalize(config, output, models, queue_state, state, state_path, seal):
                  '--steps',str(stage.get('evaluation_steps',1000)),'--seed','10424','--out',report]
         code=run_command(command,output/'logs'/('final_'+name+'.log'),state,state_path,'final_validation',timeout=1200,seal=seal)
         if STOP:return
-        result=load_json(report) if code==0 and report.exists() else {}
-        state['final_checks'][name]={'exit_code':code,'pass_validation':result.get('pass_validation'),
-                                    'checkpoint_sha256':sha256(checkpoint),'preview':checkpoint.name=='latest.pt'}
+        state['final_checks'][name]=final_validation_gate(checkpoint,report,stage,state,code)
+        atomic_json(state_path,state)
+    web_report=reports/'web_motion_validation.json'
+    if all(state['final_checks'].get(stage['skill'],{}).get('web_enabled') is True for stage in config['queue']['stages']):
+        web_command=[ROOT/'play_skills.sh','--headless','--no-browser','--no-keyboard','--web-port','8796',
+                     '--models',models,'--out',web_report,'--campaign-check']
+        code=run_command(web_command,output/'logs/final_web.log',state,state_path,'web_motion_validation',timeout=1200,seal=seal)
+        if STOP:return
+        try:web_result=load_json(web_report) if code==0 else {}
+        except (OSError,ValueError):web_result={}
+        passed=code==0 and web_result.get('validation',{}).get('pass_validation') is True
+        state['web_validation']={'exit_code':code,'pass_validation':passed,'report':str(web_report.relative_to(ROOT))}
+        if not passed:
+            for stage in config['queue']['stages']:
+                path=models/stage['skill']/'validated.json';metadata=load_json(path)
+                metadata.update(validated=False,integration_validation=state['web_validation'])
+                atomic_json(path,metadata)
+                state['final_checks'][stage['skill']]['web_enabled']=False
+    else:
+        state['web_validation']={'status':'blocked_by_unvalidated_models','pass_validation':False}
+    atomic_json(state_path,state)
     record_command=[ROOT/'run_isaac.sh','tools/reference_campaign_record.py','--models',models,
                     '--out',output/'videos','--allow-preview','--headless']
     code=run_command(record_command,output/'logs/record.log',state,state_path,'recording',timeout=3600,seal=seal)
@@ -254,8 +303,9 @@ def finalize(config, output, models, queue_state, state, state_path, seal):
     summary={'finished_at':utcnow(),'source_sha256':state['source_sha256'],'reference_sha256':state['reference_sha256'],
              'urdf_sha256':state['urdf_sha256'],'smoke':state.get('smoke'),'skills':state['final_checks'],
              'uploads':state['uploads'],'recording_exit_code':state['recording_exit_code'],
+             'web_validation':state['web_validation'],
              'not_retrained':['supine_elbow','prone_elbow','supine_gripper','prone_gripper'],
-             'all_motion_validations_passed':all(v.get('pass_validation') is True for v in state['final_checks'].values()),
+             'all_motion_validations_passed':state['web_validation']['pass_validation'] and all(v.get('pass_validation') is True for v in state['final_checks'].values()),
              'warning':'A completed iteration budget and a recorded clip are not proof of successful motion.'}
     atomic_json(reports/'summary.json',summary)
     deliver(config,reports,models,state,state_path)

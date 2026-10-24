@@ -1,0 +1,56 @@
+{
+  "checked_at": "2026-10-24T23:31:50.515353+00:00",
+  "formal_training_started": false,
+  "gpu_smoke_run": false,
+  "validation": {
+    "reference_cpu_tests_passed": 55,
+    "native_queue_regressions_passed": 12,
+    "reference_button_dom_gate": "passed",
+    "python_compile": "passed",
+    "javascript_syntax": "passed",
+    "shell_syntax": "passed",
+    "git_diff_check": "passed"
+  },
+  "slow_kneel": {
+    "reference_duration_s": 20.322092056274414,
+    "max_reference_height_speed_mps": 0.16,
+    "max_reference_joint_speed_rps": 0.8,
+    "required_bilateral_main_wheel_contact_fraction": 0.95,
+    "terminal_hold_s": 1.5,
+    "evaluation_steps": 1300,
+    "episode_s": 36
+  },
+  "queue": {
+    "num_envs": 6144,
+    "iterations_each": 10000,
+    "order": [
+      "standup",
+      "kneel",
+      "walk",
+      "backflip",
+      "skate"
+    ]
+  },
+  "recordings": [
+    "standup",
+    "slow_kneel",
+    "forward_glide",
+    "backflip",
+    "skating",
+    "crouch_rise_glide_backflip",
+    "alternating_skating"
+  ],
+  "upstream_observation": {
+    "state": "runtime_error",
+    "completed_iterations": 19105,
+    "max_iterations": 20000,
+    "reason": "Isaac Sim startup segmentation fault in getenv/XOpenDisplay; not a completed run",
+    "read_only_observed": true
+  },
+  "priority": "Preserve user-confirmed Q1 leg priority. Do not launch wheel GPU work on an interrupted upstream run.",
+  "limitations": [
+    "CPU tests do not verify learned physical motion.",
+    "GPU smoke, formal training, final Web trial and all video uploads remain queued.",
+    "Old recovery models are preserved but are not enabled under the new policy/URDF contract."
+  ]
+}

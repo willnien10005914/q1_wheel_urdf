@@ -2,10 +2,10 @@
 // not toggle switches. Completion never leaves an action looking enabled/selected.
 export function actionStatus(action, state) {
   const pose = state.pose;
-  if (action === "stand") return pose === "stand" ? "站立中" : "";
+  if (action === "stand") return ["stand", "unbox_hold"].includes(pose) ? "已站穩" : "";
   if (action === "kneel") return ["prepare_kneel", "kneeling"].includes(pose) ? "執行中" : pose === "kneel" ? "已跪穩" : "";
   if (action === "unbox") return pose === "prepare_unbox" ? "準備中" : pose === "unbox" ? "執行中" : pose === "unbox_hold" ? "已站穩" : "";
-  if (action === "backflip") return pose === "prepare_backflip" ? "準備中" : pose === "backflip" ? (state.backflip?.success ? "已完成" : "執行中") : "";
+  if (action === "backflip") return state.last_completed_motion === "backflip" ? "已完成" : pose === "prepare_backflip" ? "準備中" : pose === "backflip" ? (state.backflip?.success ? "已完成" : "執行中") : "";
   if (["skate", "slide"].includes(action)) return pose === action ? "執行中" : "";
   if (action.startsWith("recovery_")) return pose === action ? "執行中" : "";
   if (["supine", "prone"].includes(action)) return pose === action ? "目前姿勢" : "";
@@ -21,6 +21,11 @@ export function updateActionButtons(state = {}, root = document) {
       : action === "unbox" ? state.policies?.unbox === false
       : action.startsWith("recovery_") ? !state.policies?.[action.slice(9)] : false);
     if (action === "slide" && unavailable) status = state.models?.slide ? "訓練中，待驗證" : "等待模型";
+    const reason = state.action_unavailable_reasons?.[action] || "";
+    button.title = unavailable ? reason : "";
+    if (unavailable && reason && !running) {
+      status = reason.includes("模型") ? "等待驗證模型" : reason.includes("蹲姿") ? "請先起立" : reason.includes("尚未完成") ? "等待動作完成" : reason.includes("先停止") ? "請先停止" : "暫不可用";
+    }
     button.disabled = pending || unavailable || (running && !["skate", "slide"].includes(action));
     button.dataset.actionState = status;
     button.classList.remove("active-pose");

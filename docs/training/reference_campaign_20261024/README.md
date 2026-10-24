@@ -22,7 +22,9 @@
 | 4 | 後空翻 Backflip | 6,144 | 10,000 |
 | 5 | 左右交替貼地推進／微抬回收 Skate | 6,144 | 10,000 |
 
-起立與蹲下使用影片 reference；後空翻使用同一微彎站姿作起點、獨立馬達推蹬／收腿／落地課程，不能把沒有後翻的原影片說成 flip mocap。Skate 使用真正接觸負載、向後推蹬、懸空向前回收及完整循環 reward，沒有只抬腳就算成功。正反躺 Elbow/Gripper Recovery 不重訓。
+起立與蹲下使用影片 reference；蹲下保留完整姿態順序，另外重新配置每段時間，將原 8 秒延長至約 **20.322 秒**，限制 reference 高度速度 ≤0.16 m/s、關節速度 ≤0.8 rad/s。後空翻使用同一微彎站姿作起點、獨立馬達推蹬／收腿／落地課程，不能把沒有後翻的原影片說成 flip mocap。Skate 使用真正接觸負載、向後推蹬、懸空向前回收及完整循環 reward，沒有只抬腳就算成功。正反躺 Elbow/Gripper Recovery 不重訓。
+
+慢蹲使用世界垂直速度與雙側主輪實際接觸力驗證，初始接觸穩定寬限為 0.2 秒。持續離地超過 0.06 秒、失去雙輪接觸超過 0.12 秒、下降速度超過 0.38 m/s 持續 0.1 秒，或超出目標高度 3 cm 且向上速度超過 0.24 m/s 持續 0.08 秒，會鎖定違規並終止該次 trial。終點須雙輪接觸比例 ≥95% 且穩定保持 1.5 秒；64 個首次測試中只要有慢蹲品質違規，就不發布為通過。kneel episode 為 36 秒，每次驗證 1,300 steps，覆蓋完整下降與最後停留。這些是訓練和驗收條件，實際動作仍須 GPU 測試確認。
 
 每 1,000 次更新以 64-env first trial 檢查，不放寬成功門檻，只發布通過且分數改善的 best；latest preview 另存。新模型契約為 `q1-native-video-v1-23x90`，需要 ref/URDF/weights SHA 與技能名稱一致，不能直接把舊 90/23 形狀相同的模型當影片策略。
 
@@ -38,8 +40,12 @@
 
 `./play_skateboard.sh` / `./play_skills.sh` 預設使用新 Reference-Web，從影片起始蹲姿開始，等待使用者按起立。只有符合新契約並 validated 的模型會開放正式按鈕。`--allow-preview` 是明示實驗模式；預設不執行失敗模型。`./play_skills.sh --legacy-native` 可開原播放器與原模型。不要在上游訓練中另開 Isaac viewer；viewer 也會用 GPU。
 
+Web 起立、慢蹲或後翻未完成時不接受中途切動作；蹲姿須先完成起立，慢蹲／後翻須先停穩。起立完成後自動進入站姿保持，可接 WASD，站立時再按起立不會重跑蹲姿。按鈕共用按下動畫、顯示停用原因，拒絕訊息保留六秒。舊正反躺模型仍完整保存，但尚未通過這次 URDF／影片策略契約驗證，新頁暫停使用；`--legacy-native` 是原生平衡播放器，不是已驗證的正反躺入口。
+
 ## 完成後
 
-自動重新驗證並錄製一鏡到底「初始蹲姿→起立→膝微彎前滑→停穩→後空翻」，另錄交替 skating。過程不 reset 隱藏跌倒；若只能載入 preview、模型缺少或曾失敗，影片與報告會明確標示，不能冒充成功。影片上傳 GoFile；只保存公開下載頁、檔名、大小、SHA，不提交管理 token。模型、驗證、影格與公開影片連結在隔離 Git worktree 提交並推 GitHub `main`，不混入使用者其他修改。
+自動以新 seed 10424、64 個首次 trial 重新驗證；最後驗證未過會撤銷 Web 正式模型資格並保留權重。各模型通過後，再以實際 Reference-Web runtime 跑連續起立、前滑、停穩、慢蹲、再起立、後翻及 skating 的按鈕／控制檢查；整合失敗同樣停用正式入口。
+
+錄製五個獨立動作影片 `standup`、`slow_kneel`、`forward_glide`、`backflip`、`skating`，另保留一鏡到底「初始蹲姿→起立→膝微彎前滑→停穩→後空翻」與交替 skating，合計七片。每片都從開機蹲姿實際起立，每片開頭僅一次 reset，切換動作不改寫 root／關節物理狀態。慢蹲片先完整起立，14 秒開始慢蹲，涵蓋 20.322 秒下降及 4 秒停留。記錄雙輪接觸力、四支撐合力、世界垂直速度與慢蹲違規。若只能載入 preview、模型缺少或曾失敗，影片與報告會明確標示，不能冒充成功。影片上傳 GoFile；只保存公開下載頁、檔名、大小、SHA，不提交管理 token。模型、驗證、影格與公開影片連結在隔離 Git worktree 提交並推 GitHub `main`，不混入使用者其他修改。
 
 監控啟動：`./start_reference_training.sh`；狀態：`python3 tools/reference_campaign.py --status`。本次部署使用持續的使用者層級 systemd 服務（`./start_reference_training.sh --install-service`），重開機後仍會等待上游完成；使用者已確認保留 Q1 leg 優先順序，interrupted 時也不搶先啟動；CPU watcher 與 state 可續用，訓練來源／reference hash 改動則須建立新的實驗 state，不能覆蓋舊試驗。

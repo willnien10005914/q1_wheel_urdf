@@ -48,13 +48,18 @@
     "tools/reference_campaign.py",
     "tools/reference_campaign_guard.py",
     "tools/reference_campaign_record.py",
+    "tools/reference_record_plan.py",
     "scripts/reinforcement_learning/rsl_rl/evaluate_reference.py",
     "skills/reference_web_runtime.py",
     "scripts/reinforcement_learning/rsl_rl/play_reference_web.py",
     "play_skills.sh",
     "config/reference_campaign_20261024.json",
     "start_reference_training.sh",
-    "config/systemd/q1-wheel-reference-training.service.in"
+    "config/systemd/q1-wheel-reference-training.service.in",
+    "web/app.js",
+    "web/app.bundle.js",
+    "web/button_feedback.mjs",
+    "web/index.html"
   ],
   "queue": {
     "contract": "q1-native-manager-v2-23x90",
@@ -80,7 +85,7 @@
         "iterations": 10000,
         "policy_contract": "q1-native-video-v1-23x90",
         "evaluate_script": "scripts/reinforcement_learning/rsl_rl/evaluate_reference.py",
-        "evaluation_steps": 750
+        "evaluation_steps": 1300
       },
       {
         "skill": "walk",

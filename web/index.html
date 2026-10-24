@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Q1 Native Manager control</title>
-  <link rel="stylesheet" href="./style.css?v=20261024-video-reference">
+  <link rel="stylesheet" href="./style.css?v=20261025-slow-kneel">
   <base href="/web/">
 </head>
 <body>
@@ -41,7 +41,7 @@
           <button id="pose-skate" type="button" data-pose="skate">雙輪行進 Walk</button>
         </div>
         <div class="preset-row pose-row">
-          <button id="pose-kneel" type="button" data-pose="kneel">Kneel 跪姿</button>
+          <button id="pose-kneel" type="button" data-pose="kneel">Kneel 慢蹲</button>
           <button id="pose-unbox" type="button" data-pose="unbox">Stand up 起身</button>
         </div>
         <div class="preset-row pose-row">
@@ -50,13 +50,15 @@
         </div>
         <p class="pose-hint">全部動作使用新版輪式 URDF。策略仍在訓練；上方狀態會顯示載入的模型與驗證狀態。交替滑行：支撐腳貼地向後推、回收腳抬起向前；模型通過驗證後才可按。後空翻模型尚未產生時按鈕停用。</p>
         <p id="training-readout" class="pose-hint">讀取訓練佇列…</p>
+        <p id="recovery-availability" class="pose-hint" hidden></p>
         <div class="preset-row">
           <button data-preset="zero">Zero</button>
           <button data-preset="tpose">T-pose</button>
           <button data-preset="reach">Reach</button>
         </div>
         <p class="pose-hint">按下會短暫縮放；「執行中／準備中」表示動作尚未完成，完成後顯示結果。</p>
-        <p class="pose-hint">W/S 前後、A/D 轉向、空白停止、R 重設。Isaac 視窗也支援 WASD；關節滑桿在站立待命時可調整。</p>
+        <p class="pose-hint">W/S 前後、A/D 轉向、空白停止、R 重設。Isaac 視窗也支援 WASD。請先完成起立並站穩；慢蹲與後空翻需先停止行進。</p>
+        <p id="manual-control-hint" class="pose-hint">關節滑桿在站立待命時可調整。</p>
         <div class="toolbar" style="margin-top:8px">
           <button id="reset">Zero all</button>
           <button id="copy">Copy JSON</button>
@@ -76,7 +78,7 @@
   </div>
   <script type="module">
     // Bundled viewer and local controls; no bare three imports / import maps.
-    import("./app.bundle.js?v=20261024-video-reference").catch((err) => {
+    import("./app.bundle.js?v=20261025-slow-kneel").catch((err) => {
       const status = document.getElementById("load-status");
       const error = document.getElementById("error");
       const detail = (err && (err.stack || err.message)) ? (err.stack || err.message) : String(err);

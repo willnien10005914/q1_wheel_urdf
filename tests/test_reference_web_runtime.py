@@ -13,10 +13,14 @@ class ReferenceWebTest(unittest.TestCase):
   self.tmp=tempfile.TemporaryDirectory();self.root=Path(self.tmp.name);self.calls=[]
   self.skill=SimpleNamespace(trajectory=SimpleNamespace(sha256='reference',urdf_sha256='urdf'),
     hold_pose=lambda name:self.calls.append(('hold',name)),set_mode=lambda name:self.calls.append(('mode',name)),
-    _update_command=lambda :None)
+    _update_command=lambda :None,update_state=lambda :None,success=torch.tensor([False]),illegal=torch.tensor([False]),
+    normalized_phase=torch.tensor([0.]),best_hold=torch.tensor([0.]),winding=torch.tensor([0.]),max_air_time=torch.tensor([0.]))
   self.velocity=SimpleNamespace(command=torch.zeros(1,3),time_left=torch.zeros(1),is_standing_env=torch.ones(1,dtype=torch.bool))
-  self.robot=SimpleNamespace(data=SimpleNamespace(root_state_w=torch.zeros(1,13),joint_pos=torch.zeros(1,27)))
-  self.env=SimpleNamespace(device='cpu',scene={'robot':self.robot},command_manager=SimpleNamespace(get_term=lambda name:self.skill if name=='skill' else self.velocity),
+  self.robot=SimpleNamespace(joint_names=[str(i) for i in range(27)],data=SimpleNamespace(root_state_w=torch.zeros(1,13),joint_pos=torch.zeros(1,27),
+    root_lin_vel_b=torch.zeros(1,3),root_ang_vel_b=torch.zeros(1,3),joint_vel=torch.zeros(1,27),applied_torque=torch.zeros(1,27),
+    root_pos_w=torch.zeros(1,3),root_quat_w=torch.tensor([[1.,0.,0.,0.]]),default_mass=torch.ones(1,27)))
+  class Scene(dict):env_origins=torch.zeros(1,3)
+  self.env=SimpleNamespace(device='cpu',scene=Scene(robot=self.robot),command_manager=SimpleNamespace(get_term=lambda name:self.skill if name=='skill' else self.velocity),
     action_manager=SimpleNamespace(get_term=lambda _:SimpleNamespace(manual={})),observation_manager=SimpleNamespace(compute=lambda :{'policy':torch.zeros(1,90)}),reset=lambda :self.calls.append(('reset',)))
   class Actor:
    def __init__(self,path,device):self.input_dim=90;self.mlp=[SimpleNamespace(out_features=23)];self.training_iteration=2
@@ -60,5 +64,44 @@ class ReferenceWebTest(unittest.TestCase):
   self.assertAlmostEqual(float(self.web.command[0,0]),.4);self.assertAlmostEqual(float(self.web.command[0,2]),.15)
  def test_recovery_is_not_silently_rerouted(self):
   self.model();self.assertFalse(self.web.request('recovery_supine_elbow'));self.assertEqual(self.web.mode,'kneel_hold')
+  self.assertIn('--legacy-native',self.web.snapshot()['message'])
+ def test_crouched_robot_cannot_flip_or_drive_even_with_validated_models(self):
+  for name in ('backflip','kneel','walk','skate'):self.model(name)
+  for name in ('backflip','kneel','walk','slide'):
+   self.assertFalse(self.web.request(name));self.assertEqual(self.web.mode,'kneel_hold')
+  status=self.web.snapshot();self.assertFalse(status['supported_actions']['backflip']);self.assertIn('先按 Stand up',status['message'])
+ def test_rising_motion_cannot_be_interrupted(self):
+  for name in ('standup','kneel','walk','backflip'):self.model(name)
+  self.assertTrue(self.web.request('unbox'))
+  for name in ('stand','kneel','walk','backflip'):
+   self.assertFalse(self.web.request(name));self.assertEqual(self.web.mode,'standup')
+ def test_completed_rise_enters_hold_and_allows_drive(self):
+  self.model();self.model('walk');self.assertTrue(self.web.request('unbox'))
+  self.skill.success[0]=True
+  self.assertTrue(self.web.drive({'vx':.3}));self.assertEqual(self.web.mode,'walk')
+ def test_standup_while_standing_holds_instead_of_restarting_crouch_reference(self):
+  self.model();self.web.mode='stand_hold';self.assertTrue(self.web.request('unbox'))
+  self.assertEqual(self.calls[-1],('hold','stand'));self.assertEqual(self.web.mode,'stand_hold')
+ def test_slow_kneel_requires_stopped_motion(self):
+  self.model('kneel');self.web.mode='walk';self.web.command[0,0]=.3
+  self.assertFalse(self.web.request('kneel'));self.assertIn('先停止',self.web.message)
+  self.web.command.zero_();self.assertTrue(self.web.request('kneel'))
+ def test_rejection_feedback_survives_snapshots_then_expires(self):
+  self.web.request('unbox');message=self.web.message
+  self.assertEqual(self.web.snapshot()['message'],message)
+  self.web.feedback_until=0.;self.assertNotEqual(self.web.snapshot()['message'],message)
+ def test_kneel_quality_failure_disables_motion_until_reset(self):
+  self.model();self.skill.slow_kneel=SimpleNamespace(failed=torch.tensor([True]),contact_fraction=torch.tensor([.4]),
+    max_bilateral_loss_s=torch.tensor([.5]),max_air_s=torch.tensor([.1]),max_descent_mps=torch.tensor([1.]),
+    max_fast_descent_s=torch.tensor([.3]),max_hop_s=torch.tensor([0.]))
+  status=self.web.snapshot();self.assertTrue(status['slow_kneel']['failed'])
+  self.assertFalse(status['supported_actions']['unbox']);self.assertFalse(self.web.request('unbox'))
+ def test_successful_flip_returns_to_stand_hold_without_pose_write(self):
+  self.web.mode='backflip';self.skill.success[0]=True
+  q=self.robot.data.joint_pos.clone();root=self.robot.data.root_state_w.clone()
+  status=self.web.snapshot()
+  self.assertEqual(self.web.mode,'stand_hold');self.assertTrue(status['backflip']['success'])
+  self.assertEqual(status['last_completed_motion'],'backflip');self.assertEqual(self.calls[-1],('hold','stand'))
+  torch.testing.assert_close(q,self.robot.data.joint_pos);torch.testing.assert_close(root,self.robot.data.root_state_w)
 
 if __name__=='__main__':unittest.main()

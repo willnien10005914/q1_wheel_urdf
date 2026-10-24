@@ -15,12 +15,15 @@ from wheel_humanoid_lab.assets.q1_inertia import (
 )
 from .trajectory import VideoTrajectory, RELATIVE_REFERENCE, CONTRACT
 from .profiles import backflip_reference, general_leg_angles
+from .slow_crouch import SlowCrouchTrajectory, SlowCrouchQuality
 
 
 class ReferenceCommand(SlideCommand):
     def __init__(self,cfg,env):
         self.trajectory=VideoTrajectory(Path(WHEEL_HUMANOID_ROOT_DIR)/cfg.reference_path,
                                         Q1_INERTIA_JOINT_ORDER,Q1_INERTIA_URDF,device=env.device)
+        self.crouch_trajectory=SlowCrouchTrajectory(self.trajectory)
+        self.kneel_duration=self.crouch_trajectory.duration
         super().__init__(cfg,env)
         self.indices={name:i for i,name in enumerate(Q1_INERTIA_POSITION_JOINTS)}
         self.poses['stand']=self.trajectory.q[-1,:21].clone()
@@ -34,10 +37,21 @@ class ReferenceCommand(SlideCommand):
         self.support_body_ids,_=self.robot.find_bodies(self.support_names,preserve_order=True)
         self.support_sensor_ids,_=self.sensor.find_bodies(self.support_names,preserve_order=True)
         self.arm_indices=[self.indices[n] for n in Q1_INERTIA_POSITION_JOINTS if 'shoulder_' in n or 'elbow_' in n]
+        self.slow_kneel=SlowCrouchQuality(self.num_envs,self.device)
+
+    @property
+    def motion_duration(self):
+        return torch.where(self.mode==base.MODES.index('kneel'),self.kneel_duration,self.trajectory.duration)
+
+    def sample_motion(self,phase,reverse=False):
+        return self.crouch_trajectory.sample(phase) if reverse else self.trajectory.sample(phase)
+
+    def sample_motion_pitch(self,phase,reverse=False):
+        return self.crouch_trajectory.sample_pitch(phase) if reverse else self.trajectory.sample_pitch(phase)
 
     @property
     def normalized_phase(self):
-        phase=((self.elapsed+self.phase_offset)/self.trajectory.duration).clamp(0.,1.)
+        phase=((self.elapsed+self.phase_offset)/self.motion_duration).clamp(0.,1.)
         return torch.where(self.fixed_phase>=0,self.fixed_phase,phase)
 
     @property
@@ -53,6 +67,7 @@ class ReferenceCommand(SlideCommand):
         self.phase_offset[ids]=0.;self.fixed_phase[ids]=-1.
         self.ref_hold[ids]=0.;self.ref_best_hold[ids]=0.;self.ref_success[ids]=False
         self.touchdown_t[ids]=0.;self.early_air[ids]=False
+        if hasattr(self,'slow_kneel'):self.slow_kneel.reset(ids)
         self.tick=-1;self._update_command()
 
     def hold_pose(self,kind,env_ids=None):
@@ -67,7 +82,7 @@ class ReferenceCommand(SlideCommand):
         # Isaac resets episode_length_buf AFTER the command manager. Recording
         # its old episode length here would freeze the next episode at phase 0.
         self.start_step[ids]=0.
-        self.phase_offset[ids]=self.pending_reset_phase[ids]*self.trajectory.duration
+        self.phase_offset[ids]=self.pending_reset_phase[ids]*self.motion_duration[ids]
         if self.cfg.boot_squat:
             self.mode[ids]=base.MODES.index('kneel');self.fixed_phase[ids]=1.;self.sliding=False
         self._update_command()
@@ -81,7 +96,7 @@ class ReferenceCommand(SlideCommand):
 
     def target_height(self):
         _,up_height,_=self.trajectory.sample(self.normalized_phase)
-        _,down_height,_=self.trajectory.sample(self.normalized_phase,reverse=True)
+        _,down_height,_=self.sample_motion(self.normalized_phase,reverse=True)
         stand_height=self.trajectory.height[-1].expand(self.num_envs)
         result=torch.where(self.mode==base.MODES.index('standup'),up_height,
                            torch.where(self.mode==base.MODES.index('kneel'),down_height,stand_height))
@@ -93,7 +108,7 @@ class ReferenceCommand(SlideCommand):
         if not hasattr(self,'phase_offset'):return super().reference()
         stand=self.poses['stand'].expand(self.num_envs,-1)
         up,_,_=self.trajectory.sample(self.normalized_phase)
-        down,_,_=self.trajectory.sample(self.normalized_phase,reverse=True)
+        down,_,_=self.sample_motion(self.normalized_phase,reverse=True)
         ref=torch.where((self.mode==base.MODES.index('standup'))[:,None],up[:,:21],stand)
         ref=torch.where((self.mode==base.MODES.index('kneel'))[:,None],down[:,:21],ref)
         if self.sliding:
@@ -133,6 +148,9 @@ class ReferenceCommand(SlideCommand):
         normal=self.sensor.data.net_forces_w[:,self.support_sensor_ids,2].clamp_min(0.)
         support=(normal>12.).sum(-1)
         wheels=self.sensor.data.net_forces_w[:,self.wheel_sensor_ids,2].clamp_min(0.)
+        kneel=self.mode==base.MODES.index('kneel')
+        bilateral=self.slow_kneel.update(wheels,r.root_lin_vel_w[:,2],z-self.target_height(),
+                                        self.elapsed,kneel,self._env.step_dt)
         upright=-r.projected_gravity_b[:,2]
         still=(r.root_lin_vel_b.norm(dim=-1)<.25)&(r.root_ang_vel_b.norm(dim=-1)<.6)
         error=(r.joint_pos[:,self.pids]-self.reference()).square().mean(-1).sqrt()
@@ -140,6 +158,7 @@ class ReferenceCommand(SlideCommand):
         terminal=(self.normalized_phase>=.999)
         trajectory_mode=(self.mode==base.MODES.index('standup'))|(self.mode==base.MODES.index('kneel'))
         achieved=stable&(z-self.target_height()).abs().lt(.065)&torch.where(trajectory_mode,terminal,True)
+        achieved &= ~kneel | (bilateral & ~self.slow_kneel.failed & (self.slow_kneel.contact_fraction>=.95))
         cmd=self._env.command_manager.get_command('base_velocity')
         walk=self.mode==base.MODES.index('walk')
         moving_ok=(r.root_lin_vel_b[:,0]-cmd[:,0]).abs()<.18
@@ -239,7 +258,7 @@ def reset_reference(env,env_ids):
         phase=torch.rand(n,device=env.device)*level+(1-level)
         phase=torch.where((torch.rand(n,device=env.device)<.7)&(level>=.999),0.,phase)
         if not env.cfg.reference_phase_resets:phase.zero_()
-        q23,height,_=s.trajectory.sample(phase,reverse=skill=='kneel')
+        q23,height,_=s.sample_motion(phase,reverse=skill=='kneel')
         s.pending_reset_phase[ids]=phase
     else:
         endpoint=0. if env.cfg.boot_squat else 1.
@@ -252,7 +271,8 @@ def reset_reference(env,env_ids):
     root=robot.data.default_root_state[ids].clone();root[:,:3]+=env.scene.env_origins[ids]
     root[:,2]=env.scene.env_origins[ids,2]+height;root[:,7:]=0.
     phase_for_pitch=phase if skill in ('standup','kneel') else torch.full((len(ids),),endpoint,device=env.device)
-    pitch=s.trajectory.sample_pitch(phase_for_pitch,reverse=skill=='kneel' and not env.cfg.boot_squat)
+    pitch=(s.trajectory.sample_pitch(phase_for_pitch) if env.cfg.boot_squat else
+           s.sample_motion_pitch(phase_for_pitch,reverse=skill=='kneel'))
     root[:,3:7]=0.;root[:,3]=torch.cos(pitch/2);root[:,5]=torch.sin(pitch/2)
     robot.write_root_pose_to_sim(root[:,:7],env_ids=ids)
     robot.write_root_velocity_to_sim(root[:,7:],env_ids=ids)
@@ -267,7 +287,9 @@ def curriculum(env,env_ids,start_iter=0,steps_per_iteration=24):
 
 def pose_tracking(env):
     s=base.skill(env);error=(s.robot.data.joint_pos[:,s.pids]-s.reference()).square().mean(-1)
-    _,_,confidence=s.trajectory.sample(s.normalized_phase,reverse=env.cfg.reference_skill=='kneel')
+    _,_,up_confidence=s.trajectory.sample(s.normalized_phase)
+    _,_,down_confidence=s.sample_motion(s.normalized_phase,reverse=True)
+    confidence=torch.where(s.mode==base.MODES.index('kneel'),down_confidence,up_confidence)
     return torch.exp(-error/.06)*confidence.clamp(.2,1.)
 
 
@@ -293,6 +315,19 @@ def no_hop(env):
     return torch.where(flip,s.early_air.float(),none.float()+(s.robot.data.root_lin_vel_b[:,2].abs()-.35).clamp_min(0))
 
 
+def slow_crouch_cost(env):
+    s=base.skill(env);r=s.robot.data
+    kneel=s.mode==base.MODES.index('kneel')
+    normal=s.sensor.data.net_forces_w[:,s.wheel_sensor_ids,2].clamp_min(0.)
+    bilateral=(normal>8.).all(-1)
+    # A lost wheel remains costly before the sustained-failure timer fires.
+    # World vertical velocity avoids rewarding a pitched robot's local Z.
+    vertical=(r.root_lin_vel_w[:,2].abs()-.22).clamp_min(0.)
+    excess_height=(r.root_pos_w[:,2]-env.scene.env_origins[:,2]-s.target_height()-.05).clamp_min(0.)
+    cost=(~bilateral).float()+4*vertical+3*excess_height+s.slow_kneel.failed.float()
+    return torch.where(kneel&(s.elapsed>=.2),cost,0.)
+
+
 def landing_arms(env):
     s=base.skill(env);error=(s.robot.data.joint_pos[:,s.pids][:,s.arm_indices]-s.poses['stand'][s.arm_indices]).square().mean(-1)
     return torch.exp(-error/.03)*s.landed.float()
@@ -310,15 +345,24 @@ def failure(env):
     minimum=torch.where(flip,.07,minimum)
     tilt=(-r.projected_gravity_b[:,2]<.45)&~flip
     failed=(z<minimum)|tilt|s.illegal|s.early_air|((r.root_pos_w[:,:2]-env.scene.env_origins[:,:2]).norm(dim=-1)>12.)
+    failed |= (s.mode==base.MODES.index('kneel'))&s.slow_kneel.failed
     env._reference_last=dict(success=s.success.clone(),best_hold=s.best_hold.clone(),illegal=s.illegal.clone(),
         early_air=s.early_air.clone(),winding=s.winding.clone(),max_air=s.max_air_time.clone(),
-        cycles=s.cycles.cycles.clone(),phase=s.normalized_phase.clone())
+        cycles=s.cycles.cycles.clone(),phase=s.normalized_phase.clone(),
+        slow_kneel_failed=s.slow_kneel.failed.clone(),slow_kneel_contact_fraction=s.slow_kneel.contact_fraction.clone(),
+        slow_kneel_max_bilateral_loss_s=s.slow_kneel.max_bilateral_loss_s.clone(),
+        slow_kneel_max_air_s=s.slow_kneel.max_air_s.clone(),
+        slow_kneel_max_descent_mps=s.slow_kneel.max_descent_mps.clone(),
+        slow_kneel_max_fast_descent_s=s.slow_kneel.max_fast_descent_s.clone(),
+        slow_kneel_max_hop_s=s.slow_kneel.max_hop_s.clone())
     return failed
 
 
 def root_pitch_tracking(env):
     s=base.skill(env);r=s.robot.data
-    target=s.trajectory.sample_pitch(s.normalized_phase,reverse=env.cfg.reference_skill=='kneel')
+    up_target=s.trajectory.sample_pitch(s.normalized_phase)
+    down_target=s.sample_motion_pitch(s.normalized_phase,reverse=True)
+    target=torch.where(s.mode==base.MODES.index('kneel'),down_target,up_target)
     moving=(s.mode==base.MODES.index('walk'))|(s.mode==base.MODES.index('backflip'))
     target=torch.where(moving,torch.zeros_like(target),target)
     pitch=torch.atan2(r.projected_gravity_b[:,0],-r.projected_gravity_b[:,2])

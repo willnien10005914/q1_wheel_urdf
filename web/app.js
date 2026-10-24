@@ -1,4 +1,4 @@
-import { updateActionButtons, animateButton } from "./button_feedback.mjs?v=20261017-sliding";
+import { updateActionButtons, animateButton } from "./button_feedback.mjs?v=20261025-slow-kneel";
 import * as THREE from "./vendor/three/three.module.js";
 import { OrbitControls } from "./vendor/three/examples/jsm/controls/OrbitControls.js";
 import URDFLoader from "./vendor/urdf-loader/URDFLoader.js";
@@ -358,6 +358,13 @@ function applyIsaacState(state) {
     els.pose.textContent = state.message || `mode ${state.pose || "skate"}${rec}`;
   }
   updateActionButtons(state);
+  const recovery = document.getElementById("recovery-availability");
+  if (recovery) {
+    recovery.hidden = state.recovery_available !== false;
+    recovery.textContent = state.recovery_message || "";
+  }
+  const manualHint = document.getElementById("manual-control-hint");
+  if (manualHint) manualHint.textContent = state.manual_control_available === false ? "影片 PPO 播放期間關節滑桿僅顯示量測值；請使用動作按鈕，避免手動角度打斷慢蹲。" : "關節滑桿在站立待命時可調整。";
   const manualAvailable = state.manual_control_available !== false;
   document.querySelectorAll("[data-preset]").forEach((btn) => { btn.disabled = !manualAvailable; });
   Object.entries(sliderEls).forEach(([name, input]) => {

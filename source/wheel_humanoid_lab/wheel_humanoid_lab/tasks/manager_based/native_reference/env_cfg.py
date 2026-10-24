@@ -22,6 +22,7 @@ class ReferenceRewardsCfg(RewardsCfg):
     upright=RewTerm(func=mdp.base.upright_reward,weight=1.)
     support=RewTerm(func=mdp.contacts,weight=.5)
     no_hop=RewTerm(func=mdp.no_hop,weight=-2.)
+    slow_crouch=RewTerm(func=mdp.slow_crouch_cost,weight=-3.)
     landing_arms=RewTerm(func=mdp.landing_arms,weight=1.)
     push=RewTerm(func=mdp.push,weight=0.)
     recover=RewTerm(func=mdp.recover,weight=0.)
@@ -46,6 +47,11 @@ class ReferenceStandupEnvCfg(NativeStandEnvCfg):
 @configclass
 class ReferenceKneelEnvCfg(ReferenceStandupEnvCfg):
     reference_skill:str='kneel'
+    def __post_init__(self):
+        super().__post_init__()
+        # Retimed source currently takes ~20s; retain a generous terminal hold
+        # budget instead of truncating a slow descent at the old 8s timestamp.
+        self.episode_length_s=36.
 @configclass
 class ReferenceWalkEnvCfg(ReferenceStandupEnvCfg):
     reference_skill:str='walk'
