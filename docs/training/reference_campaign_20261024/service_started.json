@@ -1,0 +1,44 @@
+{
+  "service": "q1-wheel-reference-training.service",
+  "active_state_verified": "active",
+  "enabled_at_user_login": true,
+  "source_commit_at_install": "d83d096",
+  "status": "waiting_for_q1_leg",
+  "updated_at": "2026-10-24T11:25:49.613444+00:00",
+  "reference_ready": true,
+  "reference_sha256": "e485ee443870f2200eebf3a31ce3f856c81a86ef01137085092ca74c9813fe76",
+  "tracked_upstream_run": "/home/will/projects/q1_leg_urdf/checkpoints/isaac/upper_body_v6/runs/v6r1_stable_contact_20261024",
+  "upstream_statuses": [
+    {
+      "path": "/home/will/projects/q1_leg_urdf/outputs/upper_body_training_status.json",
+      "state": "training",
+      "run": "/home/will/projects/q1_leg_urdf/checkpoints/isaac/upper_body_v6/runs/v6r1_stable_contact_20261024",
+      "updated_at": "2026-10-24T11:25:45.307175+00:00"
+    },
+    {
+      "path": "/home/will/projects/q1_leg_urdf/checkpoints/isaac/upper_body_v6/runs/v6r1_stable_contact_20261024/supervisor_state.json",
+      "state": "training",
+      "run": "/home/will/projects/q1_leg_urdf/checkpoints/isaac/upper_body_v6/runs/v6r1_stable_contact_20261024",
+      "updated_at": "2026-10-24T11:25:45.307175+00:00"
+    }
+  ],
+  "waiting_reasons": [
+    "Upstream supervisor not terminal: training",
+    "Upstream supervisor not terminal: training",
+    "Upstream service remains active: q1-leg-upper-training.service",
+    "Upstream training/supervisor process still exists",
+    "Configured GPU still has compute consumers"
+  ],
+  "wheel_gpu_training_started": false,
+  "upstream_priority_confirmed_by_user": true,
+  "num_envs": 6144,
+  "iterations_each": 10000,
+  "skills": [
+    "standup",
+    "kneel",
+    "walk",
+    "backflip",
+    "skate"
+  ],
+  "isaac_smoke": "pending handover; CPU checks only so far"
+}

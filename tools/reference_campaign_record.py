@@ -46,7 +46,8 @@ try:
      cmd=env.command_manager.get_term('base_velocity');cmd.command[:]=torch.tensor([vx,0.,0.],device=env.device);cmd.time_left.fill_(1e9);cmd.is_standing_env.fill_(vx==0);s._update_command()
      obs=env.observation_manager.compute()['policy'];action=actors[current](obs) if current in actors else torch.zeros(1,23,device=env.device)
      env.step(action);r=env.scene['robot'].data;z=float(r.root_pos_w[0,2]-env.scene.env_origins[0,2]);up=float(-r.projected_gravity_b[0,2])
-     failed=bool(s.illegal[0]) or z<.14 or (current!='backflip' and up<.45)
+     finite=bool(torch.isfinite(r.root_state_w).all() and torch.isfinite(r.joint_pos).all())
+     failed=not finite or bool(s.illegal[0]) or z<.14 or (current!='backflip' and up<.45)
      if failed and first_failure is None:first_failure=step
      preview=not metadata.get(current,{}).get('validated',False)
      if step%25==0:trace.append(dict(step=step,skill=current,preview=preview,height=z,up=up,vx=float(r.root_lin_vel_b[0,0]),first_failure_step=first_failure,success=bool(s.success[0]),cycles=s.cycles.cycles[0].tolist()))
